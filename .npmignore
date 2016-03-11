@@ -1,0 +1,6 @@
+coverage
+src
+test
+.idea
+.travis.yml
+karma.config.js

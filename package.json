@@ -1,0 +1,51 @@
+{
+  "name": "mi-angular-bitdash-player",
+  "version": "0.0.0",
+  "description": "The bitdash player by bitmovin for AngularJS 1",
+  "author": {
+    "name": "MovingIMAGE24",
+    "url": "http://www.movingimage24.com/"
+  },
+  "contributors": [
+    {
+      "name": "Enrico Hoffmann",
+      "email": "enrico.hoffmann@movingimage.com"
+    }
+  ],
+  "main": "dist/mi-angular-bitdash-player.js",
+  "license": "MIT",
+  "keywords": [
+    "angular",
+    "bitdash"
+  ],
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MovingImage24/mi-angular-bitdash-player.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MovingImage24/mi-angular-bitdash-player/issues"
+  },
+  "homepage": "https://github.com/MovingImage24/mi-angular-bitdash-player#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "angular": "^1.4.8",
+    "jscs": "^2.7.0",
+    "jshint": "^2.8.0",
+    "jshint-stylish": "^2.1.0",
+    "ng-annotate-webpack-plugin": "^0.1.2",
+    "webpack": "^1.12.9"
+  },
+  "scripts": {
+    "prebuild:js": "npm run jscs && npm run jshint",
+    "build": "npm run build:js && npm run build:js-min",
+    "build:js": "webpack --config webpack.config.js",
+    "build:js-min": "webpack --config webpack.min.config.js",
+    "jscs": "jscs ./src ./test",
+    "jshint": "jshint ./src ./test --reporter node_modules/jshint-stylish/index.js",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  }
+}
