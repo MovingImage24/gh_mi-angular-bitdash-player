@@ -1,6 +1,6 @@
 {
   "name": "mi-angular-bitdash-player",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The bitdash player by bitmovin for AngularJS 1",
   "author": {
     "name": "MovingIMAGE24",
@@ -29,8 +29,7 @@
     "url": "https://github.com/MovingImage24/mi-angular-bitdash-player/issues"
   },
   "homepage": "https://github.com/MovingImage24/mi-angular-bitdash-player#readme",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "angular": "^1.4.8",
     "jscs": "^2.7.0",
