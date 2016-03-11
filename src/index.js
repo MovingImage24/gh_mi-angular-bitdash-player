@@ -6,10 +6,10 @@
 
 module.exports = angular
   .module('mi.BitdashPlayer', [
-    // currently no dependencies ...
+    'mi/template/bitdash-player.html'
   ])
 
-  // directive is missing
+  .directive('bitdashPlayer', require('./bitdash-directive'))
   .controller('BitdashController', require('./bitdash-controller'))
 
 ;

@@ -3,7 +3,10 @@
 /**
  * @ngInject
  */
-module.exports = function ($log) {
+module.exports = function ($scope, $log) {
   //var vm = this;
-  $log.info('bitdash player - controller loaded');
+  // controllerAs -> bitdashVm
+  $log.info('bitdash player - controller "bitdashVm" loaded');
+  $log.info('config: ', $scope.config);
+  $log.info('webcast: ', $scope.webcast);
 };

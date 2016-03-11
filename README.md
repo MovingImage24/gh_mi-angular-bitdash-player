@@ -39,10 +39,11 @@ $ npm run test
 
 ## Travis and npmjs
 
+Every push will trigger a test run at travis-ci (node.js-versions: 0.10, 0.12, 4.0, 4.1, 4.2 and 4.3). 
+
 ... coming soon ...
 
-Every push will trigger a test run at travis-ci (node.js-versions: 0.10, 0.12, 4.0, 4.1 and 4.2). In case of a tagged
-version and success (node.js 4.2) an automated pbulish to npmjs.org will be triggered by travis-ci.
+In case of a tagged version and success (node.js 4.3) an automated pbulish to npmjs.org will be triggered by travis-ci.
 
 
 ## Contributing
