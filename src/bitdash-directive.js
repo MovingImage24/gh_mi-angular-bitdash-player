@@ -7,7 +7,7 @@ module.exports = function ($log, $window) {
   return {
     restrict: 'EA', //E = element, A = attribute, C = class, M = comment
     replace: true,
-    bindToController: true,
+    //bindToController: true,
     controller: 'BitdashController',
     controllerAs: 'bitdashVm',
     templateUrl: function (element, attrs) {
@@ -18,34 +18,48 @@ module.exports = function ($log, $window) {
       config: '=bitdashConfig',
       webcast: '=bitdashWebcast'
     },
-
     link: function (scope) {
-      var config = scope.config;
-
-      //config.events = {
-      //  onReady: function (data) {
-      //    console.log('version: ' + this.getVersion() + ', onReady Event data: ', data);
-      //  },
-      //  onPlay: function (data) {
-      //    // do awesome stuff
-      //    console.log('here we go ...', data);
-      //  },
-      //  onError: function (data) {
-      //    console.error('An error occurred:', data);
-      //  }
-      //};
-
+      var config = scope.bitdashVm.config;
       var player = $window.window.bitdash('bitdash-player');
 
+      // tech support - flash and hls
+      var supportedTech = player.getSupportedTech();
+      // force HLS / Flash playback if available
+      var hlsTech = [];
+      var flashForce = false;
+      var cuepointsSupported = false;
+
+      angular.forEach(supportedTech, function (tech) {
+        if (tech.streaming === 'hls') {
+          hlsTech.push(tech.player + '.' + tech.streaming);
+        }
+      });
+
+      if (hlsTech.indexOf('flash.hls') !== -1) {
+        flashForce = true;
+        cuepointsSupported = true;
+      }
+
+      if (hlsTech.indexOf('native.hls') !== -1) {
+        flashForce = false;
+        cuepointsSupported = true;
+        // ToDo check for Android, Android does not support CuePoints via HTML5
+      }
+
+      // wenn man das teil doch nur re-rendern könnte ... so muss man das teil immer zerstören :(
       if (player.isReady()) {
         $log.info('Player already exists ... will destroy and reinit');  // ToDo remove after debugging
         player.destroy();
         player = $window.window.bitdash('bitdash-player');
       }
 
-      $log.info(config);  // ToDo remove after debugging
 
-      player.setup(config);
+      if (flashForce) {
+        player.setup(config, 'flash.hls');  // ToDo check docs for that funny parameter
+      } else {
+        player.setup(config);
+      }
+      //player.setup(config);
     }
   };
 };
