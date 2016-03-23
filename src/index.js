@@ -11,9 +11,6 @@ module.exports = angular
   .controller('MiBitdashController', ['$scope', '$log', function ($scope, $log) {
     var vm = this;
 
-    // vm.whoosah = 'how much is the fish'; // ToDo remove after implement some logical stuff ... currently only for tests
-    // $log.info(vm.whoosah);
-
     // copy the basic config ... key is mandatory
     vm.config = {};
     if (angular.isDefined($scope.config) && angular.isDefined($scope.config.key)) {
@@ -114,7 +111,7 @@ module.exports = angular
           cuepointsSupported = true;
           // ToDo check for Android, Android does not support CuePoints via HTML5
         }
-        
+
         if (flashForce) {
           player.setup(config, 'flash.hls');  // ToDo check docs for that funny parameter
         } else {
