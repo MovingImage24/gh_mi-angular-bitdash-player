@@ -7,6 +7,7 @@ module.exports = function ($scope, $log) {
   // controllerAs -> bitdashVm
   var vm = this;
   vm.whoosah = 'hyper hyper'; // ToDo remove after implement some logical stuff ... currently only for tests
+  $log.info(vm.whoosah);
 
   // copy the basic config ... key is mandatory
   vm.config = {};
