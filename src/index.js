@@ -83,15 +83,6 @@ module.exports = angular
         var config = scope.config;  // die config wird automatisch durch den controller erweitert
         var player = $window.window.bitdash('mi-bitdash-player');
 
-        if (player.isReady()) {
-          $log.info('Player already exists ... will destroy destroy and reinit');
-          player.destroy();
-          player = $window.window.bitdash('mi-bitdash-player');
-        }
-
-        // $log.warn(' player.isSetup :', player.isSetup());
-        // $log.warn(' player.isReady :', player.isReady());
-
         // tech support - flash and hls
         var supportedTech = player.getSupportedTech();
         // force HLS / Flash playback if available
@@ -114,6 +105,13 @@ module.exports = angular
           flashForce = false;
           cuepointsSupported = true;
           // ToDo check for Android, Android does not support CuePoints via HTML5
+        }
+
+        if (player.isReady() && !flashForce) {
+          // funktioniert derzeit nur für den NON-Flash ... flashie selbst fällt sehr laut hin ... Dreck
+          $log.info('Player already exists ... will destroy destroy and reinit');
+          player.destroy();
+          player = $window.window.bitdash('mi-bitdash-player');
         }
 
         if (flashForce) {
