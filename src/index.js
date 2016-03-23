@@ -80,10 +80,14 @@ module.exports = angular
         webcast: '='
       },
       link: function (scope) {
-        $log.info('miBitdashPlayer ... loaded');
-
         var config = scope.config;  // die config wird automatisch durch den controller erweitert
         var player = $window.window.bitdash('mi-bitdash-player');
+
+        if (player.isReady()) {
+          $log.info('Player already exists ... will destroy destroy and reinit');
+          player.destroy();
+          player = $window.window.bitdash('mi-bitdash-player');
+        }
 
         // $log.warn(' player.isSetup :', player.isSetup());
         // $log.warn(' player.isReady :', player.isReady());
