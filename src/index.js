@@ -71,7 +71,7 @@ module.exports = angular
       restrict: 'EA',
       replace: true,
       controller: 'MiBitdashController',
-      controllerAs: 'mimimi',
+      controllerAs: 'mibitdash',
       templateUrl: function (element, attrs) {
         return attrs.templateUrl || 'mi/template/bitdash-player.html';
       },
