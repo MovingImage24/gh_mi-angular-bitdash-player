@@ -35,7 +35,17 @@ module.exports = angular
 
     function getPlayerConfigSource(webcast) {
       var stateProperty = webcast.state + 'StateData';
+      if (webcast.useDVRPlaybackInPostLive === true && webcast.state === 'postlive') {
+        return getDVRPlaybackToPostLive(webcast);
+      }
       return getPlayerConfigSourceByState(webcast, stateProperty);
+    }
+
+    function getDVRPlaybackToPostLive(webcast) {
+      return {
+        hls: webcast['liveStateData'].playout.hlsUrl + '?DVR',
+        dash: webcast['liveStateData'].playout.dashUrl + '?DVR'
+      };
     }
 
     function getPlayerConfigSourceByState(webcast, state) {
