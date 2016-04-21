@@ -6,8 +6,7 @@
 module.exports = function ($scope, $log) {
     // controllerAs -> bitdashVm
     var vm = this;
-    vm.whoosah = 'hyper hyper'; // ToDo remove after implement some logical stuff ... currently only for tests
-    $log.info(vm.whoosah);
+
 
     // copy the basic config ... key is mandatory
     vm.config = {};
@@ -19,22 +18,31 @@ module.exports = function ($scope, $log) {
 
     // check webcast to expand and manipulate the basic bitdash player config
     if (angular.isDefined($scope.webcast)) {
-        vm.webcastEnv = {};
         processWebcast($scope.webcast);
     }
 
-    // player config ===================================================================================================
+    // player config ==========================================================================================
 
     function processWebcast(webcast) {
         vm.config.source = getPlayerConfigSource(webcast);
         vm.config.style = getPlayerConfigStyle(webcast);
     }
 
-    // player config - source ------------------------------------------------------------------------------------------
+    // player config - source ---------------------------------------------------------------------------------
 
     function getPlayerConfigSource(webcast) {
         var stateProperty = webcast.state + 'StateData';
+        if (webcast.useDVRPlaybackInPostLive === true && webcast.state === 'postlive') {
+            return getDVRPlaybackToPostLive(webcast);
+        }
         return getPlayerConfigSourceByState(webcast, stateProperty);
+    }
+
+    function getDVRPlaybackToPostLive(webcast) {
+        return {
+            hls: webcast['liveStateData'].playout.hlsUrl + '?DVR',
+            dash: webcast['liveStateData'].playout.dashUrl + '?DVR'
+        };
     }
 
     function getPlayerConfigSourceByState(webcast, state) {
@@ -61,5 +69,5 @@ module.exports = function ($scope, $log) {
 
         return style;
     }
-
 };
+
