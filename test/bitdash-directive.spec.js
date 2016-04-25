@@ -1,15 +1,37 @@
 'use strict';
 
-var BitdashDirective = require('./../src/bitdash-directive');
+var BitdashDirective = require('../src/bitdash-directive');
 
 describe('BitdashDirective', function () {
 
-    var $compile, $rootScope, scope, elem, template, $templateCache, windowmock;
+    var $compile, $rootScope, scope, elem, template, $templateCache, windowmock, bitdash,window, response;
 
     beforeEach(function () {
+        //response = [{streaming: 'hls', player: 'flash'}];
         windowmock = jasmine.createSpy('$window');
+        window = jasmine.createSpy('window');
+        window.bitdash = function () {
+            return {
+                getSupportedTech: function () {
+                    return response;
+                },
+                isReady: function() {
+                    return true;
+                },
+                destroy: function() {
+                    return true;
+                },
+                setup: function() {
+                    return true;
+                }
+            }
+        };
+        windowmock = {
+            window: window
+        };
+
         angular.mock.module(function ($compileProvider, $provide) {
-            $compileProvider.directive('bitdash-directive', BitdashDirective);
+            $compileProvider.directive('miBitdashPlayer', BitdashDirective);
             $provide.factory('$window', function () {
                 return windowmock;
             });
@@ -19,26 +41,34 @@ describe('BitdashDirective', function () {
             $rootScope = $injector.get('$rootScope');
             $templateCache = $injector.get('$templateCache');
             template = angular.element('<mi-bitdash-player config="webcastMainVm.playerConfig" ' +
-                'webcast="webcastMainVm.webcast"></mi-bitdash-player>');
+              'webcast="webcastMainVm.webcast"></mi-bitdash-player>');
             $templateCache.put('mi/template/bitdash-player.html',
-                '<div id="mi-bitdash-player"></div>'
+              '<div id="mi-bitdash-player"></div>'
             );
             scope = $rootScope.$new();
-            scope.webcast = {
-                name: 'MovingImage24'
-            };
             elem = $compile(template)(scope);
             scope.$digest();
         });
     });
 
-
     it('should init the directive', function () {
+        response = [{streaming: 'hls', player: 'flash'}];
         //console.log($compile(template)($scope));
-        expect(angular.element(elem).attr('config')).toBeDefined();
+        //expect(angular.element(elem).attr('config')).toBeDefined();
         //expect(angular.element(elem).getAttribute('mi-bitdash-player').name).toBe('mi-bitdash-player');
         //expect(elem.html()).toContain($scope.webcast.name);
         //expect(elem.isolateScope().webcast).toEqual($scope.webcast);
         //expect(angular.element(elem).getAttributeNode('mi-bitdash-player').name).toBe('mi-bitdash-player');
     });
+    it('should init the directive2', function () {
+       response = [{streaming: 'hls', player: 'native'}];
+        //console.log($compile(template)($scope));
+        //expect(angular.element(elem).attr('config')).toBeDefined();
+        //expect(angular.element(elem).getAttribute('mi-bitdash-player').name).toBe('mi-bitdash-player');
+        //expect(elem.html()).toContain($scope.webcast.name);
+        //expect(elem.isolateScope().webcast).toEqual($scope.webcast);
+        //expect(angular.element(elem).getAttributeNode('mi-bitdash-player').name).toBe('mi-bitdash-player');
+    });
+
+
 });
