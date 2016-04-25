@@ -9,7 +9,8 @@ module.exports = function (karma) {
       'node_modules/angular/angular.js',
       'node_modules/angular-mocks/angular-mocks.js',
       'src/index.js',
-      'test/**/*spec.js'
+      'test/*spec.js',
+      'test/*.js'
     ],
 
     reporters: ['progress', 'coverage', 'coveralls'],
@@ -23,7 +24,8 @@ module.exports = function (karma) {
     },
     preprocessors: {
       'src/index.js': ['webpack'],
-      'test/**/*spec.js': ['webpack']
+      'test/**/*spec.js': ['webpack'],
+      'src/*.html': ['ng-html2js']
     },
 
     browsers: ['PhantomJS'],
@@ -40,6 +42,9 @@ module.exports = function (karma) {
           loader: 'istanbul-instrumenter'
         }]
       }
-    }
+    },
+    ngHtml2JsPreprocessor: {
+      stripPrefix: 'mi-angular-bitdash-player/',
+    },
   });
 };
