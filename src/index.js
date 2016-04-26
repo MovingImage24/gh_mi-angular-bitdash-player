@@ -12,3 +12,9 @@ module.exports = angular
     .controller('MiBitdashController', BitdashController)
     // directive //////////////////////////////////////////////////////////////////////////////////////////////////////
     .directive('miBitdashPlayer', BitdashDirective);
+angular.module('mi/template/bitdash-player.html', [])
+  .run(['$templateCache', function ($templateCache) {
+      $templateCache.put('mi/template/bitdash-player.html',
+        '<div id="mi-bitdash-player"></div>'
+      );
+  }]);

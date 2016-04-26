@@ -11,7 +11,7 @@ module.exports = function ($window) {
       //  controller: 'MiBitdashController',
       //  controllerAs: 'mibitdash',
         templateUrl: 'mi/template/bitdash-player.html',
-
+        //bindToController: true,
         //templateUrl: 'mi/template/bitdash-player.html',
         scope: {
             config: '=',
@@ -61,8 +61,6 @@ module.exports = function ($window) {
     };
 };
 
-angular.module('mi/template/bitdash-player.html', []).run(['$templateCache', function ($templateCache) {
-    $templateCache.put('mi/template/bitdash-player.html',
-        '<div id="mi-bitdash-player"></div>'
-    );
-}]);
+
+
+
