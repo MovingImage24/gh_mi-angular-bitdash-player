@@ -8,11 +8,7 @@ module.exports = function ($window) {
     return {
         restrict: 'EA',
         replace: true,
-      //  controller: 'MiBitdashController',
-      //  controllerAs: 'mibitdash',
         templateUrl: 'mi/template/bitdash-player.html',
-        //bindToController: true,
-        //templateUrl: 'mi/template/bitdash-player.html',
         scope: {
             config: '=',
             webcast: '='
@@ -47,7 +43,6 @@ module.exports = function ($window) {
 
             if (player.isReady() && !flashForce) {
                 // funktioniert derzeit nur für den NON-Flash ... flashie selbst fällt sehr laut hin ... Dreck
-               // $log.info('Player already exists ... will destroy destroy and reinit');
                 player.destroy();
                 player = $window.window.bitdash('mi-bitdash-player');
             }

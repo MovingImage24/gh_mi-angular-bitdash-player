@@ -4,7 +4,7 @@ var BitdashDirective = require('../src/bitdash-directive');
 
 describe('BitdashDirective', function () {
 
-    var $compile, $rootScope, scope, elem, template, $templateCache, windowmock, bitdash,window,
+    var $compile, $rootScope, scope, elem, template, $templateCache, windowmock, window,
         response = [{streaming: 'hls', player: 'flash'}, {streaming: 'hls', player: 'native'}];
 
     beforeEach(function () {
@@ -24,7 +24,7 @@ describe('BitdashDirective', function () {
                     setup: function() {
                         return true;
                     }
-            }
+            };
         };
         windowmock = {
             window: window
@@ -52,7 +52,8 @@ describe('BitdashDirective', function () {
                     state: 'postlive',
                     preliveStateData: {
                         playout: {
-                            hdsUrl: 'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_53393_7971020_16x9_fh.mp4',
+                            hdsUrl:
+                                'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_53393_7971020_16x9_fh.mp4',
                             hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_53393_7971020_16x9_hq.mp4/' +
                             'master.m3u8',
                             dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
@@ -60,7 +61,8 @@ describe('BitdashDirective', function () {
                     },
                     postliveStateData: {
                         playout: {
-                            hdsUrl: 'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4',
+                            hdsUrl:
+                                'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4',
                             hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4/' +
                             'master.m3u8',
                             dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
@@ -94,30 +96,5 @@ describe('BitdashDirective', function () {
 
     it('should init the directive', function () {
         response = [{streaming: 'hds', player: 'native'}];
-        console.log(elem.html());
-        //console.log($compile(template)($scope));
-        //expect(angular.element(elem).attr('config')).toBeDefined();
-        //expect(angular.element(elem).getAttribute('mi-bitdash-player').name).toBe('mi-bitdash-player');
-        //expect(elem.html()).toContain($scope.webcast.name);
-        //expect(elem.isolateScope().webcast).toEqual($scope.webcast);
-        //expect(angular.element(elem).getAttributeNode('mi-bitdash-player').name).toBe('mi-bitdash-player');
     });
-
-    it('should init the directive2', function () {
-        response = [{streaming: 'hls', player: 'flash'}];
-        //console.log($compile(template)($scope));
-        //expect(angular.element(elem).attr('config')).toBeDefined();
-        //expect(angular.element(elem).getAttribute('mi-bitdash-player').name).toBe('mi-bitdash-player');
-        //expect(elem.html()).toContain($scope.webcast.name);
-        //expect(elem.isolateScope().webcast).toEqual($scope.webcast);
-        //expect(angular.element(elem).getAttributeNode('mi-bitdash-player').name).toBe('mi-bitdash-player');
-    });
-
-    it('should init the directive2', function () {
-
-    });
-
-
-
-
 });
