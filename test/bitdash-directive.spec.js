@@ -54,7 +54,8 @@
 //                        playout: {
 //                            hdsUrl:
 //                                'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_53393_7971020_16x9_fh.mp4',
-//                            hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_53393_7971020_16x9_hq.mp4/' +
+//                            hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/'+
+//                            'videodb_519_53393_7971020_16x9_hq.mp4/' +
 //                            'master.m3u8',
 //                            dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
 //                        }
@@ -63,7 +64,8 @@
 //                        playout: {
 //                            hdsUrl:
 //                                'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4',
-//                            hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4/' +
+//                            hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/' +
+//                            'videodb_519_76439_7579412_16x9_hd.mp4/' +
 //                            'master.m3u8',
 //                            dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
 //                        }
