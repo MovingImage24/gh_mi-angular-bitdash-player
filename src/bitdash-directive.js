@@ -8,8 +8,8 @@ module.exports = function ($window) {
     return {
         restrict: 'EA',
         replace: true,
-        //controller: 'BitdashController',
-        //controllerAs: 'bitdashVm',
+        controller: 'MiBitdashController',
+        controllerAs: 'bitdashVm',
         templateUrl: 'mi/template/bitdash-player.html',
         scope: {
             config: '=',
