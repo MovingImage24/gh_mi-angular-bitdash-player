@@ -51,7 +51,7 @@ describe('BitdashController', function () {
                   showQnA: false,
                   showChat: true,
                   showSlides: true,
-                  useDVRPlaybackInPostLive: false
+                  useDVRPlaybackInPostlive: false
                 }
       };
       locals = {
@@ -88,10 +88,10 @@ describe('BitdashController', function () {
     expect($scope.webcast.audioOnly).toBeDefined();
   });
 
-  it('should configure the player DVR Record in postLive', function() {
-    $scope.webcast.useDVRPlaybackInPostLive = true;
+  it('should configure the player DVR Record in postlive', function() {
+    $scope.webcast.useDVRPlaybackInPostlive = true;
     createController();
-    expect($scope.webcast.useDVRPlaybackInPostLive).toBeTruthy();
+    expect($scope.webcast.useDVRPlaybackInPostlive).toBeTruthy();
   });
 
 });
