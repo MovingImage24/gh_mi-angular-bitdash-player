@@ -15,5 +15,10 @@ var BitdashController = require('./bitdash-controller'),
 
     angular.module('mi/template/bitdash-player.html', [])
         .run(['$templateCache', function ($templateCache) {
-            $templateCache.put('mi/template/bitdash-player.html', '<div id="mi-bitdash-player"></div>');
+          $templateCache.put('mi/template/bitdash-player.html', '<div>' +
+            '<div ng-show="showAudioOnlyStillImage" id="player-audioonly-still-div" width="100%" height="auto">' +
+            '<img class="img-responsive" ng-src="{{audioOnlyStillImageUrl}}">' +
+            '</div>' +
+            '<div id="mi-bitdash-player" width="100%" height="auto"></div>' +
+            '</div>');
         }]);
