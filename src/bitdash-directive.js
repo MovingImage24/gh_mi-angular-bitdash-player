@@ -54,6 +54,11 @@ module.exports = function ($window) {
             } else {
                 player.setup(config);
             }
+
+            if (angular.isDefined(scope.showAudioOnlyStillImage) && scope.showAudioOnlyStillImage) {
+                var bitmovinControlbar = angular.element(document.getElementsByClassName('bitdash-vc'));
+                bitmovinControlbar[0].style.minHeight = '30px';
+            }
         }
     };
 };
