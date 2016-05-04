@@ -32,13 +32,13 @@ module.exports = function ($scope, $log) {
 
     function getPlayerConfigSource(webcast) {
         var stateProperty = webcast.state + 'StateData';
-        if (webcast.useDVRPlaybackInPostLive === true && webcast.state === 'postlive') {
-            return getDVRPlaybackToPostLive(webcast);
+        if (webcast.useDVRPlaybackInPostlive === true && webcast.state === 'postlive') {
+            return getDVRPlaybackToPostlive(webcast);
         }
         return getPlayerConfigSourceByState(webcast, stateProperty);
     }
 
-    function getDVRPlaybackToPostLive(webcast) {
+    function getDVRPlaybackToPostlive(webcast) {
         return {
             hls: webcast['liveStateData'].playout.hlsUrl.replace('/master.m3u8', 'Dvr/master.m3u8?DVR'),
             dash: webcast['liveStateData'].playout.dashUrl.replace('/playlist.m3u8', 'Dvr/playlist.m3u8?DVR')
