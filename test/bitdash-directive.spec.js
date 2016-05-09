@@ -1,102 +1,92 @@
-//'use strict';
-//
-//var BitdashDirective = require('../src/bitdash-directive');
-//
-//describe('BitdashDirective', function () {
-//
-//    var $compile, $rootScope, scope, elem, template, $templateCache, windowmock, window,
-//        response = [{streaming: 'hls', player: 'flash'}, {streaming: 'hls', player: 'native'}];
-//
-//    beforeEach(function () {
-//        windowmock = jasmine.createSpy('$window');
-//        window = jasmine.createSpy('window');
-//        window.bitdash = function () {
-//            return {
-//                    getSupportedTech: function () {
-//                        return response;
-//                    },
-//                    isReady: function() {
-//                        return true;
-//                    },
-//                    destroy: function() {
-//                        return true;
-//                    },
-//                    setup: function() {
-//                        return true;
-//                    }
-//            };
-//        };
-//        windowmock = {
-//            window: window
-//        };
-//
-//        angular.mock.module(function ($compileProvider, $provide) {
-//            $compileProvider.directive('miBitdashPlayer', BitdashDirective);
-//            $provide.factory('$window', function () {
-//                return windowmock;
-//            });
-//        });
-//        angular.mock.inject(function ($injector) {
-//            $compile = $injector.get('$compile');
-//            $rootScope = $injector.get('$rootScope');
-//
-//            $templateCache = $injector.get('$templateCache');
-//            $templateCache.put('mi/template/bitdash-player.html', '<div id="mi-bitdash-player"></div>');
-//            template = angular.element('<mi-bitdash-player config="config" webcast="webcast"></mi-bitdash-player>');
-//            scope = $rootScope.$new();
-//            scope.config= {key: '123456879'};
-//            scope.webcast= {
-//                    id: '570b9ab86b756510008b4578',
-//                    name: 'Webcast Excample (3)',
-//                    customer: {id: '570b9ab86b756510008b4567', name: 'MovingIMAGE24 GmbH', 'type': 'admin'},
-//                    state: 'postlive',
-//                    preliveStateData: {
-//                        playout: {
-//                            hdsUrl:
-//                                'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_53393_7971020_16x9_fh.mp4',
-//                            hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/'+
-//                            'videodb_519_53393_7971020_16x9_hq.mp4/' +
-//                            'master.m3u8',
-//                            dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
-//                        }
-//                    },
-//                    postliveStateData: {
-//                        playout: {
-//                            hdsUrl:
-//                                'http://download.cdn.edge-cdn.net/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4',
-//                            hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/' +
-//                            'videodb_519_76439_7579412_16x9_hd.mp4/' +
-//                            'master.m3u8',
-//                            dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
-//                        }
-//                    },
-//                    liveStateData: {
-//                        playout: {
-//                            hdsUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.f4m',
-//                            hlsUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8',
-//                            dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd'
-//                        },
-//                        broadcast: {
-//                            serverUrl: 'rtmp://live-ingest.edge-cdn.net:1935/webcast/',
-//                            streamName: 'myStream'
-//                        }
-//                    },
-//                    theme: {
-//                        logoUrl: 'https://cdn.colorlib.com/wp/wp-content/uploads/sites/2/2014/02/Olympic-logo.png',
-//                        backgroundColor: '#ffffff'
-//                    },
-//                    showDataminerForm: false,
-//                    showQnA: false,
-//                    showChat: true,
-//                    showSlides: true,
-//                    useDVRPlaybackInPostLive: false
-//                };
-//            elem = $compile(template)(scope);
-//            scope.$digest();
-//        });
-//    });
-//
-//    it('should init the directive', function () {
-//        response = [{streaming: 'hds', player: 'native'}];
-//    });
-//});
+'use strict';
+
+var BitdashDirective = require('./../src/bitdash-directive');
+
+describe('BitdashDirective', function () {
+
+  var template, player;
+  template = '<mi-bitdash-player config="webcastMainVm.playerConfig"' +
+    ' webcast="webcastMainVm.webcast"></mi-bitdash-player>';
+
+  beforeEach(function () {
+    var window = jasmine.createSpy('window');
+    player = jasmine.createSpyObj('player', ['getSupportedTech', 'isReady', 'destroy', 'setup']);
+    player.isReady.and.returnValue(true);
+    window.bitdash = function () {
+      return player;
+    };
+
+    var winMock = {window: window};
+    var docMock = angular.element(document);
+    docMock.find('body').append('<div class="bitdash-vc"></div>');
+    angular.mock.module(function ($compileProvider, $controllerProvider, $provide) {
+      $compileProvider.directive('miBitdashPlayer', BitdashDirective);
+      $controllerProvider.register('MiBitdashController', function () {});
+      $provide.value('document', docMock);
+      $provide.value('$window', winMock);
+    });
+  });
+
+  beforeEach(window.inject(function($templateCache) {
+    $templateCache.put('mi/template/bitdash-player.html', '<div>' +
+      '<div ng-show="showAudioOnlyStillImage" id="player-audioonly-still-div" width="100%" height="auto">' +
+      '<img class="img-responsive" ng-src="{{audioOnlyStillImageUrl}}">' +
+      '</div>' +
+      '<div id="mi-bitdash-player" width="100%" height="auto"></div>' +
+      '</div>');
+  }));
+
+  it('Should set up the player in flash mode', angular.mock.inject(function ($compile, $rootScope) {
+    player.getSupportedTech.and.returnValue([{streaming: 'hls', player: 'flash'}]);
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: false
+        }
+      }
+    }};
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+    expect(player.getSupportedTech).toHaveBeenCalled();
+    expect(player.destroy).not.toHaveBeenCalled();
+    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'}, 'flash.hls');
+  }));
+
+  it('Should set up the player in native mode', angular.mock.inject(function ($compile, $rootScope) {
+    player.getSupportedTech.and.returnValue([{streaming: 'hls', player: 'native'}]);
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: false
+        }
+      }
+    }};
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+    expect(player.getSupportedTech).toHaveBeenCalled();
+    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
+    expect(player.destroy).toHaveBeenCalledTimes(1);
+  }));
+
+  it('Should set up the player for audio only in flash mode', angular.mock.inject(function ($compile, $rootScope) {
+    player.getSupportedTech.and.returnValue([{streaming: 'hls', player: 'flash'}]);
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: true
+        }
+      }
+    }};
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+    expect(player.getSupportedTech).toHaveBeenCalled();
+    expect(player.destroy).not.toHaveBeenCalled();
+    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'}, 'flash.hls');
+  }));
+});

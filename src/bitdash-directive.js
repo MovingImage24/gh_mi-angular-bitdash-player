@@ -55,7 +55,8 @@ module.exports = function ($window) {
                 player.setup(config);
             }
 
-            if (angular.isDefined(scope.showAudioOnlyStillImage) && scope.showAudioOnlyStillImage) {
+            var state = scope.webcast.state + 'StateData';
+            if (angular.isDefined(scope.webcast[state].playout.audioOnly) && scope.webcast[state].playout.audioOnly) {
                 var bitmovinControlbar = angular.element(document.getElementsByClassName('bitdash-vc'));
                 bitmovinControlbar[0].style.minHeight = '30px';
             }
