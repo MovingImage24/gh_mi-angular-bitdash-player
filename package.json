@@ -35,7 +35,7 @@
     "angular-mocks": "^1.4.9",
     "istanbul-instrumenter-loader": "^0.2.0",
     "jasmine-core": "^2.3.4",
-    "jscs": "^2.7.0",
+    "jscs": "^3.0.0",
     "jshint": "^2.8.0",
     "jshint-stylish": "^2.1.0",
     "karma": "^0.13.6",
