@@ -10,10 +10,14 @@ module.exports = function ($scope, $log) {
 
     // copy the basic config ... key is mandatory
     vm.config = {};
+    vm.options = {};
     if (angular.isDefined($scope.config) && angular.isDefined($scope.config.key)) {
         vm.config = $scope.config;
     } else {
         $log.error('basic config for bitdash player is missing!');
+    }
+    if (angular.isDefined($scope.options)) {
+        vm.options = $scope.options;
     }
 
     // check webcast to expand and manipulate the basic bitdash player config
@@ -25,6 +29,11 @@ module.exports = function ($scope, $log) {
 
     function processWebcast(webcast) {
         var stateProperty = webcast.state + 'StateData';
+
+        if (angular.isDefined(vm.options.forcedState)) {
+            stateProperty = vm.options.forcedState + 'StateData';
+        }
+
         vm.config.source = getPlayerConfigSource(webcast, stateProperty);
         vm.config.style = getPlayerConfigStyle(webcast, stateProperty);
     }
@@ -32,7 +41,7 @@ module.exports = function ($scope, $log) {
     // player config - source ---------------------------------------------------------------------------------
 
     function getPlayerConfigSource(webcast, state) {
-        if (webcast.useDVRPlaybackInPostlive === true && webcast.state === 'postlive') {
+        if (webcast.useDVRPlaybackInPostlive === true && state === 'postliveStateData') {
             return getDVRPlaybackToPostlive(webcast);
         }
 

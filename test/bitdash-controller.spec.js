@@ -78,9 +78,7 @@ describe('BitdashController', function () {
       'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8');
     expect(vm.config.style.autoHideControls).toBeTruthy();
     expect(vm.config.style.aspectratio).toBe('16:9');
-
   });
-
 
   it('should configure the player DVR Record in postlive', function () {
     $scope.webcast.useDVRPlaybackInPostlive = true;
@@ -103,5 +101,19 @@ describe('BitdashController', function () {
     expect(vm.config.style.autoHideControls).toBeFalsy();
     expect($scope.audioOnlyStillImageUrl).toContain('data:image/jpeg;base64,');
     expect(vm.config.style.aspectratio).toBeUndefined();
+  });
+
+  it('should configure the player without forced state', function() {
+    var vm = createController();
+    expect(vm.config.source.hls).toBe('http://hd2.cdn.edge-cdn.net/i/videodb/519/' +
+      'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8');
+    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd');
+  });
+
+  it('should configure the player with forced live state', function() {
+    $scope.options = {forcedState: 'live'};
+    var vm = createController();
+    expect(vm.config.source.hls).toBe('https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8');
+    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd');
   });
 });
