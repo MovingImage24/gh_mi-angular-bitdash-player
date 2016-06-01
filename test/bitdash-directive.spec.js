@@ -89,4 +89,78 @@ describe('BitdashDirective', function () {
     expect(player.destroy).not.toHaveBeenCalled();
     expect(player.setup).toHaveBeenCalledWith({foo: 'bar'}, 'flash.hls');
   }));
+
+  it('Should set up the player without options attribute', angular.mock.inject(function ($compile, $rootScope) {
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: true
+        }
+      }
+    }};
+    var elem = angular.element(template);
+    var element = $compile(elem)($rootScope);
+    $rootScope.$apply();
+    var scope = element.isolateScope();
+    expect(scope.options).toBeUndefined();
+  }));
+
+  it('Should set up the player without otions', angular.mock.inject(function ($compile, $rootScope) {
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: true
+        }
+      }
+    }};
+    template = '<mi-bitdash-player config="webcastMainVm.playerConfig"' +
+      ' webcast="webcastMainVm.webcast" options="webcastMainVm.options"></mi-bitdash-player>';
+    var elem = angular.element(template);
+    var element = $compile(elem)($rootScope);
+    $rootScope.$apply();
+    var scope = element.isolateScope();
+    expect(scope.options).toBeUndefined();
+  }));
+
+  it('Should set up the player without forced state', angular.mock.inject(function ($compile, $rootScope) {
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: true
+        }
+      }
+    },
+    options: {speak: 'spell'}};
+    template = '<mi-bitdash-player config="webcastMainVm.playerConfig"' +
+      ' webcast="webcastMainVm.webcast" options="webcastMainVm.options"></mi-bitdash-player>';
+    var elem = angular.element(template);
+    var element = $compile(elem)($rootScope);
+    $rootScope.$apply();
+    var scope = element.isolateScope();
+    expect(scope.options).toBeDefined();
+    expect(scope.options.forcedState).toBeUndefined();
+  }));
+
+  it('Should set up the player with forced live state', angular.mock.inject(function ($compile, $rootScope) {
+    $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
+      state: 'postlive',
+      postliveStateData: {
+        playout: {
+          audioOnly: true
+        }
+      }
+    },
+      options: {forcedState: 'live'}
+    };
+    template = '<mi-bitdash-player config="webcastMainVm.playerConfig"' +
+      ' webcast="webcastMainVm.webcast" options="webcastMainVm.options"></mi-bitdash-player>';
+    var elem = angular.element(template);
+    var element = $compile(elem)($rootScope);
+    $rootScope.$apply();
+    var scope = element.isolateScope();
+    expect(scope.options.forcedState).toBe('live');
+  }));
 });

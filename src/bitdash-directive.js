@@ -13,12 +13,13 @@ module.exports = function ($window) {
         templateUrl: 'mi/template/bitdash-player.html',
         scope: {
             config: '=',
-            webcast: '='
+            webcast: '=',
+            options: '=?'
+
         },
         link: function (scope) {
             var config = scope.config;  // die config wird automatisch durch den controller erweitert
             var player = $window.window.bitdash('mi-bitdash-player');
-
             // tech support - flash and hls
             var supportedTech = player.getSupportedTech();
             // force HLS / Flash playback if available
