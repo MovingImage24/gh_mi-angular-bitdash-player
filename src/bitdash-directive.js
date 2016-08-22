@@ -51,7 +51,7 @@ module.exports = function ($window) {
             }
 
             if (flashForce) {
-                player.setup(config, 'flash.hls');  // ToDo check docs for that funny parameter
+                player.setup(config);   // ToDo check docs for that funny parameter
             } else {
                 player.setup(config);
             }
