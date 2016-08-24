@@ -51,7 +51,7 @@ describe('BitdashDirective', function () {
     $rootScope.$apply();
     expect(player.getSupportedTech).toHaveBeenCalled();
     expect(player.destroy).not.toHaveBeenCalled();
-    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
+    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'}, 'flash.hls');
   }));
 
   it('Should set up the player in native mode', angular.mock.inject(function ($compile, $rootScope) {
@@ -87,7 +87,7 @@ describe('BitdashDirective', function () {
     $rootScope.$apply();
     expect(player.getSupportedTech).toHaveBeenCalled();
     expect(player.destroy).not.toHaveBeenCalled();
-    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
+    expect(player.setup).toHaveBeenCalledWith({foo: 'bar'}, 'flash.hls');
   }));
 
   it('Should set up the player without options attribute', angular.mock.inject(function ($compile, $rootScope) {
