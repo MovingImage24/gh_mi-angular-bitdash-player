@@ -50,11 +50,11 @@ module.exports = function ($window) {
                 player = $window.window.bitdash('mi-bitdash-player');
             }
 
-            if (flashForce) {
-                player.setup(config, 'flash.hls');   // ToDo check docs for that funny parameter
-            } else {
+            // if (flashForce) {
+            //     player.setup(config);   // ToDo check docs for that funny parameter
+            // } else {
                 player.setup(config);
-            }
+
 
             var state = scope.webcast.state + 'StateData';
             if (angular.isDefined(scope.webcast[state].playout.audioOnly) && scope.webcast[state].playout.audioOnly) {
