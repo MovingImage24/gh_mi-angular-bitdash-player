@@ -12,9 +12,9 @@ describe('BitdashDirective', function () {
     var window = jasmine.createSpy('window');
     player = jasmine.createSpyObj('player', ['getSupportedTech', 'isReady', 'destroy', 'setup']);
     player.isReady.and.returnValue(true);
-    window.bitdash = function () {
-      return player;
-    };
+    window.bitmovin = {
+                      player: function () { return player;}
+                    };
 
     var winMock = {window: window};
     var docMock = angular.element(document);

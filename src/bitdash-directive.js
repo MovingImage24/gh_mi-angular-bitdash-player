@@ -19,7 +19,7 @@ module.exports = function ($window) {
         },
         link: function (scope) {
             var config = scope.config;  // die config wird automatisch durch den controller erweitert
-            var player = $window.window.bitdash('mi-bitdash-player');
+            var player = $window.window.bitmovin.player('mi-bitdash-player');
             // tech support - flash and hls
             var supportedTech = player.getSupportedTech();
             // force HLS / Flash playback if available
@@ -47,7 +47,7 @@ module.exports = function ($window) {
             if (player.isReady() && !flashForce) {
                 // funktioniert derzeit nur für den NON-Flash ... flashie selbst fällt sehr laut hin ... Dreck
                 player.destroy();
-                player = $window.window.bitdash('mi-bitdash-player');
+                player =  $window.window.bitmovin.player('mi-bitdash-player');
             }
 
             // if (flashForce) {
