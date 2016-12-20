@@ -49,9 +49,9 @@ module.exports = function ($window) {
                 player.destroy();
                 player =  $window.window.bitmovin.player('mi-bitdash-player');
             }
-          
+
                 player.setup(config);
-          
+
             var state = scope.webcast.state + 'StateData';
             if (angular.isDefined(scope.webcast[state].playout.audioOnly) && scope.webcast[state].playout.audioOnly) {
                 var bitmovinControlbar = angular.element(document.getElementsByClassName('bitdash-vc'));
