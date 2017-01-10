@@ -56,6 +56,7 @@ module.exports = function ($window) {
             if (angular.isDefined(scope.webcast[state].playout.audioOnly) && scope.webcast[state].playout.audioOnly) {
                 var bitmovinControlbar = angular.element(document.getElementsByClassName('bitdash-vc'));
                 bitmovinControlbar[0].style.minHeight = '30px';
+                bitmovinControlbar[0].style.minWidth = '195px';
             }
         }
     };
