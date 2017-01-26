@@ -56,10 +56,18 @@ module.exports = function ($scope, $log) {
     }
 
     function getPlayerConfigSourceByState(webcast, state) {
-        return {
-            hls: webcast[state].playout.hlsUrl,
-            dash: webcast[state].playout.dashUrl
-        };
+      var hls = webcast[state].playout.hlsUrl;
+
+      if (typeof webcast[state].playout.videoManagerHlsUrl !== 'undefined' &&
+        webcast[state].playout.videoManagerHlsUrl
+      ) {
+        hls = webcast[state].playout.videoManagerHlsUrl;
+      }
+
+      return {
+        hls: hls,
+        dash: webcast[state].playout.dashUrl
+      };
     }
 
     // player config - style -------------------------------------------------------------------------------------------
