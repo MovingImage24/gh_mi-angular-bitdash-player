@@ -49,16 +49,55 @@ module.exports = function ($scope, $log) {
     }
 
     function getDVRPlaybackToPostlive(webcast) {
+        var offset = '';
+        if (angular.isDefined(webcast['postliveStateData'].playout.offset)) {
+            var playoutOffset = parseInt(webcast['postliveStateData'].playout.offset, 10);
+
+            if (playoutOffset > 0) {
+                offset = '&wowzadvrplayliststart=' + playoutOffset + '000';
+            }
+        }
+
         return {
-            hls: webcast['liveStateData'].playout.hlsUrl.replace('/master.m3u8', 'Dvr/master.m3u8?DVR'),
-            dash: webcast['liveStateData'].playout.dashUrl.replace('/playlist.m3u8', 'Dvr/playlist.m3u8?DVR')
+            hls: webcast['liveStateData'].playout.hlsUrl.replace('/master.m3u8', 'Dvr/playlist.m3u8?DVR' + offset),
+            dash: webcast['liveStateData'].playout.dashUrl.replace('/playlist.m3u8', 'Dvr/playlist.m3u8?DVR' + offset)
         };
     }
 
     function getPlayerConfigSourceByState(webcast, state) {
+        var hls = webcast[state].playout.hlsUrl;
+        var dash = webcast[state].playout.dashUrl;
+
+        if (angular.isDefined(webcast[state].playout.videoManagerHlsUrl) && webcast[state].playout.videoManagerHlsUrl) {
+            hls = webcast[state].playout.videoManagerHlsUrl;
+        }
+
+        if (angular.isDefined(webcast[state].playout.offset)) {
+            var offset = parseInt(webcast[state].playout.offset, 10);
+
+            if (offset > 0) {
+                var offsetPrefix = '?';
+                var parser = document.createElement('a');
+                parser.href = hls;
+                if (parser.search) {
+                    offsetPrefix = '&';
+                }
+
+                hls += offsetPrefix + 'start=' + offset;
+
+                offsetPrefix = '?';
+                parser.href = dash;
+                if (parser.search) {
+                    offsetPrefix = '&';
+                }
+
+                dash += offsetPrefix + 'start=' + offset;
+            }
+        }
+
         return {
-            hls: webcast[state].playout.hlsUrl,
-            dash: webcast[state].playout.dashUrl
+            hls: hls,
+            dash: dash
         };
     }
 
