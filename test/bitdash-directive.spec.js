@@ -10,7 +10,7 @@ describe('BitdashDirective', function () {
 
   beforeEach(function () {
     var window = jasmine.createSpy('window');
-    player = jasmine.createSpyObj('player', ['getSupportedTech', 'isReady', 'destroy', 'setup']);
+    player = jasmine.createSpyObj('player', ['isReady', 'setup']);
     player.isReady.and.returnValue(true);
     window.bitmovin = {
                       player: function () { return player;}
@@ -37,7 +37,6 @@ describe('BitdashDirective', function () {
   }));
 
   it('Should set up the player in flash mode', angular.mock.inject(function ($compile, $rootScope) {
-    player.getSupportedTech.and.returnValue([{streaming: 'hls', player: 'flash'}]);
     $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
       state: 'postlive',
       postliveStateData: {
@@ -49,13 +48,10 @@ describe('BitdashDirective', function () {
 
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(player.getSupportedTech).toHaveBeenCalled();
-    expect(player.destroy).not.toHaveBeenCalled();
     expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
   }));
 
   it('Should set up the player in native mode', angular.mock.inject(function ($compile, $rootScope) {
-    player.getSupportedTech.and.returnValue([{streaming: 'hls', player: 'native'}]);
     $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
       state: 'postlive',
       postliveStateData: {
@@ -67,13 +63,10 @@ describe('BitdashDirective', function () {
 
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(player.getSupportedTech).toHaveBeenCalled();
     expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
-    expect(player.destroy).toHaveBeenCalledTimes(1);
   }));
 
   it('Should set up the player for audio only in flash mode', angular.mock.inject(function ($compile, $rootScope) {
-    player.getSupportedTech.and.returnValue([{streaming: 'hls', player: 'flash'}]);
     $rootScope.webcastMainVm = {playerConfig: {foo: 'bar'}, webcast: {
       state: 'postlive',
       postliveStateData: {
@@ -85,8 +78,6 @@ describe('BitdashDirective', function () {
 
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(player.getSupportedTech).toHaveBeenCalled();
-    expect(player.destroy).not.toHaveBeenCalled();
     expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
   }));
 
