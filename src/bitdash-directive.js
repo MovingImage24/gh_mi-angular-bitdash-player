@@ -28,10 +28,6 @@ module.exports = function ($window) {
             if (angular.isDefined(scope.webcast[state].playout.audioOnly) && scope.webcast[state].playout.audioOnly) {
                 bitmovinControlbar[0].style.minHeight = '30px';
                 bitmovinControlbar[0].style.minWidth = '195px';
-            } else {
-                if (angular.isDefined(bitmovinControlbar[0])) {
-                  bitmovinControlbar[0].style.minWidth = '360px';
-                }
             }
         }
     };
