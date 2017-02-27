@@ -85,13 +85,15 @@ module.exports = function ($scope, $log) {
 
                 hls += offsetPrefix + 'start=' + offset;
 
-                offsetPrefix = '?';
-                parser.href = dash;
-                if (parser.search) {
-                    offsetPrefix = '&';
-                }
+                if (angular.isDefined(dash) && dash) {
+                    offsetPrefix = '?';
+                    parser.href = dash;
+                    if (parser.search) {
+                      offsetPrefix = '&';
+                    }
 
-                dash += offsetPrefix + 'start=' + offset;
+                    dash += offsetPrefix + 'start=' + offset;
+                }
             }
         }
 
