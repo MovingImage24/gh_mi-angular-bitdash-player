@@ -7,9 +7,9 @@ node_js:
 before_install: npm install -g npm@'>=2.13.5'
 deploy:
   provider: npm
-  email: dasrick@gmail.com
+  email: admin@movingimage24.com
   api_key:
-    secure: nXPENzEkfqSvSM2gRTOAJVjxNBDCeFT2bLKCDSJPcYxEDRzuiEo6lZSoJyYHtNs95VWdBb/3S0TNwVwZEm9fi6qqOzlcWxOUYtYtnVQa04WlXBlbz6mHFsIWEmtgGz43j+/Rbm2rrIf6urjpgLwHDlBY1rKH066Vg6jrBsZjOLeYvlZAOLWUZT3sF5Dh5Vgy7obPVVRQew2Ym7YPl9XqhzAu8v6hZGKDBkK3icYEZKCZdQcGbZ/yAK7i7sgtueemQOeKsVs+VLdORD/Zoj0i9/39gaGcy6JQMPPETxM/m4aGE0BaVMXM9sEoUYJS+mBkr3RpoxCEp05ZsDjEExWEORQnfCDsUnXTvwhbx7m/DfpslBHU6xcns0p84Nwx43xvGNM1BWg8+vR8S8Qup5+SI0HwQDnJJyVNxcAH4zBfLRfD0prfCrm+rYdJ88yDQosXc73qNyQUYRBWbNfmgztOZxDlZvxPHaocJ1NhR+9f0PtD9tnf2KH2uW3nIoM0p62dsdIJf6e1bVXprOyLbbc06JS47Q7qwsN1W0tIGCSHkHXA3wjVgZiYdAGrslL0ozOlqxRNnsOLfz1NhIBSTSsKTd0g+MG9/OiK5r1gAaY2WbmsiS43Vr5Pep6fx277B4f/+5Y1OZD+kUs8ZcJKVPB9mvsS4YpLLNSeePL4oONTBjQ=
+    secure: $NPM_TOKEN
   on:
     tags: true
     repo: MovingImage24/mi-angular-bitdash-player
