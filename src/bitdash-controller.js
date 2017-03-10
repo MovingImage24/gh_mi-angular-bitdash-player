@@ -108,7 +108,8 @@ module.exports = function ($scope, $log) {
     function getPlayerConfigStyle(webcast, state) {
         var style = {
             width: '100%',
-            autoHideControls: true
+            autoHideControls: true,
+            playOverlay: false
         };
 
         if (angular.isDefined(webcast[state].playout.audioOnly) && webcast[state].playout.audioOnly) {
