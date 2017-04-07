@@ -10,7 +10,7 @@ describe('BitdashDirective', function () {
 
   beforeEach(function () {
     var window = jasmine.createSpy('window');
-    player = jasmine.createSpyObj('player', ['isReady', 'setup']);
+    player = jasmine.createSpyObj('player', ['isReady', 'setup', 'destroy']);
     player.isReady.and.returnValue(true);
     window.bitmovin = {
                       player: function () { return player;}
