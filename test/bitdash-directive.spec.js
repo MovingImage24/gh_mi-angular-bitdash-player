@@ -18,7 +18,7 @@ describe('BitdashDirective', function () {
 
     var winMock = {window: window};
     var docMock = angular.element(document);
-    docMock.find('body').append('<div class="bitdash-vc"></div>');
+    docMock.find('body').append('<div class="bitmovinplayer-container"></div>');
     angular.mock.module(function ($compileProvider, $controllerProvider, $provide) {
       $compileProvider.directive('miBitdashPlayer', BitdashDirective);
       $controllerProvider.register('MiBitdashController', function () {});
