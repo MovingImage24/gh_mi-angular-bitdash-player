@@ -27,16 +27,17 @@ module.exports = function ($window) {
             player.setup(config);
 
             var state = scope.webcast.state + 'StateData';
-            var bitmovinControlbar = angular.element(document.getElementsByClassName('bitmovinplayer-container'));
-            if (bitmovinControlbar.length === 0) {
-              bitmovinControlbar = angular.element(document.getElementsByClassName('bitdash-vc'));
+
+            var bitmovinControlbar = document.getElementsByClassName('bitdash-vc')[0];
+            if (!bitmovinControlbar) {
+              bitmovinControlbar = document.getElementsByClassName('bitmovinplayer-container')[0];
             }
 
             if (angular.isDefined(scope.webcast[state].playout.audioOnly) && scope.webcast[state].playout.audioOnly) {
-                bitmovinControlbar[0].style.minHeight = '30px';
-                bitmovinControlbar[0].style.minWidth = '195px';
+                bitmovinControlbar.style.minHeight = '30px';
+                bitmovinControlbar.style.minWidth = '195px';
             } else {
-              bitmovinControlbar[0].style.minWidth = '175px';
+              bitmovinControlbar.style.minWidth = '175px';
             }
         }
     };

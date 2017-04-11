@@ -75,10 +75,11 @@ describe('BitdashDirective', function () {
         }
       }
     }};
-
+    var bitmovinControlbar = document.getElementsByClassName('bitmovinplayer-container')[0];
     $compile(template)($rootScope);
     $rootScope.$apply();
     expect(player.setup).toHaveBeenCalledWith({foo: 'bar'});
+    expect(bitmovinControlbar.style.minWidth).toEqual('195px');
   }));
 
   it('Should set up the player without options attribute', angular.mock.inject(function ($compile, $rootScope) {
@@ -153,5 +154,19 @@ describe('BitdashDirective', function () {
     $rootScope.$apply();
     var scope = element.isolateScope();
     expect(scope.options.forcedState).toBe('live');
+  }));
+
+  it('Should get bitmovin Controlbar element by ClassName : bitmovinplayer-container',
+    angular.mock.inject(function ($compile, $rootScope) {
+    $rootScope.webcastMainVm = {
+      playerConfig: {foo: 'bar'},
+      webcast: { state: 'postlive', postliveStateData: { playout: { audioOnly: false }}}
+    };
+    var bitmovinControlbar = document.getElementsByClassName('bitmovinplayer-container')[0];
+    spyOn(document, 'getElementsByClassName').and.callThrough();
+    $compile(angular.element(template))($rootScope);
+    $rootScope.$apply();
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
+    expect(bitmovinControlbar.style.minWidth).toEqual('175px');
   }));
 });
