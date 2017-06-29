@@ -88,6 +88,7 @@
     "cover:check": "istanbul check-coverage --statements 85 --branches 100 --functions 90 --lines 90",
     "cover:remap": "remap-istanbul -i coverage/json/coverage-final.json -o coverage/html-ts -t html",
     "cover:open": "opn \"./coverage/html-ts/src/index.html\"",
-    "validate": "npm-run-all build test cover:check"
+    "validate": "npm-run-all test cover:check",
+    "pre-commit": "opt --in pre-commit --exec \"npm run validate\""
   }
 }
