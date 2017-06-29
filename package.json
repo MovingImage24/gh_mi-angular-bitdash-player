@@ -64,6 +64,7 @@
     "karma-webpack": "^2.0.3",
     "npm-run-all": "^4.0.2",
     "opn-cli": "^3.1.0",
+    "opt-cli": "^1.5.1",
     "phantomjs-prebuilt": "^2.1.4",
     "pre-commit": "^1.2.2",
     "remap-istanbul": "^0.9.5",
