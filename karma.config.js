@@ -13,7 +13,13 @@ module.exports = function (karma) {
       'test/*spec.ts',
       'src/**/*.ts'
     ],
-    reporters: ['jasmine-diff', 'progress', 'coverage', 'coveralls'],
+    reporters: ['jasmine-diff', 'progress', 'junit', 'coverage', 'coveralls'],
+    junitReporter: {
+      outputDir: 'coverage/junit/', // results will be saved as $outputDir/$browserName.xml
+      //outputFile: undefined, // if included, results will be saved as $outputDir/$browserName/$outputFile
+      suite: '', // suite will become the package name attribute in xml testsuite element
+      useBrowserName: true // add browser name to report and classes names
+    },
     jasmineDiffReporter: {
       color: {
         expectedBg: 'bgRed',
