@@ -6,4 +6,7 @@ lib
 tsconfig
 .idea
 .travis.yml
+tslint.json
+tsconfig.json
+webpack.config.js
 karma.config.js
