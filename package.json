@@ -10,6 +10,10 @@
     {
       "name": "Enrico Hoffmann",
       "email": "enrico.hoffmann@movingimage.com"
+    },
+    {
+      "name": "Abdelkrim Ait addi",
+      "email": "abdelkrim.addi@movingimage.com"
     }
   ],
   "main": "dist/mi-angular-bitdash-player.js",
@@ -29,34 +33,60 @@
     "url": "https://github.com/MovingImage24/mi-angular-bitdash-player/issues"
   },
   "homepage": "https://github.com/MovingImage24/mi-angular-bitdash-player#readme",
+  "config": {
+    "ghooks": {
+      "pre-commit": "opt --in pre-commit --exec \"npm run validate\""
+    }
+  },
   "dependencies": {},
   "devDependencies": {
+    "@types/angular": "~1.6.17",
+    "@types/angular-mocks": "~1.5.9",
+    "@types/karma": "^0.13.35",
+    "@types/karma-jasmine": "0.0.29",
+    "@types/node": "~7.0.22",
     "angular": "~1.5.8",
-    "angular-mocks": "1.5.1",
-    "istanbul-instrumenter-loader": "^0.2.0",
+    "angular-mocks": "~1.5.1",
+    "awesome-typescript-loader": "^3.1.3",
+    "clean-webpack-plugin": "^0.1.16",
+    "ghooks": "^2.0.0",
+    "istanbul-instrumenter-loader": "~2.0.0",
     "jasmine-core": "^2.3.4",
-    "jscs": "^3.0.0",
-    "jshint": "^2.8.0",
-    "jshint-stylish": "^2.1.0",
     "karma": "^0.13.6",
     "karma-coverage": "^1.0.0",
     "karma-coveralls": "^1.1.2",
     "karma-jasmine": "^1.0.0",
+    "karma-jasmine-diff-reporter": "^1.1.0",
     "karma-junit-reporter": "^1.0.0",
     "karma-ng-html2js-preprocessor": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.0",
-    "karma-webpack": "^1.7.0",
-    "ng-annotate-webpack-plugin": "^0.1.2",
+    "karma-source-map-support": "^1.2.0",
+    "karma-webpack": "^2.0.3",
+    "npm-run-all": "^4.0.2",
+    "opn-cli": "^3.1.0",
     "phantomjs-prebuilt": "^2.1.4",
-    "webpack": "^1.12.9"
+    "pre-commit": "^1.2.2",
+    "remap-istanbul": "^0.9.5",
+    "rimraf": "^2.6.1",
+    "source-map-support": "^0.4.15",
+    "tslint": "5.0.0",
+    "tslint-eslint-rules": "^4.1.1",
+    "tslint-loader": "^3.5.3",
+    "typescript": "2.3.3",
+    "webpack": "2.6.1"
   },
   "scripts": {
-    "prebuild:js": "npm run jscs && npm run jshint",
-    "build": "npm run build:js && npm run build:js-min",
-    "build:js": "webpack --config webpack.config.js",
-    "build:js-min": "webpack --config webpack.min.config.js",
-    "jscs": "jscs ./src ./test",
-    "jshint": "jshint ./src ./test --reporter node_modules/jshint-stylish/index.js",
-    "test": "node_modules/karma/bin/karma start karma.config.js"
+    "clean-web": "rimraf dist",
+    "prebuild": "npm run clean-web",
+    "build": "npm-run-all build:*",
+    "build:js": "webpack --env.prod --display-error-details",
+    "build:js-min": "webpack --env.min --display-error-details",
+    "pretest": "rimraf coverage",
+    "test": "npm-run-all karma cover:remap",
+    "karma": "karma start karma.config.js --watch",
+    "cover:check": "istanbul check-coverage --statements 85 --branches 100 --functions 90 --lines 90",
+    "cover:remap": "remap-istanbul -i coverage/json/coverage-final.json -o coverage/html-ts -t html",
+    "cover:open": "opn \"./coverage/html-ts/src/index.html\"",
+    "validate": "npm-run-all build test cover:check"
   }
 }

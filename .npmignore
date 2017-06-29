@@ -1,6 +1,9 @@
 coverage
 src
+interfaces
 test
+lib
+tsconfig
 .idea
 .travis.yml
 karma.config.js
