@@ -33,11 +33,6 @@
     "url": "https://github.com/MovingImage24/mi-angular-bitdash-player/issues"
   },
   "homepage": "https://github.com/MovingImage24/mi-angular-bitdash-player#readme",
-  "config": {
-    "ghooks": {
-      "pre-commit": "opt --in pre-commit --exec \"npm run validate\""
-    }
-  },
   "dependencies": {},
   "devDependencies": {
     "@types/angular": "~1.6.17",
@@ -89,6 +84,6 @@
     "cover:remap": "remap-istanbul -i coverage/json/coverage-final.json -o coverage/html-ts -t html",
     "cover:open": "opn \"./coverage/html-ts/src/index.html\"",
     "validate": "npm-run-all test cover:check",
-    "pre-commit": "opt --in pre-commit --exec \"npm run validate\""
+    "precommit": "npm run validate"
   }
 }
