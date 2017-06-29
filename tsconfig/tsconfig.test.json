@@ -1,0 +1,21 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "removeComments": false,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "inlineSourceMap": true,
+    "types": [
+      "node",
+      "angular",
+      "angular-mocks",
+      "karma",
+      "karma-jasmine"
+    ]
+  },
+  "awesomeTypescriptLoaderOptions": {
+    "forkChecker": true,
+    "useWebpackText": true
+  }
+}
