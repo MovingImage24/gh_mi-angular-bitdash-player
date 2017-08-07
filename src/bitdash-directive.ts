@@ -34,9 +34,7 @@ const BitdashDirective = ($window: IWindow) => ({
               } else {
                 bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
               }
-              // special case: bug by Bitmovin
-              bitmovinPlayer.pause();
-              bitmovinPlayer.play();
+
               if (state === 'liveStateData') {
                 angular.element(getElementsByClassName('bmpui-seekbar')).css('display', 'none');
               }

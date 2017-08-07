@@ -8,7 +8,7 @@ describe('BitdashDirective', () => {
   let $rootScope: angular.IRootScopeService;
   let template: string = `<mi-bitdash-player config="webcastMainVm.playerConfig" webcast="webcastMainVm.webcast"></mi-bitdash-player>`;
 
-  const playerFuncSpy: string [] = ['isReady', 'setup', 'play', 'pause', 'destroy'];
+  const playerFuncSpy: string [] = ['isReady', 'setup', 'destroy'];
   const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
   const bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
   const Factory: IBitmovinUIManager = jasmine.createSpyObj('Factory', playerUISpy);
@@ -64,8 +64,6 @@ describe('BitdashDirective', () => {
       $rootScope.$apply();
       expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar'});
       expect(bitmovinPlayer.destroy).not.toHaveBeenCalled();
-      expect(bitmovinPlayer.pause).not.toHaveBeenCalled();
-      expect(bitmovinPlayer.play).not.toHaveBeenCalled();
       expect(document.getElementsByClassName).not.toHaveBeenCalled();
       expect(Factory.buildAudioVideoUI).not.toHaveBeenCalled();
   });
