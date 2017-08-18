@@ -18,6 +18,7 @@ const BitdashDirective = ($window: IWindow) => ({
         let bitmovinUIManager: IBitmovinUIManager;
         let bitmovinControlbar: IMyElement;
         const config: IConfig = scope.config;
+        const webcast: any = scope.webcast;
         const state: string = scope.webcast.state + 'StateData';
         buildPlayer();
 
@@ -42,6 +43,7 @@ const BitdashDirective = ($window: IWindow) => ({
               if (angular.isDefined(bitmovinControlbar)) {
                 bitmovinControlbar.style.minWidth = '175px';
                 bitmovinControlbar.style.minHeight = '101px';
+                document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
               }
             }, (reason: { code: number, message: string}) => {
               console.log('Error: ' + reason.code + ' - ' + reason.message);

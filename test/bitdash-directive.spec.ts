@@ -25,6 +25,7 @@ describe('BitdashDirective', () => {
     .append(`<div class="bitmovinplayer-container" style="min-width:195px; min-height:140px;">
                              <div class="bmpui-ui-audioonly-overlay"
                                 style="background-image:url(data:image);background-size:contain;background-position:center;">
+                                <video id="bitmovinplayer-video-mi-bitdash-player"></video>
                                 <div class="bmpui-seekbar"></div>
                              </div>
                           </div>`);
@@ -70,6 +71,7 @@ describe('BitdashDirective', () => {
 
   it('Should set up the player for video audio', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
+    spyOn(document, 'getElementById').and.callThrough();
     $compile(template)($rootScope);
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar'});
@@ -81,6 +83,7 @@ describe('BitdashDirective', () => {
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
     expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect(document.getElementById).toHaveBeenCalledWith('bitmovinplayer-video-mi-bitdash-player');
   });
 
   it('Should set up the player for audio only', () => {

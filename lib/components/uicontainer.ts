@@ -38,7 +38,7 @@ export class UIContainer extends Container<UIContainerConfig> {
 
     this.config = this.mergeConfig(config, <UIContainerConfig>{
       cssClass: 'ui-uicontainer',
-      hideDelay: 5000,
+      hideDelay: 2500,
     }, this.config);
   }
 
@@ -100,7 +100,7 @@ export class UIContainer extends Container<UIContainerConfig> {
         if (isFirstTouch) {
           isFirstTouch = false;
         } else {
-          e.preventDefault();
+          // e.preventDefault();
         }
         showUi();
       }
