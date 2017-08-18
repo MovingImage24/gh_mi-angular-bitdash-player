@@ -153,8 +153,8 @@ export class Component<Config extends ComponentConfig> {
     // Create the configuration for this component
     this.config = <Config>this.mergeConfig(config, {
       tag: 'div',
-      id: 'bmpui-id-' + Guid.next(),
-      cssPrefix: 'bmpui',
+      id: 'mi-wbc-id-' + Guid.next(),
+      cssPrefix: 'mi-wbc',
       cssClass: 'ui-component',
       cssClasses: [],
       hidden: false
