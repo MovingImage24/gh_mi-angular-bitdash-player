@@ -76,6 +76,7 @@
     "build:js": "webpack --env.prod --display-error-details",
     "build:js-min": "webpack --env.min --display-error-details",
     "pretest": "rimraf coverage",
+    "prepare": "npm run build",
     "test": "npm-run-all karma cover:remap",
     "karma": "karma start karma.config.js",
     "cover:check": "istanbul check-coverage --statements 85 --branches 100 --functions 90 --lines 90",

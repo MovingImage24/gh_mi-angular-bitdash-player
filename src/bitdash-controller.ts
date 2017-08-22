@@ -1,11 +1,17 @@
 import * as angular from 'angular';
 
+interface IBitmovinControllerScope extends angular.IScope {
+  config: any;
+  options: any;
+  webcast: any;
+}
+
 class BitmovinController {
   public static $inject: string[] = ['$scope', '$log'];
   private config: any = {};
   private options: any = {};
 
-  constructor(private $scope: angular.IScope, private $log: angular.ILogService) {
+  constructor(private $scope: IBitmovinControllerScope, private $log: angular.ILogService) {
     this.$scope = $scope;
     this.$log = $log;
   }
