@@ -44,18 +44,35 @@ class BitmovinController {
   }
 
   public getDVRPlaybackToPostlive(webcast: any): any {
-    let offset = '';
+    let hls: string = webcast['liveStateData'].playout.hlsDvrUrl;
+    let dash: string = webcast['liveStateData'].playout.dashDvrUrl;
+    const title: string = webcast.name;
+
     if (angular.isDefined(webcast['postliveStateData'].playout.offset)) {
-      const playoutOffset = parseInt(webcast['postliveStateData'].playout.offset, 10);
-      if (playoutOffset > 0) {
-        offset = '&wowzadvrplayliststart=' + playoutOffset + '000';
+      const offset: number = parseInt(webcast['postliveStateData'].playout.offset, 10);
+
+      if (offset > 0) {
+        let offsetPrefix: string = '?';
+        const parser = document.createElement('a');
+        parser.href = webcast['liveStateData'].playout.hlsDvrUrl;
+        if (parser.search) {
+          offsetPrefix = '&';
+        }
+
+        hls += offsetPrefix + 'wowzadvrplayliststart=' + offset + '000';
+
+        if (angular.isDefined(dash) && dash) {
+          offsetPrefix = '?';
+          parser.href = dash;
+          if (parser.search) {
+            offsetPrefix = '&';
+          }
+          dash += offsetPrefix + 'wowzadvrplayliststart=' + offset  + '000';
+        }
       }
     }
 
-    return {
-      dash: webcast['liveStateData'].playout.dashUrl.replace('/playlist.m3u8', 'Dvr/playlist.m3u8?DVR' + offset),
-      hls: webcast['liveStateData'].playout.hlsUrl.replace('/master.m3u8', 'Dvr/playlist.m3u8?DVR' + offset)
-    };
+    return {dash, hls, title};
   }
 
   public getPlayerConfigSourceByState(webcast: any, state: any): any {

@@ -23,7 +23,9 @@ describe('BitdashController', () => {
               streamName: 'myStream'
             },
             playout: {
+              dashDvrUrl: 'https://dashdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR',
               dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd',
+              hlsDvrUrl: 'https://hlsdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR',
               hlsUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8'
             }
           },
@@ -111,13 +113,13 @@ describe('BitdashController', () => {
 
   it('should configure the player with offset and existing query string', () => {
     $scope.webcast.postliveStateData.playout.offset = 10;
-    $scope.webcast.postliveStateData.playout.hlsUrl += '?DVR';
-    $scope.webcast.postliveStateData.playout.dashUrl += '?DVR';
+    $scope.webcast.postliveStateData.playout.hlsUrl += '?sth';
+    $scope.webcast.postliveStateData.playout.dashUrl += '?sth';
     const vm = new createController();
     vm.$onInit();
     expect(vm.config.source.hls).toBe('http://hd2.cdn.edge-cdn.net/i/videodb/519/' +
-      'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8?DVR&start=10');
-    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd?DVR&start=10');
+      'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8?sth&start=10');
+    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd?sth&start=10');
   });
 
   it('should configure the player in DVR with offset', () => {
@@ -126,9 +128,11 @@ describe('BitdashController', () => {
     const vm = new createController();
     vm.$onInit();
     expect(vm.config.source.hls).toBe(
-      'https://live-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR&wowzadvrplayliststart=10000'
+      'https://hlsdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR&wowzadvrplayliststart=10000'
     );
-    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd');
+    expect(vm.config.source.dash).toBe(
+      'https://dashdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR&wowzadvrplayliststart=10000'
+    );
   });
 
   it('should configure the player with forced live state', () => {
