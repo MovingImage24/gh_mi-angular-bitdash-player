@@ -1,17 +1,12 @@
 import * as angular from 'angular';
-
-interface IBitmovinControllerScope extends angular.IScope {
-  config: any;
-  options: any;
-  webcast: any;
-}
+import {IBitdashDirective} from './../interface/interfaces';
 
 class BitmovinController {
   public static $inject: string[] = ['$scope', '$log'];
   private config: any = {};
   private options: any = {};
 
-  constructor(private $scope: IBitmovinControllerScope, private $log: angular.ILogService) {
+  constructor(private $scope: IBitdashDirective, private $log: angular.ILogService) {
     this.$scope = $scope;
     this.$log = $log;
   }
@@ -20,7 +15,7 @@ class BitmovinController {
     if (angular.isDefined(this.$scope.config) && angular.isDefined(this.$scope.config.key)) {
       this.config = this.$scope.config;
     } else {
-      this.$log.error('basic config for bitdash player is missing!');
+      this.$log.error(`basic config for bitdash player is missing!`);
     }
     if (angular.isDefined(this.$scope.options)) {
       this.options = this.$scope.options;
@@ -32,10 +27,10 @@ class BitmovinController {
   }
 
   public processWebcast(webcast: any): void {
-    let stateProperty = webcast.state + 'StateData';
+    let stateProperty = `${webcast.state}StateData`;
 
     if (angular.isDefined(this.options.forcedState)) {
-      stateProperty = this.options.forcedState + 'StateData';
+      stateProperty = `${this.options.forcedState}StateData`;
     }
 
     this.config.source = this.getPlayerConfigSource(webcast, stateProperty);
@@ -43,7 +38,7 @@ class BitmovinController {
   }
 
   public getPlayerConfigSource(webcast: any , state: any): any {
-    if (webcast.useDVRPlaybackInPostlive === true && state === 'postliveStateData') {
+    if ((webcast.useDVRPlaybackInPostlive === true) && (state === 'postliveStateData')) {
       return this.getDVRPlaybackToPostlive(webcast);
     }
     return this.getPlayerConfigSourceByState(webcast, state);
@@ -58,22 +53,16 @@ class BitmovinController {
       const offset: number = parseInt(webcast['postliveStateData'].playout.offset, 10);
 
       if (offset > 0) {
-        let offsetPrefix: string = '?';
+        let offsetPrefix: string;
         const parser = document.createElement('a');
         parser.href = webcast['liveStateData'].playout.hlsDvrUrl;
-        if (parser.search) {
-          offsetPrefix = '&';
-        }
-
-        hls += offsetPrefix + 'wowzadvrplayliststart=' + offset + '000';
+        offsetPrefix = (parser.search) ? '&' : '?';
+        hls += `${offsetPrefix}wowzadvrplayliststart=${offset}000`;
 
         if (angular.isDefined(dash) && dash) {
-          offsetPrefix = '?';
           parser.href = dash;
-          if (parser.search) {
-            offsetPrefix = '&';
-          }
-          dash += offsetPrefix + 'wowzadvrplayliststart=' + offset  + '000';
+          offsetPrefix = (parser.search) ? '&' : '?';
+          dash += `${offsetPrefix}wowzadvrplayliststart=${offset}000`;
         }
       }
     }
@@ -85,6 +74,8 @@ class BitmovinController {
     let hls: string = webcast[state].playout.hlsUrl;
     let dash: string = webcast[state].playout.dashUrl;
     const title: string = webcast.name;
+    const hiveServiceUrl: string = this.getHiveServiceUrlByLang(webcast);
+
     if (angular.isDefined(webcast[state].playout.videoManagerHlsUrl) && webcast[state].playout.videoManagerHlsUrl) {
       hls = webcast[state].playout.videoManagerHlsUrl;
     }
@@ -93,26 +84,33 @@ class BitmovinController {
       const offset: number = parseInt(webcast[state].playout.offset, 10);
 
       if (offset > 0) {
-        let offsetPrefix: string = '?';
+        let offsetPrefix: string;
         const parser = document.createElement('a');
         parser.href = hls;
-        if (parser.search) {
-          offsetPrefix = '&';
-        }
-
-        hls += offsetPrefix + 'start=' + offset;
+        offsetPrefix = (parser.search) ? '&' : '?';
+        hls += `${offsetPrefix}start=${offset}`;
 
         if (angular.isDefined(dash) && dash) {
-          offsetPrefix = '?';
           parser.href = dash;
-          if (parser.search) {
-            offsetPrefix = '&';
-          }
-          dash += offsetPrefix + 'start=' + offset;
+          offsetPrefix = (parser.search) ? '&' : '?';
+          dash += `${offsetPrefix}start=${offset}`;
         }
       }
     }
-    return {dash, hls, title};
+    return {dash, hls, title, hiveServiceUrl};
+  }
+
+  public getHiveServiceUrlByLang(webcast: any): string {
+    let hiveServiceUrl = null;
+    if (webcast.languages && webcast.language) {
+      webcast.languages.forEach((item: any) => {
+        if (item.language === webcast.language) {
+          hiveServiceUrl = angular.copy(item.hiveServiceUrl);
+        }
+      });
+    }
+
+    return hiveServiceUrl;
   }
 }
 

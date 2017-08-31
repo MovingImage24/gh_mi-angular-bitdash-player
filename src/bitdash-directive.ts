@@ -1,8 +1,7 @@
-
 import * as angular from 'angular';
-import {IBitmovinUIManager, IConfig, IMyElement, IMyScope, IPlayer, IWindow} from '../interfaces/window';
+import {IBitdashDirective, IBitmovinUIManager, IConfig, IMyElement, IPlayer, IReason, IWindow} from './../interface/interfaces';
 
-const BitdashDirective = ($window: IWindow) => ({
+const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
       controller: 'MiBitdashController',
       controllerAs: 'bitdashVm',
       replace: true,
@@ -13,20 +12,43 @@ const BitdashDirective = ($window: IWindow) => ({
         webcast: '=',
       },
       template: `<div id="mi-bitdash-player" width="100%" height="auto"></div>`,
-      link(scope: IMyScope): void {
+      link(scope: IBitdashDirective): void {
         let bitmovinPlayer: IPlayer;
         let bitmovinUIManager: IBitmovinUIManager;
         let bitmovinControlbar: IMyElement;
         const config: IConfig = scope.config;
         const webcast: any = scope.webcast;
-        const state: string = scope.webcast.state + 'StateData';
+        const state: string = `${scope.webcast.state}StateData`;
         buildPlayer();
 
         function buildPlayer(): void {
           bitmovinPlayer = $window.window.bitmovin.player('mi-bitdash-player');
-          checkIsPlayerLoaded();
+          if (angular.isDefined(bitmovinPlayer) && bitmovinPlayer.isReady() === true) {
+            bitmovinPlayer.destroy();
+            bitmovinPlayer = $window.window.bitmovin.player('mi-bitdash-player');
+          }
+
+          if ((state === 'liveStateData') && config.source.hiveServiceUrl) {
+            // Get a hive-enabled player through bitdash.initHiveSDN
+            $window.window.bitmovin.initHiveSDN(bitmovinPlayer, {debugLevel: 'off'});
+            // Configure and Setup bitmovin in initSession callback
+            bitmovinPlayer.initSession(config.source.hiveServiceUrl).then((session) => {
+              const hiveConfig: IConfig = angular.copy(config);
+              hiveConfig.source.hls = session.manifest;
+              loadPlayer(hiveConfig);
+            }, (reason: IReason) => {
+              // Handle the case if Hive init fails
+              $log.warn(`Hive init fails: ${reason.code} - ${reason.message}`);
+              loadPlayer(config);
+            });
+          } else {
+            loadPlayer(config);
+          }
+        }
+
+        function loadPlayer(conf: IConfig): void {
           bitmovinPlayer
-            .setup(config)
+            .setup(conf)
             .then(() => {
               bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
               if (isAudioOnly()) {
@@ -45,16 +67,9 @@ const BitdashDirective = ($window: IWindow) => ({
                 bitmovinControlbar.style.minHeight = '101px';
                 document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
               }
-            }, (reason: { code: number, message: string}) => {
-              console.log('Error: ' + reason.code + ' - ' + reason.message);
+            }, (reason: IReason) => {
+              $log.log(`Error: ${reason.code} - ${reason.message}`);
             });
-        }
-
-        function checkIsPlayerLoaded(): void {
-          if (angular.isDefined(bitmovinPlayer) && bitmovinPlayer.isReady() === true) {
-            bitmovinPlayer.destroy();
-            bitmovinPlayer = $window.window.bitmovin.player('mi-bitdash-player');
-          }
         }
 
         function isAudioOnly(): boolean {
@@ -66,7 +81,7 @@ const BitdashDirective = ($window: IWindow) => ({
           if (angular.isDefined(scope.webcast[state].playout.audioOnlyStillUrl) &&
             scope.webcast[state].playout.audioOnlyStillUrl !== '') {
             const element = getElementsByClassName('bmpui-ui-audioonly-overlay') as IMyElement;
-            element.style.backgroundImage = 'url(' + scope.webcast[state].playout.audioOnlyStillUrl + ')';
+            element.style.backgroundImage = `url(${scope.webcast[state].playout.audioOnlyStillUrl})`;
             element.style.backgroundSize = 'contain';
             element.style.backgroundPosition = 'center';
           }
@@ -81,4 +96,4 @@ const BitdashDirective = ($window: IWindow) => ({
 
 export default BitdashDirective;
 
-BitdashDirective.$inject = ['$window'];
+BitdashDirective.$inject = ['$window', '$log'];

@@ -2,19 +2,21 @@
 const webpack = require('webpack');
 const {resolve} = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = function (env) {
   const srcPath = resolve(__dirname, 'src', 'index.ts');
-  const libPath = resolve(__dirname, 'lib', 'main.ts');
+  const libPath = resolve(__dirname, 'lib', 'uimanager', 'main.ts');
+  const hivePath = resolve(__dirname, 'lib', 'hive', 'bitmovin.hive.min.js');
   const dstPath = resolve(__dirname, 'dist');
-  const devtool = env.prod ? 'inline-source-map' : '';
+  const devtool = env.prod ? 'inline-source-map' : 'cheap-module-source-map';
   const filename = env.prod ? 'mi-angular-bitdash-player.js' : 'mi-angular-bitdash-player.min.js';
-  const CleanCompiledJS = ['lib/**/*.js', 'src/**/*.js', 'lib/components/*.js', 'interfaces/*.js'];
+  const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js', 'interface/*.js'];
   const cleanArray = array => array.filter((item) => !!item);
   const ifMin = plugin => (env.min ? plugin : undefined);
 
   return {
-    entry: [srcPath, libPath],
+    entry: [srcPath, libPath, hivePath],
     output: {
       path: dstPath,
       filename: filename,
@@ -42,7 +44,8 @@ module.exports = function (env) {
           },
           exclude: [/(test|node_modules)/]
         }
-      ]
+      ],
+      noParse: [hivePath]
     },
     resolve: {
       extensions: ['.ts', '.js']
@@ -63,8 +66,8 @@ module.exports = function (env) {
           }
         }
       }),
-      ifMin(new webpack.optimize.UglifyJsPlugin({
-        compress: {warnings: false}
+      ifMin(new UglifyJSPlugin({
+        compress: { warnings: false}
       })),
       new webpack.optimize.OccurrenceOrderPlugin(),
       new CleanWebpackPlugin(CleanCompiledJS,

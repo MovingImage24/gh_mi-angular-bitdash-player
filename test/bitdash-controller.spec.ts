@@ -17,6 +17,16 @@ describe('BitdashController', () => {
         webcast: {
           customer: {id: '570b9ab86b756510008b4567', name: 'MovingIMAGE24 GmbH', type: 'admin'},
           id: '570b9ab86b756510008b4578',
+          language: 'de',
+          languages: [
+            {
+              downloadablePresentation: {id: '5980695293768a02487b519e'},
+              hiveServiceUrl: 'https://api-test.hivestreaming.com/v1/events/9021/597f2ca593768a02465dGxK',
+              hiveTicketId: 'sohJ3g8isHjlJGxK',
+              language: 'de',
+              presentations: []
+            }
+          ],
           liveStateData: {
             broadcast: {
               serverUrl: 'rtmp://live-ingest.edge-cdn.net:1935/webcast/',
@@ -75,6 +85,19 @@ describe('BitdashController', () => {
     expect(vm.config.source.hls).toBe(
       'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8'
     );
+    expect(vm.config.source.hiveServiceUrl).toBe('https://api-test.hivestreaming.com/v1/events/9021/597f2ca593768a02465dGxK');
+    expect(vm.config.source.title).toBe('Webcast Excample (3)');
+  });
+
+  it('should not add getHiveServiceUrl to config object', () => {
+    $scope.webcast.useDVRPlaybackInPostlive = true;
+    $scope.webcast.language = 'es';
+    const vm = new createController();
+    vm.$onInit();
+    expect(vm.config).toEqual($scope.config);
+    expect(vm.config.key).toBeDefined();
+    expect(vm.config.source.hls).toBe('https://hlsdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR');
+    expect(vm.config.source.hiveServiceUrl).toBeUndefined();
     expect(vm.config.source.title).toBe('Webcast Excample (3)');
   });
 
@@ -82,6 +105,7 @@ describe('BitdashController', () => {
     $scope.webcast.useDVRPlaybackInPostlive = true;
     const vm = new createController();
     vm.$onInit();
+    expect(vm.config.source.hiveServiceUrl).toBeUndefined();
     expect(vm.config.source.hls).toContain('Dvr/playlist.m3u8?DVR');
   });
 
