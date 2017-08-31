@@ -2,7 +2,7 @@
 const {resolve} = require('path');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const CleanCompiledJS = ['lib/**/*.js', 'src/**/*.js', 'lib/components/*.js', 'interfaces/*.js'];
+const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js', 'interface/*.js'];
 
 module.exports = function (karma) {
   karma.set({
@@ -34,8 +34,8 @@ module.exports = function (karma) {
         warningWhitespaceBg: 'bgYellow',
         warningFg: 'white',
 
-        defaultBg: '',
-        defaultFg: ''
+        defaultBg: 'bgBlue',
+        defaultFg: 'white'
       },
       pretty: false,
       multiline: false,
