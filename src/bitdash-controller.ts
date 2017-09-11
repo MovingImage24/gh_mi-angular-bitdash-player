@@ -46,7 +46,6 @@ class BitmovinController {
 
   public getDVRPlaybackToPostlive(webcast: any): any {
     let hls: string = webcast['liveStateData'].playout.hlsDvrUrl;
-    let dash: string = webcast['liveStateData'].playout.dashDvrUrl;
     const title: string = webcast.name;
 
     if (angular.isDefined(webcast['postliveStateData'].playout.offset)) {
@@ -58,21 +57,14 @@ class BitmovinController {
         parser.href = webcast['liveStateData'].playout.hlsDvrUrl;
         offsetPrefix = (parser.search) ? '&' : '?';
         hls += `${offsetPrefix}wowzadvrplayliststart=${offset}000`;
-
-        if (angular.isDefined(dash) && dash) {
-          parser.href = dash;
-          offsetPrefix = (parser.search) ? '&' : '?';
-          dash += `${offsetPrefix}wowzadvrplayliststart=${offset}000`;
-        }
       }
     }
 
-    return {dash, hls, title};
+    return {hls, title};
   }
 
   public getPlayerConfigSourceByState(webcast: any, state: any): any {
     let hls: string = webcast[state].playout.hlsUrl;
-    let dash: string = webcast[state].playout.dashUrl;
     const title: string = webcast.name;
     const hiveServiceUrl: string = this.getHiveServiceUrlByLang(webcast);
 
@@ -89,15 +81,9 @@ class BitmovinController {
         parser.href = hls;
         offsetPrefix = (parser.search) ? '&' : '?';
         hls += `${offsetPrefix}start=${offset}`;
-
-        if (angular.isDefined(dash) && dash) {
-          parser.href = dash;
-          offsetPrefix = (parser.search) ? '&' : '?';
-          dash += `${offsetPrefix}start=${offset}`;
-        }
       }
     }
-    return {dash, hls, title, hiveServiceUrl};
+    return {hls, title, hiveServiceUrl};
   }
 
   public getHiveServiceUrlByLang(webcast: any): string {
