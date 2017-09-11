@@ -33,8 +33,6 @@ describe('BitdashController', () => {
               streamName: 'myStream'
             },
             playout: {
-              dashDvrUrl: 'https://dashdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR',
-              dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd',
               hlsDvrUrl: 'https://hlsdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR',
               hlsUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8'
             }
@@ -42,14 +40,12 @@ describe('BitdashController', () => {
           name: 'Webcast Excample (3)',
           postliveStateData: {
             playout: {
-              dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd',
               hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8',
               offset: 0
             }
           },
           preliveStateData: {
             playout: {
-              dashUrl: 'https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd',
               hlsUrl: 'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_53393_7971020_16x9_hq.mp4/master.m3u8'
             }
           },
@@ -114,7 +110,6 @@ describe('BitdashController', () => {
     vm.$onInit();
     expect(vm.config.source.hls).toBe('http://hd2.cdn.edge-cdn.net/i/videodb/519/' +
       'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8');
-    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd');
   });
 
   it('should configure the player with vmpro HLS URL', () => {
@@ -132,18 +127,15 @@ describe('BitdashController', () => {
     expect(vm.config.source.hls).toBe(
       'http://hd2.cdn.edge-cdn.net/i/videodb/519/videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8?start=10'
     );
-    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd?start=10');
   });
 
   it('should configure the player with offset and existing query string', () => {
     $scope.webcast.postliveStateData.playout.offset = 10;
     $scope.webcast.postliveStateData.playout.hlsUrl += '?sth';
-    $scope.webcast.postliveStateData.playout.dashUrl += '?sth';
     const vm = new createController();
     vm.$onInit();
     expect(vm.config.source.hls).toBe('http://hd2.cdn.edge-cdn.net/i/videodb/519/' +
       'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8?sth&start=10');
-    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd?sth&start=10');
   });
 
   it('should configure the player in DVR with offset', () => {
@@ -154,9 +146,6 @@ describe('BitdashController', () => {
     expect(vm.config.source.hls).toBe(
       'https://hlsdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR&wowzadvrplayliststart=10000'
     );
-    expect(vm.config.source.dash).toBe(
-      'https://dashdvr-origin.edge-cdn.net/webcast/myStreamDvr/playlist.m3u8?DVR&wowzadvrplayliststart=10000'
-    );
   });
 
   it('should configure the player with forced live state', () => {
@@ -164,7 +153,6 @@ describe('BitdashController', () => {
     const vm = new createController();
     vm.$onInit();
     expect(vm.config.source.hls).toBe('https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8');
-    expect(vm.config.source.dash).toBe('https://live-origin.edge-cdn.net/webcast/myStream/manifest.mpd');
   });
 
 });
