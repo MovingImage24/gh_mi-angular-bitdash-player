@@ -58,9 +58,6 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
                 bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
               }
 
-              if (state === 'liveStateData') {
-                angular.element(getElementsByClassName('bmpui-seekbar')).css('display', 'none');
-              }
               bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
               if (angular.isDefined(bitmovinControlbar)) {
                 bitmovinControlbar.style.minWidth = '175px';
@@ -80,7 +77,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
         function setAudioOnlyStillImage(): void {
           if (angular.isDefined(scope.webcast[state].playout.audioOnlyStillUrl) &&
             scope.webcast[state].playout.audioOnlyStillUrl !== '') {
-            const element = getElementsByClassName('bmpui-ui-audioonly-overlay') as IMyElement;
+            const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
             element.style.backgroundImage = `url(${scope.webcast[state].playout.audioOnlyStillUrl})`;
             element.style.backgroundSize = 'contain';
             element.style.backgroundPosition = 'center';

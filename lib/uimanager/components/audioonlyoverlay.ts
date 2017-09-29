@@ -32,18 +32,18 @@ export class AudioOnlyOverlay extends Container<ContainerConfig> {
 
     // Hide overlay when Player is paused, so we can see the Big Play Button
 
-    player.addEventHandler(player.EVENT.ON_PAUSED, (event) => {
-      self.getDomElement().css('background-image', 'none');
-    });
+    // player.addEventHandler(player.EVENT.ON_PAUSED, (event) => {
+    //   self.getDomElement().css('background-image', 'none');
+    // });
 
-    player.addEventHandler(player.EVENT.ON_PLAY, (event) => {
-      self.getDomElement().css('background-image', image);
-    });
+    // player.addEventHandler(player.EVENT.ON_PLAY, (event) => {
+    //   self.getDomElement().css('background-image', image);
+    // });
 
     // Hide overlay if player is  paused at init (e.g. on mobile devices)
-    if (!player.isPlaying()) {
-      self.getDomElement().css('background-image', 'none');
-    }
+    // if (!player.isPlaying()) {
+    //   self.getDomElement().css('background-image', 'none');
+    // }
   }
 
 }

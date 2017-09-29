@@ -2,10 +2,14 @@ declare const angular;
 import {IBitdashDirective, IBitmovinUIManager, IMyElement, IPlayer} from '../interface/interfaces';
 import BitdashDirective from '../src/bitdash-directive';
 
+interface IRootScope extends angular.IRootScopeService {
+  webcastMainVm: any;
+}
+
 describe('BitdashDirective', () => {
   let $q: angular.IQService;
   let $compile: angular.ICompileService;
-  let $rootScope: angular.IRootScopeService;
+  let $rootScope: IRootScope;
   let $log: angular.ILogService;
   let template: string = `<mi-bitdash-player config="webcastMainVm.playerConfig" webcast="webcastMainVm.webcast"></mi-bitdash-player>`;
 
@@ -25,10 +29,9 @@ describe('BitdashDirective', () => {
     .element(document)
     .find('body')
     .append(`<div class="bitmovinplayer-container" style="min-width:195px; min-height:140px;">
-                             <div class="bmpui-ui-audioonly-overlay"
+                             <div class="mi-wbc-ui-audioonly-overlay"
                                 style="background-image:url(data:image);background-size:contain;background-position:center;">
                                 <video id="bitmovinplayer-video-mi-bitdash-player"></video>
-                                <div class="bmpui-seekbar"></div>
                              </div>
                           </div>`);
 
@@ -42,7 +45,7 @@ describe('BitdashDirective', () => {
     angular.mock.inject(($injector: angular.auto.IInjectorService) => {
         $q = $injector.get('$q');
         $compile = $injector.get('$compile');
-        $rootScope = $injector.get('$rootScope');
+        $rootScope = $injector.get('$rootScope') as IRootScope;
         $log = $injector.get('$log');
     });
     $rootScope.webcastMainVm = {
@@ -87,9 +90,8 @@ describe('BitdashDirective', () => {
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {hiveServiceUrl: null}});
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(document.getElementsByClassName).not.toHaveBeenCalledWith('bmpui-seekbar');
     expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
-    expect(document.getElementsByClassName).not.toHaveBeenCalledWith('bmpui-ui-audioonly-overlay');
+    expect(document.getElementsByClassName).not.toHaveBeenCalledWith('mi-wbc-ui-audioonly-overlay');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
     expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
@@ -123,11 +125,11 @@ describe('BitdashDirective', () => {
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight)
       .toEqual('101px');
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
-    expect((document.getElementsByClassName('bmpui-ui-audioonly-overlay')[0] as IMyElement).style.backgroundImage)
+    expect((document.getElementsByClassName('mi-wbc-ui-audioonly-overlay')[0] as IMyElement).style.backgroundImage)
       .toEqual('url(https://www.ima.ge/image.jpg)');
-    expect((document.getElementsByClassName('bmpui-ui-audioonly-overlay')[0] as IMyElement).style.backgroundSize)
+    expect((document.getElementsByClassName('mi-wbc-ui-audioonly-overlay')[0] as IMyElement).style.backgroundSize)
       .toEqual('contain');
-    expect((document.getElementsByClassName('bmpui-ui-audioonly-overlay')[0] as IMyElement).style.backgroundPosition)
+    expect((document.getElementsByClassName('mi-wbc-ui-audioonly-overlay')[0] as IMyElement).style.backgroundPosition)
       .toEqual('50% 50%');
   });
 
@@ -169,8 +171,7 @@ describe('BitdashDirective', () => {
     };
     $compile(angular.element(template))($rootScope);
     $rootScope.$apply();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bmpui-seekbar');
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
   });
 
@@ -185,10 +186,8 @@ describe('BitdashDirective', () => {
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {
       hiveServiceUrl: 'https://api-test.hivestreaming.com/v1/events/9021/597f'}});
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bmpui-seekbar');
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bmpui-seekbar');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
     expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
@@ -205,10 +204,8 @@ describe('BitdashDirective', () => {
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {
       hiveServiceUrl: 'https://api-test.hivestreaming.com/v1/events/9021/597f', hls: 'https://api-hive.hive'}});
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bmpui-seekbar');
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bmpui-seekbar');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
     expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
