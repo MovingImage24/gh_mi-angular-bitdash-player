@@ -323,7 +323,7 @@ export namespace UIManager.Factory {
         new SeekBar({ label: new SeekBarLabel()}),
         new PlaybackTimeLabel(),
         new VolumeControlButton({ 'vertical': true }),
-        // new FullscreenToggleButton(),
+        new FullscreenToggleButton(),
         new Component({ cssClass: 'spacer' })
       ]
     }, true);
