@@ -1,6 +1,6 @@
 import {Component, ComponentConfig} from './component';
 import {EventDispatcher, Event} from '../eventdispatcher';
-import {ArrayUtils} from '../utils';
+import {ArrayUtils} from '../arrayutils';
 
 /**
  * A map of items (key/value -> label} for a {@link ListSelector} in a {@link ListSelectorConfig}.
@@ -25,7 +25,7 @@ export abstract class ListSelector<Config extends ListSelectorConfig> extends Co
   private listSelectorEvents = {
     onItemAdded: new EventDispatcher<ListSelector<Config>, string>(),
     onItemRemoved: new EventDispatcher<ListSelector<Config>, string>(),
-    onItemSelected: new EventDispatcher<ListSelector<Config>, string>()
+    onItemSelected: new EventDispatcher<ListSelector<Config>, string>(),
   };
 
   constructor(config: ListSelectorConfig = {}) {
@@ -33,7 +33,7 @@ export abstract class ListSelector<Config extends ListSelectorConfig> extends Co
 
     this.config = this.mergeConfig(config, {
       items: [],
-      cssClass: 'ui-listselector'
+      cssClass: 'ui-listselector',
     }, this.config);
 
     this.items = this.config.items;
@@ -119,8 +119,13 @@ export abstract class ListSelector<Config extends ListSelectorConfig> extends Co
    * Removes all items from this selector.
    */
   clearItems() {
-    let items = this.items; // local copy for iteration after clear
-    this.items = []; // clear items
+    // local copy for iteration after clear
+    let items = this.items;
+    // clear items
+    this.items = [];
+
+    // clear the selection as the selected item is also removed
+    this.selectedItem = null;
 
     // fire events
     for (let item of items) {

@@ -12,75 +12,80 @@ declare namespace bitmovin {
      * All available events of the player
      */
     interface EventList {
-      ON_AD_CLICKED: EVENT,
-      ON_AD_ERROR: EVENT,
-      ON_AD_FINISHED: EVENT,
-      ON_AD_LINEARITY_CHANGED: EVENT,
-      ON_AD_MANIFEST_LOADED: EVENT,
-      ON_AD_SCHEDULED: EVENT,
-      ON_AD_SKIPPED: EVENT,
-      ON_AD_STARTED: EVENT,
-      ON_AUDIO_ADAPTATION: EVENT,
-      ON_AUDIO_CHANGED: EVENT,
-      ON_AUDIO_ADDED: EVENT,
-      ON_AUDIO_REMOVED: EVENT,
-      ON_AUDIO_DOWNLOAD_QUALITY_CHANGE: EVENT,
-      ON_AUDIO_DOWNLOAD_QUALITY_CHANGED: EVENT,
-      ON_AUDIO_PLAYBACK_QUALITY_CHANGED: EVENT,
-      ON_CAST_AVAILABLE: EVENT,
-      ON_CAST_START: EVENT,
-      ON_CAST_WAITING_FOR_DEVICE: EVENT,
-      ON_CAST_STARTED: EVENT,
-      ON_CAST_PLAYING: EVENT,
-      ON_CAST_PAUSED: EVENT,
-      ON_CAST_STOPPED: EVENT,
-      ON_CAST_PLAYBACK_FINISHED: EVENT,
-      ON_CAST_TIME_UPDATED: EVENT,
-      ON_CUE_ENTER: EVENT,
-      ON_CUE_EXIT: EVENT,
-      ON_DOWNLOAD_FINISHED: EVENT,
-      ON_DVR_WINDOW_EXCEEDED: EVENT,
-      ON_ERROR: EVENT,
-      ON_FULLSCREEN_ENTER: EVENT,
-      ON_FULLSCREEN_EXIT: EVENT,
-      ON_HIDE_CONTROLS: EVENT,
-      ON_METADATA: EVENT,
-      ON_MUTED: EVENT,
-      ON_PAUSED: EVENT,
-      ON_PERIOD_SWITCHED: EVENT,
-      ON_PLAY: EVENT,
-      ON_PLAYBACK_FINISHED: EVENT,
-      ON_PLAYER_RESIZE: EVENT,
-      ON_READY: EVENT,
-      ON_SEEK: EVENT,
-      ON_SEEKED: EVENT,
-      ON_SEGMENT_REQUEST_FINISHED: EVENT,
-      ON_SHOW_CONTROLS: EVENT,
-      ON_SOURCE_LOADED: EVENT,
-      ON_SOURCE_UNLOADED: EVENT,
-      ON_STALL_STARTED: EVENT,
-      ON_STALL_ENDED: EVENT,
-      ON_SUBTITLE_ADDED: EVENT,
-      ON_SUBTITLE_CHANGED: EVENT,
-      ON_SUBTITLE_REMOVED: EVENT,
-      ON_TIME_CHANGED: EVENT,
-      ON_TIME_SHIFT: EVENT,
-      ON_TIME_SHIFTED: EVENT,
-      ON_UNMUTED: EVENT,
-      ON_VIDEO_ADAPTATION: EVENT,
-      ON_VIDEO_DOWNLOAD_QUALITY_CHANGE: EVENT,
-      ON_VIDEO_DOWNLOAD_QUALITY_CHANGED: EVENT,
-      ON_VIDEO_PLAYBACK_QUALITY_CHANGED: EVENT,
-      ON_VOLUME_CHANGED: EVENT,
-      ON_VR_ERROR: EVENT,
-      ON_VR_MODE_CHANGED: EVENT,
-      ON_VR_STEREO_CHANGED: EVENT,
-      ON_WARNING: EVENT,
-      ON_PICTURE_IN_PICTURE_ENTER: EVENT,
-      ON_PICTURE_IN_PICTURE_EXIT: EVENT,
-      ON_AIRPLAY_AVAILABLE: EVENT,
-      ON_VR_VIEWING_DIRECTION_CHANGE: EVENT,
-      ON_VR_VIEWING_DIRECTION_CHANGED: EVENT,
+      ON_AD_CLICKED: EVENT;
+      ON_AD_ERROR: EVENT;
+      ON_AD_FINISHED: EVENT;
+      ON_AD_LINEARITY_CHANGED: EVENT;
+      ON_AD_MANIFEST_LOADED: EVENT;
+      ON_AD_SCHEDULED: EVENT;
+      ON_AD_SKIPPED: EVENT;
+      ON_AD_STARTED: EVENT;
+      ON_AUDIO_ADAPTATION: EVENT;
+      ON_AUDIO_CHANGED: EVENT;
+      ON_AUDIO_ADDED: EVENT;
+      ON_AUDIO_REMOVED: EVENT;
+      ON_AUDIO_QUALITY_CHANGED: EVENT;
+      ON_AUDIO_DOWNLOAD_QUALITY_CHANGE: EVENT;
+      ON_AUDIO_DOWNLOAD_QUALITY_CHANGED: EVENT;
+      ON_AUDIO_PLAYBACK_QUALITY_CHANGED: EVENT;
+      ON_CAST_AVAILABLE: EVENT;
+      ON_CAST_START: EVENT;
+      ON_CAST_WAITING_FOR_DEVICE: EVENT;
+      ON_CAST_STARTED: EVENT;
+      ON_CAST_PLAYING: EVENT;
+      ON_CAST_PAUSED: EVENT;
+      ON_CAST_STOPPED: EVENT;
+      ON_CAST_PLAYBACK_FINISHED: EVENT;
+      ON_CAST_TIME_UPDATED: EVENT;
+      ON_CUE_ENTER: EVENT;
+      ON_CUE_UPDATE: EVENT;
+      ON_CUE_EXIT: EVENT;
+      ON_DOWNLOAD_FINISHED: EVENT;
+      ON_DVR_WINDOW_EXCEEDED: EVENT;
+      ON_ERROR: EVENT;
+      ON_FULLSCREEN_ENTER: EVENT;
+      ON_FULLSCREEN_EXIT: EVENT;
+      ON_HIDE_CONTROLS: EVENT;
+      ON_METADATA: EVENT;
+      ON_MUTED: EVENT;
+      ON_PAUSED: EVENT;
+      ON_PERIOD_SWITCHED: EVENT;
+      ON_PLAY: EVENT;
+      ON_PLAYING: EVENT;
+      ON_PLAYBACK_FINISHED: EVENT;
+      ON_PLAYER_RESIZE: EVENT;
+      ON_READY: EVENT;
+      ON_SEEK: EVENT;
+      ON_SEEKED: EVENT;
+      ON_SEGMENT_PLAYBACK: EVENT;
+      ON_SEGMENT_REQUEST_FINISHED: EVENT;
+      ON_SHOW_CONTROLS: EVENT;
+      ON_SOURCE_LOADED: EVENT;
+      ON_SOURCE_UNLOADED: EVENT;
+      ON_STALL_STARTED: EVENT;
+      ON_STALL_ENDED: EVENT;
+      ON_SUBTITLE_ADDED: EVENT;
+      ON_SUBTITLE_CHANGED: EVENT;
+      ON_SUBTITLE_REMOVED: EVENT;
+      ON_TIME_CHANGED: EVENT;
+      ON_TIME_SHIFT: EVENT;
+      ON_TIME_SHIFTED: EVENT;
+      ON_UNMUTED: EVENT;
+      ON_VIDEO_ADAPTATION: EVENT;
+      ON_VIDEO_QUALITY_CHANGED: EVENT;
+      ON_VIDEO_DOWNLOAD_QUALITY_CHANGE: EVENT;
+      ON_VIDEO_DOWNLOAD_QUALITY_CHANGED: EVENT;
+      ON_VIDEO_PLAYBACK_QUALITY_CHANGED: EVENT;
+      ON_VOLUME_CHANGED: EVENT;
+      ON_VR_ERROR: EVENT;
+      ON_VR_MODE_CHANGED: EVENT;
+      ON_VR_STEREO_CHANGED: EVENT;
+      ON_WARNING: EVENT;
+      ON_PICTURE_IN_PICTURE_ENTER: EVENT;
+      ON_PICTURE_IN_PICTURE_EXIT: EVENT;
+      ON_AIRPLAY_AVAILABLE: EVENT;
+      ON_VR_VIEWING_DIRECTION_CHANGE: EVENT;
+      ON_VR_VIEWING_DIRECTION_CHANGED: EVENT;
     }
 
     interface PlayerEvent {
@@ -101,7 +106,15 @@ declare namespace bitmovin {
       time: number;
     }
 
-    interface SeekEvent extends PlayerEvent {
+    interface UserInteractionEvent extends PlayerEvent {
+
+      /**
+       * The issuer who lead to the triggering of this event
+       */
+      issuer?: string;
+    }
+
+    interface SeekEvent extends UserInteractionEvent {
       /**
        * The current position (in seconds)
        */
@@ -112,7 +125,7 @@ declare namespace bitmovin {
       seekTarget: number;
     }
 
-    interface VolumeChangedEvent extends PlayerEvent {
+    interface VolumeChangedEvent extends UserInteractionEvent {
       /**
        * The volume before the event has been triggered
        */
@@ -174,7 +187,7 @@ declare namespace bitmovin {
       targetSubtitle: Subtitle;
     }
 
-    interface MediaDownloadQualityChangeEvent<Q extends Quality> extends PlayerEvent {
+    interface MediaQualityChangeEvent<Q extends Quality> extends PlayerEvent {
       /**
        * Previous quality or null if no quality was set before.
        */
@@ -193,16 +206,22 @@ declare namespace bitmovin {
       targetQualityId: string;
     }
 
-    interface VideoDownloadQualityChangeEvent extends MediaDownloadQualityChangeEvent<VideoQuality> {
+    interface VideoQualityChangeEvent extends MediaQualityChangeEvent<VideoQuality> {
     }
 
-    interface AudioDownloadQualityChangeEvent extends MediaDownloadQualityChangeEvent<AudioQuality> {
+    interface AudioQualityChangeEvent extends MediaQualityChangeEvent<AudioQuality> {
     }
 
-    interface VideoDownloadQualityChangedEvent extends MediaDownloadQualityChangeEvent<VideoQuality> {
+    interface VideoDownloadQualityChangeEvent extends MediaQualityChangeEvent<VideoQuality> {
     }
 
-    interface AudioDownloadQualityChangedEvent extends MediaDownloadQualityChangeEvent<AudioQuality> {
+    interface AudioDownloadQualityChangeEvent extends MediaQualityChangeEvent<AudioQuality> {
+    }
+
+    interface VideoDownloadQualityChangedEvent extends MediaQualityChangeEvent<VideoQuality> {
+    }
+
+    interface AudioDownloadQualityChangedEvent extends MediaQualityChangeEvent<AudioQuality> {
     }
 
     interface MediaPlaybackQualityChangeEvent<Q extends Quality> extends PlayerEvent {
@@ -229,13 +248,13 @@ declare namespace bitmovin {
       /**
        * segment URL
        */
-      URL: string;
+      url: string;
       /**
        * segment Unique ID
        */
       uid: string;
       /**
-       * filetype
+       * media mime type
        */
       mimeType: string;
       /**
@@ -246,7 +265,16 @@ declare namespace bitmovin {
        * segment duration
        */
       duration: number;
-      mediaInfo: { bitrate: string, sampleRate: string };
+      /**
+       * coding parameters
+       */
+      mediaInfo: {
+        bitrate?: number,
+        sampleRate?: number,
+        frameRate?: number,
+        width?: number,
+        height?: number,
+      };
       /**
        * optional program date time (time string)
        */
@@ -455,6 +483,14 @@ declare namespace bitmovin {
       stereo: boolean;
     }
 
+    interface VRViewingDirectionChangeEvent extends PlayerEvent {
+      direction: bitmovin.PlayerAPI.VR.ViewingDirection;
+    }
+
+    interface VRViewingDirectionChangedEvent extends VRViewingDirectionChangeEvent {
+      //
+    }
+
     interface SubtitleCueEvent extends PlayerEvent {
       start: number;
       end: number;
@@ -462,7 +498,10 @@ declare namespace bitmovin {
       html?: string;
       region?: string;
       regionStyle?: string;
-      position?: string;
+      position?: {
+        row: number;
+        column: number;
+      };
     }
 
     interface PlayerEventCallback {

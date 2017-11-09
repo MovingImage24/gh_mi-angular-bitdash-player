@@ -359,6 +359,25 @@ declare namespace bitmovin {
       apiControl?: VRControlConfig;
     }
 
+    interface SourceLabelingConfig {
+      /**
+       * A function that generates a label for a track, usually an audio track.
+       * @param track Object with metadata about the track for which the label should be generated. The id field is
+       *   populated when used for HLS, the mimeType when used for DASH.
+       */
+      tracks?: (track: { id?: string, mimeType?: string, lang: string }) => string;
+      /**
+       * A function that generates a label for a quality, usually a video quality.
+       * @param quality Object with metadata about the quality for which the label should be generated.
+       */
+      qualities?: (quality: { id: string, mimeType: string, bitrate: number, width: number, height: number, qualityRanking?: number, frameRate?: number }) => string;
+      /**
+       * A function that generates a label for a subtitle.
+       * @param subtitle The subtitle for which the label should be generated.
+       */
+      subtitles?: (subtitle: Subtitle) => string;
+    }
+
     interface SourceConfig {
       /**
        * The URL to the MPEG-DASH manifest file (MPD, Media Presentation Description) for the video to play.
@@ -407,6 +426,19 @@ declare namespace bitmovin {
        * The description of the video source.
        */
       description?: string;
+      /**
+       * An object with callback functions that provide labels for audio tracks, qualities and subtitle tracks.
+       */
+      labeling?: {
+        /**
+         * Labeling functions for DASH sources.
+         */
+        dash?: SourceLabelingConfig;
+        /**
+         * Labeling functions for HLS sources.
+         */
+        hls?: SourceLabelingConfig;
+      };
     }
 
     interface PlaybackTech {
@@ -473,42 +505,10 @@ declare namespace bitmovin {
        */
       aspectratio?: string;
       /**
-       * Whether controls are displayed or not. If no controls are displayed, this JavaScript API can be
-       * used to control the player. Can be true (default) or false.
-       */
-      controls?: boolean;
-      /**
-       * Can be used to disable auto-hiding the controls by setting this value to false. Default is true.
-       */
-      autoHideControls?: boolean;
-      /**
-       * Can be used to disable (i.e. never show) the overlay in pause or stopped mode by setting this
-       * value to false. Default is true.
-       */
-      playOverlay?: boolean;
-      /**
-       * Can be used to disable all keyboard commands by setting this value to false. Default is true.
-       */
-      keyboard?: boolean;
-      /**
-       * Can be used to disable click (toggle play/pause) and double click (toggle fullscreen) mouse events
-       * by setting this value to false. Default is true.
-       */
-      mouse?: boolean;
-      /**
        * A short hand function to disable/enable controls, playOverlay, subtitles, keyboard,
        * and mouse. It is not possible to override this setting with one of the mentioned attributes.
        */
       ux?: boolean;
-      /**
-       * If set to true, active subtitles won’t be displayed, but still exposed in the onCueEnter and
-       * onCueExit events.
-       */
-      subtitlesHidden?: boolean;
-      /**
-       * Can be used enable/disable visible error messages. Default is true (enabled).
-       */
-      showErrors?: boolean;
     }
 
     interface ContextMenuEntry {
@@ -561,6 +561,12 @@ declare namespace bitmovin {
        * used as parameter name and the values as parameter values.
        */
       query_parameters?: { [key: string]: string; };
+      /**
+       * If enabled the native player used for HLS in Safari would fetch and parse the HLS playlist and trigger
+       * onSegmentPlayback events carrying segment-specific metadata like EXT-X-PROGRAM-DATE-TIME if present
+       * in the manifest.
+       */
+      native_hls_parsing?: boolean;
     }
 
     interface CastConfig {
@@ -580,13 +586,6 @@ declare namespace bitmovin {
        * to use this option! This is only needed if one wants to create a custom ChromeCast receiver app.
        */
       message_namespace?: string;
-    }
-
-    interface AdaptationBitrateConfig {
-      minSelectableAudioBitrate?: number | string;
-      maxSelectableAudioBitrate?: number | string;
-      minSelectableVideoBitrate?: number | string;
-      maxSelectableVideoBitrate?: number | string;
     }
 
     interface AdaptationConfig {
@@ -610,12 +609,49 @@ declare namespace bitmovin {
        * This behavior can be disabled by setting this option to false (default is true).
        */
       disableDownloadCancelling?: boolean;
-      desktop?: {
-        bitrates: AdaptationBitrateConfig
+      /**
+       * Specifies whether the player preloads the content or not. Can be true (default) or false.
+       */
+      preload?: boolean;
+      /**
+       * Lower and upper bitrate boundaries. Values should generally be strings with mbps (megabits per second), kbps
+       * (kilobits per second), or bps (bits per second) units (e.g. '5000kbps'). Only the values 0 (no limitation for
+       * lower boundaries) and Infinity (no limitation for upper boundaries) are not required to be strings.
+       */
+      bitrates?: {
+        minSelectableAudioBitrate?: number | string;
+        maxSelectableAudioBitrate?: number | string;
+        minSelectableVideoBitrate?: number | string;
+        maxSelectableVideoBitrate?: number | string;
       };
-      mobile?: {
-        bitrates: AdaptationBitrateConfig
-      };
+      /**
+       * A callback function to customize the player's adaptation logic that is called before the player tries to download
+       * a new video segment.
+       * @param data An object carrying the <code>suggested</code> attribute, holding the suggested representation/quality
+       *   ID the player would select
+       * @return A valid representation/quality ID which the player should use, based on your custom logic (or
+       *   <code>data.suggested</code> to switch to the suggested quality)
+       * @see PlayerAPI#getAvailableVideoQualities to get a list of all available video qualities
+       */
+      onVideoAdaptation?: (data: { suggested: string }) => string;
+      /**
+       * A callback function to customize the player's adaptation logic that is called before the player tries to download
+       * a new audio segment.
+       * @param data An object carrying the <code>suggested</code> attribute, holding the suggested representation/quality
+       *   ID the player would select
+       * @return A valid representation/quality ID which the player should use, based on your custom logic (or
+       *   <code>data.suggested</code> to switch to the suggested quality)
+       * @see PlayerAPI#getAvailableAudioQualities to get a list of all available audio qualities
+       */
+      onAudioAdaptation?: (data: { suggested: string }) => string;
+    }
+
+    /**
+     * Adaptation configurations for different platforms.
+     */
+    interface AdaptationPlatformConfig {
+      desktop?: AdaptationConfig;
+      mobile?: AdaptationConfig;
     }
 
     interface AdvertisingScheduleItem {
@@ -755,12 +791,9 @@ declare namespace bitmovin {
        */
       cast?: CastConfig;
       /**
-       * The adaptation logic can be influenced by this parameter. Lower and upper bitrate boundaries can be
-       * set for desktop and mobile separately. Only representations between minSelectableVideoBitrate
-       * (or minSelectableAudioBitrate) and maxSelectableVideoBitrate (or maxSelectableAudioBitrate) are chosen
-       * except there are no matching representations.
+       * Configures the adaptation logic.
        */
-      adaptation?: AdaptationConfig;
+      adaptation?: AdaptationPlatformConfig;
       /**
        * Allows you to define which ads you want to display and when you want to display them.
        * In order to play ads on your website, you need to specify an ad config.
