@@ -1,7 +1,7 @@
 /// <reference path='player.d.ts' />
+import {UIManager, UIInstanceManager} from './uimanager';
 import {Button} from './components/button';
 import {ControlBar} from './components/controlbar';
-import {UIManager, UIInstanceManager} from './uimanager';
 import {HugePlaybackToggleButton} from './components/hugeplaybacktogglebutton';
 import {PlaybackTimeLabel, PlaybackTimeLabelMode} from './components/playbacktimelabel';
 import {PlaybackToggleButton} from './components/playbacktogglebutton';
@@ -51,9 +51,9 @@ if (typeof Object.assign !== 'function') {
 
     target = Object(target);
     for (let index = 1; index < arguments.length; index++) {
-      const source = arguments[index];
+      let source = arguments[index];
       if (source != null) {
-        for (const key in source) {
+        for (let key in source) {
           if (Object.prototype.hasOwnProperty.call(source, key)) {
             target[key] = source[key];
           }
@@ -116,4 +116,5 @@ const playerui = {
 // Export UI as UMD module
 // This goes together with the Browserify "--standalone bitmovin.playerui" config option (in the gulpfile)
 declare const module: any;
+(window as any).bitmovin.playerui = playerui;
 module.exports = playerui;
