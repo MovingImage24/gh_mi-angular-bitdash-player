@@ -1,6 +1,6 @@
 import {ContainerConfig, Container} from './container';
 import {UIInstanceManager} from '../uimanager';
-import {UIUtils} from '../utils';
+import {UIUtils} from '../uiutils';
 import {Spacer} from './spacer';
 
 /**
@@ -21,7 +21,7 @@ export class ControlBar extends Container<ControlBarConfig> {
 
     this.config = this.mergeConfig(config, {
       cssClass: 'ui-controlbar',
-      hidden: autoHide
+      hidden: autoHide,
     }, <ControlBarConfig>this.config);
   }
 

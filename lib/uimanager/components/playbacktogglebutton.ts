@@ -1,7 +1,7 @@
 import {ToggleButton, ToggleButtonConfig} from './togglebutton';
 import {UIInstanceManager} from '../uimanager';
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
-import {PlayerUtils} from '../utils';
+import {PlayerUtils} from '../playerutils';
 import TimeShiftAvailabilityChangedArgs = PlayerUtils.TimeShiftAvailabilityChangedArgs;
 
 /**
@@ -16,7 +16,7 @@ export class PlaybackToggleButton extends ToggleButton<ToggleButtonConfig> {
 
     this.config = this.mergeConfig(config, {
       cssClass: 'ui-playbacktogglebutton',
-      text: 'Play/Pause'
+      text: 'Play/Pause',
     }, this.config);
   }
 
@@ -69,9 +69,9 @@ export class PlaybackToggleButton extends ToggleButton<ToggleButtonConfig> {
       // above that updated the button state.
       this.onClick.subscribe(() => {
         if (player.isPlaying()) {
-          player.pause('ui-button');
+          player.pause('ui');
         } else {
-          player.play('ui-button');
+          player.play('ui');
         }
       });
     }

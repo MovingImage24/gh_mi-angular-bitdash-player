@@ -3,32 +3,50 @@ import {DOM} from './dom';
 import {Component, ComponentConfig} from './components/component';
 import {Container} from './components/container';
 import {PlaybackToggleButton} from './components/playbacktogglebutton';
-import {VolumeToggleButton} from './components/volumetogglebutton';
+import {FullscreenToggleButton} from './components/fullscreentogglebutton';
+// import {VRToggleButton} from './components/vrtogglebutton';
+// import {VolumeToggleButton} from './components/volumetogglebutton';
 import {SeekBar} from './components/seekbar';
-import {PlaybackTimeLabel, PlaybackTimeLabelMode} from './components/playbacktimelabel';
+import {PlaybackTimeLabel} from './components/playbacktimelabel'; // , PlaybackTimeLabelMode
 import {ControlBar} from './components/controlbar';
 import {NoArgs, EventDispatcher, CancelEventArgs} from './eventdispatcher';
-import {VideoQualitySelectBox} from './components/videoqualityselectbox';
-import {Watermark} from './components/watermark';
+// import {SettingsToggleButton} from './components/settingstogglebutton';
+// import {SettingsPanel, SettingsPanelItem} from './components/settingspanel';
+// import {VideoQualitySelectBox} from './components/videoqualityselectbox';
+// import {Watermark} from './components/watermark';
+// import {AudioQualitySelectBox} from './components/audioqualityselectbox';
+// import {AudioTrackSelectBox} from './components/audiotrackselectbox';
 import {SeekBarLabel} from './components/seekbarlabel';
-import {VolumeSlider} from './components/volumeslider';
+// import {VolumeSlider} from './components/volumeslider';
+import {SubtitleSelectBox} from './components/subtitleselectbox';
+import {SubtitleOverlay} from './components/subtitleoverlay';
 import {VolumeControlButton} from './components/volumecontrolbutton';
-import {FullscreenToggleButton} from './components/fullscreentogglebutton';
+// import {CastToggleButton} from './components/casttogglebutton';
+// import {CastStatusOverlay} from './components/caststatusoverlay';
 import {ErrorMessageOverlay} from './components/errormessageoverlay';
-import {TitleBar} from './components/titlebar';
+// import {TitleBar} from './components/titlebar';
 import PlayerAPI = bitmovin.PlayerAPI;
+// import {RecommendationOverlay} from './components/recommendationoverlay';
+// import {AdMessageLabel} from './components/admessagelabel';
+// import {AdSkipButton} from './components/adskipbutton';
+// import {AdClickOverlay} from './components/adclickoverlay';
 import EVENT = bitmovin.PlayerAPI.EVENT;
 import PlayerEventCallback = bitmovin.PlayerAPI.PlayerEventCallback;
 import AdStartedEvent = bitmovin.PlayerAPI.AdStartedEvent;
-import {ArrayUtils, UIUtils, BrowserUtils} from './utils';
-import {BufferingOverlay} from './components/bufferingoverlay';
-import {AudioOnlyOverlay} from './components/audioonlyoverlay';
+// import {PlaybackSpeedSelectBox} from './components/playbackspeedselectbox';
+// import {BufferingOverlay} from './components/bufferingoverlay';
 import {PlaybackToggleOverlay} from './components/playbacktoggleoverlay';
-import {CloseButton} from './components/closebutton';
-import {MetadataLabel, MetadataLabelContent} from './components/metadatalabel';
-import {Label} from './components/label';
+// import {CloseButton} from './components/closebutton';
+// import {MetadataLabel, MetadataLabelContent} from './components/metadatalabel';
+// import {Label} from './components/label';
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
-import {Spacer} from './components/spacer';
+// import {AirPlayToggleButton} from './components/airplaytogglebutton';
+// import {PictureInPictureToggleButton} from './components/pictureinpicturetogglebutton';
+import {AudioOnlyOverlay} from './components/audioonlyoverlay';
+// import {Spacer} from './components/spacer';
+import {UIUtils} from './uiutils';
+import {ArrayUtils} from './arrayutils';
+import {BrowserUtils} from './browserutils';
 
 export interface UIRecommendationConfig {
   title: string;
@@ -43,6 +61,11 @@ export interface TimelineMarker {
 }
 
 export interface UIConfig {
+  /**
+   * Specifies the container in the DOM into which the UI will be added. Can be a CSS selector string or a
+   * HTMLElement object. By default, the player figure will be used ({@link PlayerAPI#getFigure}).
+   */
+  container?: string | HTMLElement;
   metadata?: {
     title?: string;
     description?: string;
@@ -55,11 +78,39 @@ export interface UIConfig {
  * The context that will be passed to a {@link UIConditionResolver} to determine if it's conditions fulfil the context.
  */
 export interface UIConditionContext {
+  /**
+   * Tells if the player is loading or playing an ad.
+   */
   isAd: boolean;
+  /**
+   * Tells if the ad allows a UI. This is currently only true for VAST ads and cannot be used to differentiate between
+   * different ad clients (i.e. to display different UIs for different ad clients).
+   * @deprecated Will be removed in an upcoming major release, use {@link #adClientType} instead.
+   */
   isAdWithUI: boolean;
+  /**
+   * Tells the ad client (e.g. 'vast, 'ima') if {@link #isAd} is true.
+   */
+  adClientType: string;
+  /**
+   * Tells if the player is currently in fullscreen mode.
+   */
   isFullscreen: boolean;
+  /**
+   * Tells if the UI is running in a mobile browser.
+   */
   isMobile: boolean;
+  /**
+   * Tells if the player is in playing or paused state.
+   */
+  isPlaying: boolean;
+  /**
+   * The width of the player/UI element.
+   */
   width: number;
+  /**
+   * The width of the document where the player/UI is embedded in.
+   */
   documentWidth: number;
 }
 
@@ -83,7 +134,7 @@ export interface UIVariant {
 export class UIManager {
 
   private player: PlayerAPI;
-  private playerElement: DOM;
+  private uiContainerElement: DOM;
   private uiVariants: UIVariant[];
   private uiInstanceManagers: InternalUIInstanceManager[];
   private currentUi: InternalUIInstanceManager;
@@ -142,7 +193,16 @@ export class UIManager {
     this.player = player;
     this.config = config;
     this.managerPlayerWrapper = new PlayerWrapper(player);
-    this.playerElement = new DOM(player.getFigure());
+
+    if (config.container) {
+      // Unfortunately "uiContainerElement = new DOM(config.container)" will not accept the container with
+      // string|HTMLElement type directly, although it accepts both types, so we need to spit these two cases up here.
+      // TODO check in upcoming TS versions if the container can be passed in directly, or fix the constructor
+      this.uiContainerElement = config.container instanceof HTMLElement ?
+        new DOM(config.container) : new DOM(config.container);
+    } else {
+      this.uiContainerElement = new DOM(player.getFigure());
+    }
 
     // Create UI instance managers for the UI variants
     // The instance managers map to the corresponding UI variants by their array index
@@ -191,6 +251,14 @@ export class UIManager {
           case player.EVENT.ON_AD_SKIPPED:
           case player.EVENT.ON_AD_ERROR:
             adStartedEvent = null;
+            break;
+          // When a new source is loaded during ad playback, there will be no ad end event so we detect the end
+          // of the ad playback by checking isAd() in ON_READY, because ON_READY always arrives when the source
+          // changes.
+          case player.EVENT.ON_READY:
+            if (adStartedEvent && !player.isAd()) {
+              adStartedEvent = null;
+            }
         }
       }
 
@@ -202,9 +270,11 @@ export class UIManager {
       let context: UIConditionContext = {
         isAd: ad,
         isAdWithUI: adWithUI,
+        adClientType: ad ? adStartedEvent.clientType : null,
         isFullscreen: this.player.isFullscreen(),
         isMobile: isMobile,
-        width: this.playerElement.width(),
+        isPlaying: this.player.isPlaying(),
+        width: this.uiContainerElement.width(),
         documentWidth: document.body.clientWidth,
       };
 
@@ -264,6 +334,9 @@ export class UIManager {
     };
 
     // Listen to the following events to trigger UI variant resolution
+    this.managerPlayerWrapper.getPlayer().addEventHandler(this.player.EVENT.ON_READY, resolveUiVariant);
+    this.managerPlayerWrapper.getPlayer().addEventHandler(this.player.EVENT.ON_PLAY, resolveUiVariant);
+    this.managerPlayerWrapper.getPlayer().addEventHandler(this.player.EVENT.ON_PAUSED, resolveUiVariant);
     this.managerPlayerWrapper.getPlayer().addEventHandler(this.player.EVENT.ON_AD_STARTED, resolveUiVariant);
     this.managerPlayerWrapper.getPlayer().addEventHandler(this.player.EVENT.ON_AD_FINISHED, resolveUiVariant);
     this.managerPlayerWrapper.getPlayer().addEventHandler(this.player.EVENT.ON_AD_SKIPPED, resolveUiVariant);
@@ -282,11 +355,19 @@ export class UIManager {
 
   private addUi(ui: InternalUIInstanceManager): void {
     let dom = ui.getUI().getDomElement();
+    let player = ui.getWrappedPlayer();
+
     ui.configureControls();
     /* Append the UI DOM after configuration to avoid CSS transitions at initialization
      * Example: Components are hidden during configuration and these hides may trigger CSS transitions that are
      * undesirable at this time. */
-    this.playerElement.append(dom);
+    this.uiContainerElement.append(dom);
+
+    // Some components initialize their state on ON_READY. When the UI is loaded after the player is already ready,
+    // they will never receive the event so we fire it from here in such cases.
+    if (player.isReady()) {
+      player.fireEventInUI(player.EVENT.ON_READY, {});
+    }
 
     // Fire onConfigured after UI DOM elements are successfully added. When fired immediately, the DOM elements
     // might not be fully configured and e.g. do not have a size.
@@ -323,18 +404,23 @@ export namespace UIManager.Factory {
         new SeekBar({ label: new SeekBarLabel()}),
         new PlaybackTimeLabel(),
         new VolumeControlButton({ 'vertical': true }),
-        // new FullscreenToggleButton(),
-        new Component({ cssClass: 'spacer' })
-      ]
+        new FullscreenToggleButton(),
+      ],
     }, true);
 
     let ui = new UIContainer({
       components: [
         new PlaybackToggleOverlay(),
         controlBar,
-        new ErrorMessageOverlay()
-      ], cssClasses: ['ui-skin']
+        new ErrorMessageOverlay(),
+      ], cssClasses: ['ui-skin'],
     });
+
+    // Just here to avoid linter errors
+    let ssBox = new SubtitleSelectBox();
+    ssBox.hide();
+    let ssOverlay = new SubtitleOverlay();
+    ssOverlay.hide();
 
     return new UIManager(player, ui, config);
   }
@@ -347,8 +433,8 @@ export namespace UIManager.Factory {
         new SeekBar({ label: new SeekBarLabel(), hideInLivePlayback: true }),
         new PlaybackTimeLabel(),
         new VolumeControlButton({ 'vertical': true }),
-        new Component({ cssClass: 'spacer' })
-      ]
+        new Component({ cssClass: 'spacer' }),
+      ],
     }, false);
 
     let ui = new UIContainer({
@@ -356,8 +442,8 @@ export namespace UIManager.Factory {
         new AudioOnlyOverlay(),
         new PlaybackToggleOverlay(),
         controlBar,
-        new ErrorMessageOverlay()
-      ], cssClasses: ['ui-skin']
+        new ErrorMessageOverlay(),
+      ], cssClasses: ['ui-skin'],
     });
 
     return new UIManager(player, ui, config);
@@ -604,28 +690,53 @@ class PlayerWrapper {
   constructor(player: PlayerAPI) {
     this.player = player;
 
-    // Collect all public API methods of the player
-    let methods = <any[]>[];
+    // Collect all members of the player (public API methods and properties of the player)
+    // (Object.getOwnPropertyNames(player) does not work with the player TypeScript class starting in 7.2)
+    let members: string[] = [];
     for (let member in player) {
+      members.push(member);
+    }
+
+    // Split the members into methods and properties
+    let methods = <any[]>[];
+    let properties = <any[]>[];
+
+    for (let member of members) {
       if (typeof (<any>player)[member] === 'function') {
         methods.push(member);
+      } else {
+        properties.push(member);
       }
     }
 
-    // Create wrapper object and add function wrappers for all API methods that do nothing but calling the base method
-    // on the player
+    // Create wrapper object
     let wrapper = <any>{};
-    for (let member of methods) {
-      wrapper[member] = function() {
+
+    // Add function wrappers for all API methods that do nothing but calling the base method on the player
+    for (let method of methods) {
+      wrapper[method] = function() {
         // console.log('called ' + member); // track method calls on the player
-        return (<any>player)[member].apply(player, arguments);
+        return (<any>player)[method].apply(player, arguments);
       };
     }
 
-    // Collect all public properties of the player and add it to the wrapper
-    for (let member in player) {
-      if (typeof (<any>player)[member] !== 'function') {
-        wrapper[member] = (<any>player)[member];
+    // Add all public properties of the player to the wrapper
+    for (let property of properties) {
+      // Get an eventually existing property descriptor to differentiate between plain properties and properties with
+      // getters/setters.
+      let propertyDescriptor: PropertyDescriptor = Object.getOwnPropertyDescriptor(player, property) ||
+        Object.getOwnPropertyDescriptor(Object.getPrototypeOf(player), property);
+
+      // If the property has getters/setters, wrap them accordingly...
+      if (propertyDescriptor && (propertyDescriptor.get || propertyDescriptor.set)) {
+        Object.defineProperty(wrapper, property, {
+          get: () => propertyDescriptor.get.call(player),
+          set: (value: any) => propertyDescriptor.set.call(player, value),
+        });
+      }
+      // ... else just transfer the property to the wrapper
+      else {
+        wrapper[property] = (<any>player)[property];
       }
     }
 
