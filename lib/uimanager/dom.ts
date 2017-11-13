@@ -42,7 +42,7 @@ export class DOM {
   constructor(element: HTMLElement);
   /**
    * Wraps a list of plain HTMLElements with a DOM instance.
-   * @param element the HTMLElements to wrap with DOM
+   * @param elements the HTMLElements to wrap with DOM
    */
   constructor(elements: HTMLElement[]);
   /**
@@ -97,9 +97,33 @@ export class DOM {
   /**
    * Gets the HTML elements that this DOM instance currently holds.
    * @returns {HTMLElement[]} the raw HTML elements
+   * @deprecated use {@link #get()} instead
    */
   getElements(): HTMLElement[] {
-    return this.elements;
+    return this.get();
+  }
+
+  /**
+   * Gets the HTML elements that this DOM instance currently holds.
+   * @returns {HTMLElement[]} the raw HTML elements
+   */
+  get(): HTMLElement[];
+  /**
+   * Gets an HTML element from the list elements that this DOM instance currently holds.
+   * @param index The zero-based index into the element list. Can be negative to return an element from the end,
+   *    e.g. -1 returns the last element.
+   */
+  get(index: number): HTMLElement;
+  get(index?: number): HTMLElement | HTMLElement[] {
+    if (index === undefined) {
+      return this.elements;
+    } else if (!this.elements || index >= this.elements.length || index < -this.elements.length) {
+      return undefined;
+    } else if (index < 0) {
+      return this.elements[this.elements.length - index];
+    } else {
+      return this.elements[index];
+    }
   }
 
   /**
@@ -107,6 +131,9 @@ export class DOM {
    * @param handler the handler to execute an operation on an element
    */
   private forEach(handler: (element: HTMLElement) => void): void {
+    if (!this.elements) {
+      return;
+    }
     this.elements.forEach((element) => {
       handler(element);
     });
@@ -322,7 +349,7 @@ export class DOM {
 
     return {
       top: elementRect.top - htmlRect.top,
-      left: elementRect.left - htmlRect.left
+      left: elementRect.left - htmlRect.left,
     };
   }
 

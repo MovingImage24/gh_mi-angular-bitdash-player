@@ -4,7 +4,7 @@ import {Event, EventDispatcher, NoArgs} from '../eventdispatcher';
 import {SeekBarLabel} from './seekbarlabel';
 import {UIInstanceManager, TimelineMarker, SeekPreviewArgs} from '../uimanager';
 import {Timeout} from '../timeout';
-import {PlayerUtils} from '../utils';
+import {PlayerUtils} from '../playerutils';
 import TimeShiftAvailabilityChangedArgs = PlayerUtils.TimeShiftAvailabilityChangedArgs;
 import LiveStreamDetectorEventArgs = PlayerUtils.LiveStreamDetectorEventArgs;
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
@@ -99,7 +99,7 @@ export class SeekBar extends Component<SeekBarConfig> {
     /**
      * Fired when a scrubbing seek has finished or when a direct seek is issued.
      */
-    onSeeked: new EventDispatcher<SeekBar, number>()
+    onSeeked: new EventDispatcher<SeekBar, number>(),
   };
 
   constructor(config: SeekBarConfig = {}) {
@@ -127,7 +127,7 @@ export class SeekBar extends Component<SeekBarConfig> {
   configure(player: bitmovin.PlayerAPI, uimanager: UIInstanceManager, configureSeek: boolean = true): void {
     super.configure(player, uimanager);
 
-    let config = <SeekBarConfig>this.getConfig();
+    // let config = <SeekBarConfig>this.getConfig();
 
     if (!configureSeek) {
       // The configureSeek flag can be used by subclasses to disable configuration as seek bar. E.g. the volume
@@ -231,9 +231,9 @@ export class SeekBar extends Component<SeekBarConfig> {
 
     let seek = (percentage: number) => {
       if (player.isLive()) {
-        player.timeShift(player.getMaxTimeShift() - (player.getMaxTimeShift() * (percentage / 100)));
+        player.timeShift(player.getMaxTimeShift() - (player.getMaxTimeShift() * (percentage / 100)), 'ui');
       } else {
-        player.seek(player.getDuration() * (percentage / 100));
+        player.seek(player.getDuration() * (percentage / 100), 'ui');
       }
     };
     this.onSeek.subscribe((sender) => {
@@ -247,7 +247,7 @@ export class SeekBar extends Component<SeekBarConfig> {
 
       // Pause playback while seeking
       if (isPlaying) {
-        player.pause('ui-seek');
+        player.pause('ui');
       }
     });
     this.onSeekPreview.subscribe((sender: SeekBar, args: SeekPreviewEventArgs) => {
@@ -268,7 +268,7 @@ export class SeekBar extends Component<SeekBarConfig> {
 
       // Continue playback after seek if player was playing when seek started
       if (isPlaying) {
-        player.play('ui-seek');
+        player.play('ui');
       }
 
       // Notify UI manager of finished seek
@@ -422,7 +422,7 @@ export class SeekBar extends Component<SeekBarConfig> {
           this.timelineMarkers.push({
             time: 100 / player.getDuration() * marker.time, // convert time to percentage
             title: marker.title,
-          })
+          });
         }
       }
 
@@ -454,46 +454,46 @@ export class SeekBar extends Component<SeekBarConfig> {
 
     let seekBarContainer = new DOM('div', {
       'id': this.config.id,
-      'class': this.getCssClasses()
+      'class': this.getCssClasses(),
     });
 
     let seekBar = new DOM('div', {
-      'class': this.prefixCss('seekbar')
+      'class': this.prefixCss('seekbar'),
     });
     this.seekBar = seekBar;
 
     // Indicator that shows the buffer fill level
     let seekBarBufferLevel = new DOM('div', {
-      'class': this.prefixCss('seekbar-bufferlevel')
+      'class': this.prefixCss('seekbar-bufferlevel'),
     });
     this.seekBarBufferPosition = seekBarBufferLevel;
 
     // Indicator that shows the current playback position
     let seekBarPlaybackPosition = new DOM('div', {
-      'class': this.prefixCss('seekbar-playbackposition')
+      'class': this.prefixCss('seekbar-playbackposition'),
     });
     this.seekBarPlaybackPosition = seekBarPlaybackPosition;
 
     // A marker of the current playback position, e.g. a dot or line
     let seekBarPlaybackPositionMarker = new DOM('div', {
-      'class': this.prefixCss('seekbar-playbackposition-marker')
+      'class': this.prefixCss('seekbar-playbackposition-marker'),
     });
     this.seekBarPlaybackPositionMarker = seekBarPlaybackPositionMarker;
 
     // Indicator that show where a seek will go to
     let seekBarSeekPosition = new DOM('div', {
-      'class': this.prefixCss('seekbar-seekposition')
+      'class': this.prefixCss('seekbar-seekposition'),
     });
     this.seekBarSeekPosition = seekBarSeekPosition;
 
     // Indicator that shows the full seekbar
     let seekBarBackdrop = new DOM('div', {
-      'class': this.prefixCss('seekbar-backdrop')
+      'class': this.prefixCss('seekbar-backdrop'),
     });
     this.seekBarBackdrop = seekBarBackdrop;
 
     let seekBarChapterMarkersContainer = new DOM('div', {
-      'class': this.prefixCss('seekbar-markers')
+      'class': this.prefixCss('seekbar-markers'),
     });
     this.seekBarMarkersContainer = seekBarChapterMarkersContainer;
 
@@ -714,9 +714,10 @@ export class SeekBar extends Component<SeekBarConfig> {
     this.setPosition(this.seekBarPlaybackPosition, percent);
 
     // Set position of the marker
-    let px = (this.config.vertical ? this.seekBar.height() : this.seekBar.width()) / 100 * percent;
+    let totalSize = (this.config.vertical ? (this.seekBar.height() - this.seekBarPlaybackPositionMarker.height()) : this.seekBar.width());
+    let px = (totalSize) / 100 * percent;
     if (this.config.vertical) {
-      px = this.seekBar.height() - px;
+      px = this.seekBar.height() - px - this.seekBarPlaybackPositionMarker.height();
     }
     let style = this.config.vertical ?
       // -ms-transform required for IE9
@@ -810,7 +811,7 @@ export class SeekBar extends Component<SeekBarConfig> {
 
     if (this.label) {
       this.label.getDomElement().css({
-        'left': (snappedMarker ? snappedMarker.time : percentage) + '%'
+        'left': (snappedMarker ? snappedMarker.time : percentage) + '%',
       });
     }
 

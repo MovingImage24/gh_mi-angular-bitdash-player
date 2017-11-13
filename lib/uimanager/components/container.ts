@@ -1,6 +1,6 @@
 import {ComponentConfig, Component} from './component';
 import {DOM} from '../dom';
-import {ArrayUtils} from '../utils';
+import {ArrayUtils} from '../arrayutils';
 
 /**
  * Configuration interface for a {@link Container}.
@@ -37,14 +37,19 @@ export class Container<Config extends ContainerConfig> extends Component<Contain
    * A reference to the inner element that contains the components of the container.
    */
   private innerContainerElement: DOM;
+  private componentsToAdd: Component<ComponentConfig>[];
+  private componentsToRemove: Component<ComponentConfig>[];
 
-  constructor(config: ContainerConfig) {
+  constructor(config: Config) {
     super(config);
 
     this.config = this.mergeConfig(config, {
       cssClass: 'ui-container',
-      components: []
+      components: [],
     }, this.config);
+
+    this.componentsToAdd = [];
+    this.componentsToRemove = [];
   }
 
   /**
@@ -53,6 +58,7 @@ export class Container<Config extends ContainerConfig> extends Component<Contain
    */
   addComponent(component: Component<ComponentConfig>) {
     this.config.components.push(component);
+    this.componentsToAdd.push(component);
   }
 
   /**
@@ -61,7 +67,12 @@ export class Container<Config extends ContainerConfig> extends Component<Contain
    * @returns {boolean} true if the component has been removed, false if it is not contained in this container
    */
   removeComponent(component: Component<ComponentConfig>): boolean {
-    return ArrayUtils.remove(this.config.components, component) != null;
+    if (ArrayUtils.remove(this.config.components, component) != null) {
+      this.componentsToRemove.push(component);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   /**
@@ -76,7 +87,7 @@ export class Container<Config extends ContainerConfig> extends Component<Contain
    * Removes all child components from the container.
    */
   removeComponents(): void {
-    for (let component of this.getComponents()) {
+    for (let component of this.getComponents().slice()) {
       this.removeComponent(component);
     }
   }
@@ -85,9 +96,19 @@ export class Container<Config extends ContainerConfig> extends Component<Contain
    * Updates the DOM of the container with the current components.
    */
   protected updateComponents(): void {
-    this.innerContainerElement.empty();
+    /* We cannot just clear the container to remove all elements and then re-add those that should stay, because
+     * IE looses the innerHTML of unattached elements, leading to empty elements within the container (e.g. missing
+     * subtitle text in SubtitleLabel).
+     * Instead, we keep a list of elements to add and remove, leaving remaining elements alone. By keeping them in
+     * the DOM, their content gets preserved in all browsers.
+     */
+    let component;
 
-    for (let component of this.config.components) {
+    while (component = this.componentsToRemove.shift()) {
+      component.getDomElement().remove();
+    }
+
+    while (component = this.componentsToAdd.shift()) {
       this.innerContainerElement.append(component.getDomElement());
     }
   }
@@ -96,15 +117,18 @@ export class Container<Config extends ContainerConfig> extends Component<Contain
     // Create the container element (the outer <div>)
     let containerElement = new DOM(this.config.tag, {
       'id': this.config.id,
-      'class': this.getCssClasses()
+      'class': this.getCssClasses(),
     });
 
     // Create the inner container element (the inner <div>) that will contain the components
     let innerContainer = new DOM(this.config.tag, {
-      'class': this.prefixCss('container-wrapper')
+      'class': this.prefixCss('container-wrapper'),
     });
     this.innerContainerElement = innerContainer;
 
+    for (let initialComponent of this.config.components) {
+      this.componentsToAdd.push(initialComponent);
+    }
     this.updateComponents();
 
     containerElement.append(innerContainer);

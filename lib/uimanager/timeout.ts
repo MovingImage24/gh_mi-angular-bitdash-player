@@ -63,11 +63,11 @@ export class Timeout {
         lastScheduleTime = now;
 
         // Schedule next execution by the adjusted delay
-        this.timeoutHandle = setTimeout(internalCallback, this.delay + delayAdjust);
+        this.timeoutHandle = window.setTimeout(internalCallback, this.delay + delayAdjust);
       }
     };
 
     lastScheduleTime = Date.now();
-    this.timeoutHandle = setTimeout(internalCallback, this.delay);
+    this.timeoutHandle = window.setTimeout(internalCallback, this.delay);
   }
 }
