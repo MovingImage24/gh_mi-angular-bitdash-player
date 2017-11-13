@@ -34,7 +34,7 @@ export class HugePlaybackToggleButton extends PlaybackToggleButton {
       if (player.isFullscreen()) {
         player.exitFullscreen();
       } else {
-        // player.enterFullscreen();
+        player.enterFullscreen();
       }
     };
 

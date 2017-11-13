@@ -106,7 +106,7 @@ export class UIContainer extends Container<UIContainerConfig> {
         if (isFirstTouch) {
           isFirstTouch = false;
         } else {
-          // e.preventDefault();
+          e.preventDefault();
         }
         showUi();
       }
