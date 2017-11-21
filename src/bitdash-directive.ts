@@ -9,7 +9,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
       scope: {
         config: '=',
         options: '=?',
-        webcast: '=',
+        webcast: '='
       },
       template: `<div id="mi-bitdash-player" width="100%" height="auto"></div>`,
       link(scope: IBitdashDirective): void {
@@ -18,7 +18,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
         let bitmovinControlbar: IMyElement;
         const config: IConfig = scope.config;
         const webcast: any = scope.webcast;
-        const state: string = `${scope.webcast.state}StateData`;
+        const stateData: any = scope.state.data;
         buildPlayer();
 
         function buildPlayer(): void {
@@ -28,7 +28,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
             bitmovinPlayer = $window.window.bitmovin.player('mi-bitdash-player');
           }
 
-          if ((state === 'liveStateData') && config.source.hiveServiceUrl) {
+          if ((webcast.state === 'live') && config.source.hiveServiceUrl) {
             // Get a hive-enabled player through bitdash.initHiveSDN
             $window.window.bitmovin.initHiveSDN(bitmovinPlayer, {debugLevel: 'off'});
             // Configure and Setup bitmovin in initSession callback
@@ -70,15 +70,15 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
         }
 
         function isAudioOnly(): boolean {
-          return angular.isDefined(scope.webcast[state].playout.audioOnly) &&
-            scope.webcast[state].playout.audioOnly;
+          return angular.isDefined(stateData.playout.audioOnly) &&
+            stateData.playout.audioOnly;
         }
 
         function setAudioOnlyStillImage(): void {
-          if (angular.isDefined(scope.webcast[state].playout.audioOnlyStillUrl) &&
-            scope.webcast[state].playout.audioOnlyStillUrl !== '') {
+          if (angular.isDefined(stateData.playout.audioOnlyStillUrl) &&
+            stateData.playout.audioOnlyStillUrl !== '') {
             const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
-            element.style.backgroundImage = `url(${scope.webcast[state].playout.audioOnlyStillUrl})`;
+            element.style.backgroundImage = `url(${stateData.playout.audioOnlyStillUrl})`;
             element.style.backgroundSize = 'contain';
             element.style.backgroundPosition = 'center';
           }
