@@ -9,7 +9,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
       scope: {
         config: '=',
         options: '=?',
-        webcast: '='
+        webcast: '=',
       },
       template: `<div id="mi-bitdash-player" width="100%" height="auto"></div>`,
       link(scope: IBitdashDirective): void {

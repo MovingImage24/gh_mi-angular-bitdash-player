@@ -13,6 +13,7 @@ describe('BitdashDirective', () => {
   let $log: angular.ILogService;
   let template: string = `<mi-bitdash-player config="webcastMainVm.playerConfig" webcast="webcastMainVm.webcast"></mi-bitdash-player>`;
   let configMock;
+  let stateMock;
 
   const playerFuncSpy: string [] = ['isReady', 'setup', 'destroy', 'initSession'];
   const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
@@ -37,9 +38,17 @@ describe('BitdashDirective', () => {
                           </div>`);
 
   beforeEach(() => {
+    stateMock = {
+      data: {
+        playout: {
+          audioOnly: false
+        }
+      }
+    };
+
     angular.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
         $compileProvider.directive('miBitdashPlayer', BitdashDirective);
-        $controllerProvider.register('MiBitdashController', () => { return; });
+        $controllerProvider.register('MiBitdashController', ($scope) => { $scope.state = stateMock; return; });
         $provide.value('document', documentSpy);
         $provide.value('$window', windowSpy);
     });
@@ -59,13 +68,6 @@ describe('BitdashDirective', () => {
 
     $rootScope.webcastMainVm = {
       playerConfig: configMock,
-      state: {
-        data: {
-          playout: {
-            audioOnly: false
-          }
-        }
-      },
       webcast: {
         liveStateData: {
           playout: {
@@ -84,7 +86,7 @@ describe('BitdashDirective', () => {
     bitmovinPlayer.isReady.and.returnValue(true);
   });
 
-  fit('Should failed to set up the player', () => {
+  it('Should failed to set up the player', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
     spyOn($log, 'log').and.callThrough();
     bitmovinPlayer.setup.and.returnValue($q.reject({code: 404, message: 'stream not found'}));
@@ -116,7 +118,7 @@ describe('BitdashDirective', () => {
 
   it('Should set up the player for audio only', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
-    $rootScope.webcastMainVm.playerConfig.stateData.playout.audioOnly =  true;
+    stateMock.data.playout.audioOnly =  true;
     $compile(template)($rootScope);
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
@@ -129,8 +131,8 @@ describe('BitdashDirective', () => {
 
   it('Should set up the player for audio only with default StillImageUrl', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
-    $rootScope.webcastMainVm.playerConfig.stateData.playout.audioOnly =  true;
-    $rootScope.webcastMainVm.playerConfig.stateData.playout.audioOnlyStillUrl = 'https://www.ima.ge/image.jpg';
+    stateMock.data.playout.audioOnly =  true;
+    stateMock.data.playout.audioOnlyStillUrl = 'https://www.ima.ge/image.jpg';
     $compile(template)($rootScope);
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);

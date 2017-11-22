@@ -2,6 +2,7 @@ declare const angular;
 import BitdashController from './../src/bitdash-controller';
 
 describe('BitdashController', () => {
+  let $rootScope: angular.IRootScopeService;
   let createController: any,
       locals: object = {},
       $log: angular.ILogService,
@@ -11,6 +12,7 @@ describe('BitdashController', () => {
   beforeEach(() => {
     angular.mock.inject(($injector: ng.auto.IInjectorService) => {
       $controller = $injector.get('$controller');
+      $rootScope = $injector.get('$rootScope') as angular.IRootScopeService;
       $log = jasmine.createSpyObj('$log', ['error']);
       $scope = {
         config: {key: '123456879'},
@@ -24,6 +26,12 @@ describe('BitdashController', () => {
               hiveServiceUrl: 'https://api-test.hivestreaming.com/v1/events/9021/597f2ca593768a02465dGxK',
               hiveTicketId: 'sohJ3g8isHjlJGxK',
               language: 'de',
+              ondemandStateData: {
+                playout: {
+                  hlsUrl: 'http://ondemand/master.m3u8',
+                    offset: 0
+                }
+              },
               presentations: []
             }
           ],
@@ -153,6 +161,24 @@ describe('BitdashController', () => {
     const vm = new createController();
     vm.$onInit();
     expect(vm.config.source.hls).toBe('https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8');
+  });
+
+  it('should configure the player in ondemand with valid language', () => {
+    $scope.webcast.state = 'ondemand';
+    $scope.webcast.languages.findIndex = jasmine.createSpy('findIndex').and.callFake(() => 0);
+
+    const vm = new createController();
+    vm.$onInit();
+    expect(vm.state.data).toEqual({playout: {hlsUrl: 'http://ondemand/master.m3u8', offset: 0}});
+  });
+
+  it('should configure the player in ondemand with invalid language', () => {
+    $scope.webcast.state = 'ondemand';
+    $scope.webcast.languages.findIndex = jasmine.createSpy('findIndex').and.callFake(() => -1);
+
+    const vm = new createController();
+    vm.$onInit();
+    expect(vm.state.data).toEqual({playout: {hlsUrl: 'http://ondemand/master.m3u8', offset: 0}});
   });
 
 });
