@@ -12,6 +12,8 @@ describe('BitdashDirective', () => {
   let $rootScope: IRootScope;
   let $log: angular.ILogService;
   let template: string = `<mi-bitdash-player config="webcastMainVm.playerConfig" webcast="webcastMainVm.webcast"></mi-bitdash-player>`;
+  let configMock;
+  let stateMock;
 
   const playerFuncSpy: string [] = ['isReady', 'setup', 'destroy', 'initSession'];
   const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
@@ -36,9 +38,17 @@ describe('BitdashDirective', () => {
                           </div>`);
 
   beforeEach(() => {
+    stateMock = {
+      data: {
+        playout: {
+          audioOnly: false
+        }
+      }
+    };
+
     angular.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
         $compileProvider.directive('miBitdashPlayer', BitdashDirective);
-        $controllerProvider.register('MiBitdashController', () => { return; });
+        $controllerProvider.register('MiBitdashController', ($scope) => { $scope.state = stateMock; return; });
         $provide.value('document', documentSpy);
         $provide.value('$window', windowSpy);
     });
@@ -48,8 +58,16 @@ describe('BitdashDirective', () => {
         $rootScope = $injector.get('$rootScope') as IRootScope;
         $log = $injector.get('$log');
     });
+
+    configMock = {
+      foo: 'bar',
+      source: {
+        hiveServiceUrl: null
+      }
+    };
+
     $rootScope.webcastMainVm = {
-      playerConfig: {foo: 'bar', source: {hiveServiceUrl: null}},
+      playerConfig: configMock,
       webcast: {
         liveStateData: {
           playout: {
@@ -75,7 +93,7 @@ describe('BitdashDirective', () => {
     bitmovinPlayer.isReady.and.returnValue(false);
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {hiveServiceUrl: null}});
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).not.toHaveBeenCalled();
     expect(document.getElementsByClassName).not.toHaveBeenCalled();
     expect(Factory.buildAudioVideoUI).not.toHaveBeenCalled();
@@ -87,7 +105,7 @@ describe('BitdashDirective', () => {
     spyOn(document, 'getElementById').and.callThrough();
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {hiveServiceUrl: null}});
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
@@ -100,10 +118,10 @@ describe('BitdashDirective', () => {
 
   it('Should set up the player for audio only', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
-    $rootScope.webcastMainVm.webcast.postliveStateData.playout.audioOnly =  true;
+    stateMock.data.playout.audioOnly =  true;
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {hiveServiceUrl: null}});
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
@@ -113,11 +131,11 @@ describe('BitdashDirective', () => {
 
   it('Should set up the player for audio only with default StillImageUrl', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
-    $rootScope.webcastMainVm.webcast.postliveStateData.playout.audioOnly =  true;
-    $rootScope.webcastMainVm.webcast.postliveStateData.playout.audioOnlyStillUrl = 'https://www.ima.ge/image.jpg';
+    stateMock.data.playout.audioOnly =  true;
+    stateMock.data.playout.audioOnlyStillUrl = 'https://www.ima.ge/image.jpg';
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {hiveServiceUrl: null}});
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth)
@@ -180,11 +198,11 @@ describe('BitdashDirective', () => {
     $rootScope.webcastMainVm.webcast.state = 'live';
     $rootScope.webcastMainVm.webcast.liveStateData.playout.audioOnly = false;
     $rootScope.webcastMainVm.playerConfig.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
+    configMock.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
     spyOn(document, 'getElementsByClassName').and.callThrough();
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {
-      hiveServiceUrl: 'https://api-test.hivestreaming.com/v1/events/9021/597f'}});
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
@@ -198,11 +216,12 @@ describe('BitdashDirective', () => {
     $rootScope.webcastMainVm.webcast.state = 'live';
     $rootScope.webcastMainVm.webcast.liveStateData.playout.audioOnly = false;
     $rootScope.webcastMainVm.playerConfig.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
+    configMock.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
+    configMock.source.hls = 'https://api-hive.hive';
     spyOn(document, 'getElementsByClassName').and.callThrough();
     $compile(template)($rootScope);
     $rootScope.$apply();
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith({foo: 'bar', source: {
-      hiveServiceUrl: 'https://api-test.hivestreaming.com/v1/events/9021/597f', hls: 'https://api-hive.hive'}});
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');

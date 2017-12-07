@@ -3,15 +3,16 @@ import {IBitdashDirective} from './../interface/interfaces';
 
 class BitmovinController {
   public static $inject: string[] = ['$scope', '$log'];
+  private state: any = {};
   private config: any = {};
   private options: any = {};
 
   constructor(private $scope: IBitdashDirective, private $log: angular.ILogService) {
-    this.$scope = $scope;
-    this.$log = $log;
   }
 
   public $onInit(): void {
+    this.state = this.$scope.state = {};
+
     if (angular.isDefined(this.$scope.config) && angular.isDefined(this.$scope.config.key)) {
       this.config = this.$scope.config;
     } else {
@@ -26,32 +27,47 @@ class BitmovinController {
     }
   }
 
-  public processWebcast(webcast: any): void {
+  private processWebcast(webcast: any): void {
     let stateProperty = `${webcast.state}StateData`;
 
     if (angular.isDefined(this.options.forcedState)) {
       stateProperty = `${this.options.forcedState}StateData`;
     }
 
-    this.config.source = this.getPlayerConfigSource(webcast, stateProperty);
+    if (webcast.state === 'ondemand') {
+
+      let languageIndex = 0;
+      webcast.languages.some((lang, index) => {
+        if (webcast.language === lang.language) {
+          languageIndex = index;
+          return true;
+        }
+      });
+
+      this.state.data = webcast.languages[languageIndex].ondemandStateData;
+    } else {
+      this.state.data = webcast[stateProperty];
+    }
+
+    this.config.source = this.getPlayerConfigSource(webcast);
     this.config.style = {ux: false};
   }
 
-  public getPlayerConfigSource(webcast: any , state: any): any {
-    if ((webcast.useDVRPlaybackInPostlive === true) && (state === 'postliveStateData')) {
-      return this.getDVRPlaybackToPostlive(webcast);
-    }
-    return this.getPlayerConfigSourceByState(webcast, state);
+  private getPlayerConfigSource(webcast: any): any {
+    return webcast.useDVRPlaybackInPostlive && webcast.state === 'postlive' ?
+      this.getDVRPlaybackToPostlive(webcast)
+      : this.getPlayerConfigSourceByState(webcast)
+    ;
   }
 
-  public getDVRPlaybackToPostlive(webcast: any): any {
+  private getDVRPlaybackToPostlive(webcast: any): any {
     let hls: string = webcast['liveStateData'].playout.hlsDvrUrl;
     const title: string = webcast.name;
 
     if (angular.isDefined(webcast['postliveStateData'].playout.offset)) {
       const offset: number = parseInt(webcast['postliveStateData'].playout.offset, 10);
 
-      if (offset > 0) {
+      if (offset) {
         let offsetPrefix: string;
         const parser = document.createElement('a');
         parser.href = webcast['liveStateData'].playout.hlsDvrUrl;
@@ -63,17 +79,17 @@ class BitmovinController {
     return {hls, title};
   }
 
-  public getPlayerConfigSourceByState(webcast: any, state: any): any {
-    let hls: string = webcast[state].playout.hlsUrl;
+  private getPlayerConfigSourceByState(webcast: any): any {
+    let hls: string = this.state.data.playout.hlsUrl;
     const title: string = webcast.name;
     const hiveServiceUrl: string = this.getHiveServiceUrlByLang(webcast);
 
-    if (angular.isDefined(webcast[state].playout.videoManagerHlsUrl) && webcast[state].playout.videoManagerHlsUrl) {
-      hls = webcast[state].playout.videoManagerHlsUrl;
+    if (angular.isDefined(this.state.data.playout.videoManagerHlsUrl) && this.state.data.playout.videoManagerHlsUrl) {
+      hls = this.state.data.playout.videoManagerHlsUrl;
     }
 
-    if (angular.isDefined(webcast[state].playout.offset)) {
-      const offset: number = parseInt(webcast[state].playout.offset, 10);
+    if (angular.isDefined(this.state.data.playout.offset)) {
+      const offset: number = parseInt(this.state.data.playout.offset, 10);
 
       if (offset > 0) {
         let offsetPrefix: string;
@@ -86,7 +102,7 @@ class BitmovinController {
     return {hls, title, hiveServiceUrl};
   }
 
-  public getHiveServiceUrlByLang(webcast: any): string {
+  private getHiveServiceUrlByLang(webcast: any): string {
     let hiveServiceUrl = null;
     if (webcast.languages && webcast.language) {
       webcast.languages.forEach((item: any) => {

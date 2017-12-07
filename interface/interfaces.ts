@@ -2,6 +2,7 @@ export interface IBitdashDirective extends angular.IScope {
   config: any;
   webcast: any;
   options?: any;
+  state?: any;
 }
 
 export interface IMyElement extends Element {
