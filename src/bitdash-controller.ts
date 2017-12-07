@@ -35,10 +35,14 @@ class BitmovinController {
     }
 
     if (webcast.state === 'ondemand') {
-      let languageIndex = webcast.languages.findIndex((lang) => (webcast.language === lang.language));
-      if (languageIndex < 0) {
-        languageIndex = 0;
-      }
+
+      let languageIndex = 0;
+      webcast.languages.some((lang, index) => {
+        if (webcast.language === lang.language) {
+          languageIndex = index;
+          return true;
+        }
+      });
 
       this.state.data = webcast.languages[languageIndex].ondemandStateData;
     } else {
@@ -50,10 +54,10 @@ class BitmovinController {
   }
 
   private getPlayerConfigSource(webcast: any): any {
-    if ((webcast.useDVRPlaybackInPostlive === true) && (webcast.state === 'postlive')) {
-      return this.getDVRPlaybackToPostlive(webcast);
-    }
-    return this.getPlayerConfigSourceByState(webcast);
+    return webcast.useDVRPlaybackInPostlive && webcast.state === 'postlive' ?
+      this.getDVRPlaybackToPostlive(webcast)
+      : this.getPlayerConfigSourceByState(webcast)
+    ;
   }
 
   private getDVRPlaybackToPostlive(webcast: any): any {
@@ -63,7 +67,7 @@ class BitmovinController {
     if (angular.isDefined(webcast['postliveStateData'].playout.offset)) {
       const offset: number = parseInt(webcast['postliveStateData'].playout.offset, 10);
 
-      if (offset > 0) {
+      if (offset) {
         let offsetPrefix: string;
         const parser = document.createElement('a');
         parser.href = webcast['liveStateData'].playout.hlsDvrUrl;
