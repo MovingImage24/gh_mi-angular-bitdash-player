@@ -28,14 +28,9 @@ class BitmovinController {
   }
 
   private processWebcast(webcast: any): void {
-    let stateProperty = `${webcast.state}StateData`;
+    const stateProperty = this.options.forcedState || webcast.state;
 
-    if (angular.isDefined(this.options.forcedState)) {
-      stateProperty = `${this.options.forcedState}StateData`;
-    }
-
-    if (webcast.state === 'ondemand') {
-
+    if (stateProperty === 'ondemand') {
       let languageIndex = 0;
       webcast.languages.some((lang, index) => {
         if (webcast.language === lang.language) {
@@ -46,7 +41,7 @@ class BitmovinController {
 
       this.state.data = webcast.languages[languageIndex].ondemandStateData;
     } else {
-      this.state.data = webcast[stateProperty];
+      this.state.data = webcast[stateProperty + 'StateData'];
     }
 
     this.config.source = this.getPlayerConfigSource(webcast);
