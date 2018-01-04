@@ -69,17 +69,13 @@ describe('BitdashDirective', () => {
     $rootScope.webcastMainVm = {
       playerConfig: configMock,
       webcast: {
-        liveStateData: {
-          playout: {
-            audioOnly: false
-          }
+        layout: {
+          layout: 'audio-only'
         },
-        postliveStateData: {
-          playout: {
-            audioOnly: false
-          }
-        },
-        state: 'postlive'
+        state: 'postlive',
+        theme: {
+          audioOnlyFileUrl: ''
+        }
       }
     };
     bitmovinPlayer.setup.and.returnValue($q.when({}));
@@ -101,6 +97,7 @@ describe('BitdashDirective', () => {
   });
 
   it('Should set up the player for video audio', () => {
+    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
     spyOn(document, 'getElementsByClassName').and.callThrough();
     spyOn(document, 'getElementById').and.callThrough();
     $compile(template)($rootScope);
@@ -117,8 +114,8 @@ describe('BitdashDirective', () => {
   });
 
   it('Should set up the player for audio only', () => {
+    $rootScope.webcastMainVm.webcast.layout.layout = 'audio-only';
     spyOn(document, 'getElementsByClassName').and.callThrough();
-    stateMock.data.playout.audioOnly =  true;
     $compile(template)($rootScope);
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
@@ -130,9 +127,9 @@ describe('BitdashDirective', () => {
   });
 
   it('Should set up the player for audio only with default StillImageUrl', () => {
+    $rootScope.webcastMainVm.webcast.layout.layout = 'audio-only';
+    $rootScope.webcastMainVm.webcast.theme.audioOnlyFileUrl = 'https://www.ima.ge/image.jpg';
     spyOn(document, 'getElementsByClassName').and.callThrough();
-    stateMock.data.playout.audioOnly =  true;
-    stateMock.data.playout.audioOnlyStillUrl = 'https://www.ima.ge/image.jpg';
     $compile(template)($rootScope);
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
@@ -152,6 +149,7 @@ describe('BitdashDirective', () => {
   });
 
   it('Should set up the player video audio without options attribute', () => {
+    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
     spyOn(document, 'getElementsByClassName').and.callThrough();
     const element = $compile(template)($rootScope);
     $rootScope.$apply();
@@ -180,10 +178,8 @@ describe('BitdashDirective', () => {
   it('Should hide seekbar by live', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
     $rootScope.webcastMainVm.webcast = {
-      liveStateData: {
-        playout: {
-          audioOnly: false
-        }
+      layout: {
+        layout: 'split-p-s'
       },
       state: 'live'
     };
@@ -196,7 +192,7 @@ describe('BitdashDirective', () => {
   it('Should fails to load player for hive stream', () => {
     bitmovinPlayer.initSession.and.returnValue($q.reject({code: 345, message: 'connection failed'}));
     $rootScope.webcastMainVm.webcast.state = 'live';
-    $rootScope.webcastMainVm.webcast.liveStateData.playout.audioOnly = false;
+    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
     $rootScope.webcastMainVm.playerConfig.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
     configMock.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
     spyOn(document, 'getElementsByClassName').and.callThrough();
@@ -214,7 +210,7 @@ describe('BitdashDirective', () => {
   it('Should load player for hive stream', () => {
     bitmovinPlayer.initSession.and.returnValue($q.when({manifest: 'https://api-hive.hive'}));
     $rootScope.webcastMainVm.webcast.state = 'live';
-    $rootScope.webcastMainVm.webcast.liveStateData.playout.audioOnly = false;
+    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
     $rootScope.webcastMainVm.playerConfig.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
     configMock.source.hiveServiceUrl = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
     configMock.source.hls = 'https://api-hive.hive';
