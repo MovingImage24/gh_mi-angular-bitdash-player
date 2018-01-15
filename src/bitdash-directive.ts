@@ -74,8 +74,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
         }
 
         function setAudioOnlyStillImage(): void {
-          if (angular.isDefined(webcast.theme.audioOnlyFileUrl) &&
-            webcast.theme.audioOnlyFileUrl !== '') {
+          if (angular.isDefined(webcast.theme.audioOnlyFileUrl) && webcast.theme.audioOnlyFileUrl) {
             const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
             element.style.backgroundImage = `url(${webcast.theme.audioOnlyFileUrl})`;
             element.style.backgroundSize = 'contain';
