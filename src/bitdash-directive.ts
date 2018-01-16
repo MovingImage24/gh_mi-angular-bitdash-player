@@ -70,15 +70,13 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
         }
 
         function isAudioOnly(): boolean {
-          return angular.isDefined(stateData.playout.audioOnly) &&
-            stateData.playout.audioOnly;
+          return webcast.layout.layout === 'audio-only';
         }
 
         function setAudioOnlyStillImage(): void {
-          if (angular.isDefined(stateData.playout.audioOnlyStillUrl) &&
-            stateData.playout.audioOnlyStillUrl !== '') {
+          if (angular.isDefined(webcast.theme.audioOnlyFileUrl) && webcast.theme.audioOnlyFileUrl) {
             const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
-            element.style.backgroundImage = `url(${stateData.playout.audioOnlyStillUrl})`;
+            element.style.backgroundImage = `url(${webcast.theme.audioOnlyFileUrl})`;
             element.style.backgroundSize = 'contain';
             element.style.backgroundPosition = 'center';
           }
