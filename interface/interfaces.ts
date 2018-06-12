@@ -30,6 +30,7 @@ export interface IPlayer {
   pause(): void;
   destroy(): void;
   initSession(hsl: string): any;
+  addEventHandler(eventName: string, callback: (event?: any) => void): void;
 }
 
 export interface IBitmovinUIManager {
