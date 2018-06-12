@@ -15,7 +15,7 @@ describe('BitdashDirective', () => {
   let configMock;
   let stateMock;
 
-  const playerFuncSpy: string [] = ['isReady', 'setup', 'destroy', 'initSession'];
+  const playerFuncSpy: string [] = ['isReady', 'setup', 'destroy', 'initSession', 'addEventHandler'];
   const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
   const bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
   const Factory: IBitmovinUIManager = jasmine.createSpyObj('Factory', playerUISpy);
@@ -120,7 +120,7 @@ describe('BitdashDirective', () => {
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
@@ -169,7 +169,7 @@ describe('BitdashDirective', () => {
     const element = $compile(angular.element(template))($rootScope);
     $rootScope.$apply();
     const scope = element.isolateScope() as IBitdashDirective;
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
     expect(scope.options).toBeDefined();
     expect(scope.options.forcedState).toBe('live');

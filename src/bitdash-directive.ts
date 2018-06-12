@@ -74,11 +74,16 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
         }
 
         function setAudioOnlyStillImage(): void {
+          const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
           if (angular.isDefined(webcast.theme.audioOnlyFileUrl) && webcast.theme.audioOnlyFileUrl) {
-            const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
             element.style.backgroundImage = `url(${webcast.theme.audioOnlyFileUrl})`;
             element.style.backgroundSize = 'contain';
+            element.style.animation = 'none';
             element.style.backgroundPosition = 'center';
+          } else {
+            const image = element.style.backgroundImage;
+            bitmovinPlayer.addEventHandler('onPaused', () => element.style.backgroundImage = 'none');
+            bitmovinPlayer.addEventHandler('onPlay', () => element.style.backgroundImage = image);
           }
         }
 
