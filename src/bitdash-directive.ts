@@ -51,6 +51,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
             .setup(conf)
             .then(() => {
               bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+
               if (isAudioOnly()) {
                 bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer);
                 setAudioOnlyStillImage();

@@ -37,6 +37,12 @@ declare namespace bitmovin {
         EASE_IN_OUT: PlayerAPI.VR.TransitionTimingType,
       },
     };
+
+    network: {
+      REQUEST_TYPE: typeof PlayerAPI.HttpRequestType,
+      REQUEST_METHOD: typeof PlayerAPI.HttpRequestMethod,
+      RESPONSE_TYPE: typeof PlayerAPI.HttpResponseType,
+    };
   }
 
   // tslint:disable-next-line:no-unused-variable
@@ -48,11 +54,21 @@ declare namespace bitmovin {
   interface PlayerAPI {
     /**
      * Subscribes an event handler to a player event.
+     * This will be replaced by {@link PlayerAPI.on} in version 8
      *
      * @param eventType The type of event to subscribe to.
      * @param callback The event callback handler that will be called when the event fires.
      */
     addEventHandler(eventType: PlayerAPI.EVENT, callback: PlayerAPI.PlayerEventCallback): PlayerAPI;
+    /**
+     * Subscribes an event handler to a player event.
+     *
+     * @param eventType The type of event to subscribe to.
+     * @param callback The event callback handler that will be called when the event fires.
+     *
+     * @since v7.7
+     */
+    on(eventType: PlayerAPI.EVENT, callback: PlayerAPI.PlayerEventCallback): PlayerAPI;
     /**
      * Sends custom metadata to Bitmovin's Cast receiver app.
      *
@@ -317,12 +333,22 @@ declare namespace bitmovin {
     play(issuer?: string): PlayerAPI;
     /**
      * Removes a handler for a player event.
+     * This will be replaced by {@link PlayerAPI.off} in version 8
      *
      * @param eventType The event to remove the handler from
      * @param callback The callback handler to remove
      */
     // TODO remove string type option (this is a temporary hack for PlayerWrapper#clearEventHandlers)
     removeEventHandler(eventType: PlayerAPI.EVENT | string, callback: PlayerAPI.PlayerEventCallback): PlayerAPI;
+    /**
+     * Removes a handler for a player event.
+     *
+     * @param eventType The event to remove the handler from
+     * @param callback The callback handler to remove
+     *
+     * @since v7.7
+     */
+    off(eventType: PlayerAPI.EVENT | string, callback: PlayerAPI.PlayerEventCallback): PlayerAPI;
     /**
      * Removes the existing subtitle/caption track with the track ID specified by trackID. If the track is
      * currently active, it will be deactivated and then removed. If no track with the given ID exists,
@@ -351,6 +377,11 @@ declare namespace bitmovin {
      * @param issuer the source of the seek command
      */
     seek(time: number, issuer?: string): boolean;
+    /**
+     * Returns the time range that is currently valid for seeking.
+     * @since v7.1
+     */
+    getSeekableRange(): PlayerAPI.TimeRange;
     /**
      * Sets the audio track to the ID specified by trackID.
      * Available tracks can be retrieved with {@link #getAvailableAudio}.
@@ -518,6 +549,10 @@ declare namespace bitmovin {
      * Starts preloading the content of the currently loaded source.
      */
     preload(): PlayerAPI;
+    /**
+     * Returns the currently buffered time ranges of the video element.
+     */
+    getBufferedRanges(): PlayerAPI.TimeRange[];
 
     VR: {
       CONTENT_TYPE: {
@@ -624,6 +659,17 @@ declare namespace bitmovin {
       height: number;
     }
 
+    export interface TimeRange {
+      /**
+       * The start of the range
+       */
+      start: number;
+      /**
+       * The end of the range.
+       */
+      end: number;
+    }
+
     /**
      * Describes the role of a media track, e.g. an {@link AudioTrack}.
      */
@@ -631,7 +677,7 @@ declare namespace bitmovin {
       schemeIdUri: string;
       value?: string;
       id?: string;
-      [key: string]: string;
+      [key: string]: string | undefined;
     }
 
     /**
@@ -717,6 +763,11 @@ declare namespace bitmovin {
        * TODO is that the same as {@link StyleConfig}?
        */
       style?: Object;
+      /**
+       * Specifies the time in seconds until the ad can be skipped.
+       * If set, overwrites the skip offset specified in the ad manifest (VAST and VPAID, not IMA)
+       */
+      skipOffset?: number;
     }
 
     /**
@@ -956,6 +1007,45 @@ declare namespace bitmovin {
        * ON_VR_VIEWING_DIRECTION_CHANGE event is triggered.
        */
       getViewingDirectionChangeThreshold(): number;
+
+      /**
+       * Sets the vertical field of view in degrees.
+       * @param {Number} fieldOfView - The vertical field of view in degrees.
+       * @return {Boolean} - True, if the VRHandler is ready, false otherwise.
+       */
+      setVerticalFieldOfView(fieldOfView: number): boolean;
+
+      /**
+       * Gets the vertical field of view in degrees.
+       * @return {Number} - The vertical field of view in degrees.
+       */
+      getVerticalFieldOfView(): number;
+
+      /**
+       * Sets the horizontal field of view in degrees.
+       * @param {Number} fieldOfView - The horizontal field of view in degrees.
+       * @return {Boolean} - True, if the VRHandler is ready, false otherwise.
+       */
+      setHorizontalFieldOfView(fieldOfView: number): boolean;
+
+      /**
+       * Gets the horizontal field of view in degrees.
+       * @return {Number} - The horizontal field of view in degrees.
+       */
+      getHorizontalFieldOfView(): number;
+
+      /**
+       * Applies a zoom factor to the current field of view.
+       * @param {number} factor - The zoom factor to apply.
+       * @return {Boolean} - True, if the VRHandler is ready, false otherwise.
+       */
+      zoom(factor: number): boolean;
+
+      /**
+       * Returns the current zoom factor.
+       * @returns {number} - The current zoom factor, if the VRHandler is ready, -1 otherwise.
+       */
+      getZoom(): number;
     }
 
     namespace VR {

@@ -29,10 +29,6 @@ export interface SeekBarConfig extends ComponentConfig {
    * Default: 50 (50ms = 20fps).
    */
   smoothPlaybackPositionUpdateIntervalMs?: number;
-  /**
-   * If true, hide the seekbar during live playback.
-  */
-  hideInLivePlayback?: boolean;
 }
 
 /**
@@ -43,6 +39,12 @@ export interface SeekPreviewEventArgs extends SeekPreviewArgs {
    * Tells if the seek preview event comes from a scrubbing.
    */
   scrubbing: boolean;
+}
+
+export interface SeekBarMarker {
+  marker: TimelineMarker;
+  position: number;
+  duration?: number;
 }
 
 /**
@@ -73,7 +75,7 @@ export class SeekBar extends Component<SeekBarConfig> {
 
   private label: SeekBarLabel;
 
-  private timelineMarkers: TimelineMarker[];
+  private timelineMarkers: SeekBarMarker[];
 
   /**
    * Buffer of the the current playback position. The position must be buffered in case the element
@@ -109,7 +111,6 @@ export class SeekBar extends Component<SeekBarConfig> {
       cssClass: 'ui-seekbar',
       vertical: false,
       smoothPlaybackPositionUpdateIntervalMs: 50,
-      hideInLivePlayback: true,
     }, this.config);
 
     this.label = this.config.label;
@@ -127,7 +128,9 @@ export class SeekBar extends Component<SeekBarConfig> {
   configure(player: bitmovin.PlayerAPI, uimanager: UIInstanceManager, configureSeek: boolean = true): void {
     super.configure(player, uimanager);
 
-    // let config = <SeekBarConfig>this.getConfig();
+    // Apply scaling transform to the backdrop bar to have all bars rendered similarly
+    // (the call must be up here to be executed for the volume slider as well)
+    this.setPosition(this.seekBarBackdrop, 100);
 
     if (!configureSeek) {
       // The configureSeek flag can be used by subclasses to disable configuration as seek bar. E.g. the volume
@@ -137,15 +140,11 @@ export class SeekBar extends Component<SeekBarConfig> {
       return;
     }
 
-    let playbackNotInitialized = true;
     let isPlaying = false;
     let isSeeking = false;
 
     // Update playback and buffer positions
     let playbackPositionHandler = (event: PlayerEvent = null, forceUpdate: boolean = false) => {
-      // Once this handler os called, playback has been started and we set the flag to false
-      playbackNotInitialized = false;
-
       if (isSeeking) {
         // We caught a seek preview seek, do not update the seekbar
         return;
@@ -163,11 +162,6 @@ export class SeekBar extends Component<SeekBarConfig> {
 
         // Always show full buffer for live streams
         this.setBufferPosition(100);
-
-        // Hide SeekBar if required.
-        // if (config.hideInLivePlayback) {
-          this.hide();
-        // }
       }
       else {
         let playbackPositionPercentage = 100 / player.getDuration() * player.getCurrentTime();
@@ -214,6 +208,7 @@ export class SeekBar extends Component<SeekBarConfig> {
     // update playback position of Cast playback
     player.addEventHandler(player.EVENT.ON_CAST_TIME_UPDATED, playbackPositionHandler);
 
+    this.configureLivePausedTimeshiftUpdater(player, uimanager, playbackPositionHandler);
 
     // Seek handling
     player.addEventHandler(player.EVENT.ON_SEEK, () => {
@@ -333,6 +328,26 @@ export class SeekBar extends Component<SeekBarConfig> {
     this.configureMarkers(player, uimanager);
   }
 
+  /**
+   * Update seekbar while a live stream with DVR window is paused.
+   * The playback position stays still and the position indicator visually moves towards the back.
+   */
+  private configureLivePausedTimeshiftUpdater(player: bitmovin.PlayerAPI, uimanager: UIInstanceManager,
+                                              playbackPositionHandler: () => void): void {
+    // Regularly update the playback position while the timeout is active
+    const pausedTimeshiftUpdater = new Timeout(1000, playbackPositionHandler, true);
+
+    // Start updater when a live stream with timeshift window is paused
+    player.addEventHandler(player.EVENT.ON_PAUSED, () => {
+      if (player.isLive() && player.getMaxTimeShift() < 0) {
+        pausedTimeshiftUpdater.start();
+      }
+    });
+
+    // Stop updater when playback continues (no matter if the updater was started before)
+    player.addEventHandler(player.EVENT.ON_PLAY, () => pausedTimeshiftUpdater.clear());
+  }
+
   private configureSmoothPlaybackPositionUpdater(player: bitmovin.PlayerAPI, uimanager: UIInstanceManager): void {
     /*
      * Playback position update
@@ -388,6 +403,7 @@ export class SeekBar extends Component<SeekBarConfig> {
     player.addEventHandler(player.EVENT.ON_CAST_PLAYING, startSmoothPlaybackPositionUpdater);
     player.addEventHandler(player.EVENT.ON_PAUSED, stopSmoothPlaybackPositionUpdater);
     player.addEventHandler(player.EVENT.ON_CAST_PAUSED, stopSmoothPlaybackPositionUpdater);
+    player.addEventHandler(player.EVENT.ON_PLAYBACK_FINISHED, stopSmoothPlaybackPositionUpdater);
     player.addEventHandler(player.EVENT.ON_SEEKED, () => {
       currentTimeSeekBar = player.getCurrentTime();
     });
@@ -406,24 +422,18 @@ export class SeekBar extends Component<SeekBarConfig> {
     let setupMarkers = () => {
       clearMarkers();
 
-      let hasMarkersInUiConfig = uimanager.getConfig().metadata && uimanager.getConfig().metadata.markers
-        && uimanager.getConfig().metadata.markers.length > 0;
-      let hasMarkersInPlayerConfig = player.getConfig().source && player.getConfig().source.markers
-        && player.getConfig().source.markers.length > 0;
+      const duration = player.getDuration();
 
-      // Take markers from the UI config. If no markers defined, try to take them from the player's source config.
-      let markers = hasMarkersInUiConfig ? uimanager.getConfig().metadata.markers :
-        hasMarkersInPlayerConfig ? player.getConfig().source.markers : null;
+      if (duration === Infinity) {
+        // Don't generate timeline markers if we don't yet have a duration
+        // The duration check is for buggy platforms where the duration is not available instantly (Chrome on Android 4.3)
+        return;
+      }
 
-      // Generate timeline markers from the config if we have markers and if we have a duration
-      // The duration check is for buggy platforms where the duration is not available instantly (Chrome on Android 4.3)
-      if (markers && player.getDuration() !== Infinity) {
-        for (let marker of markers) {
-          this.timelineMarkers.push({
-            time: 100 / player.getDuration() * marker.time, // convert time to percentage
-            title: marker.title,
-          });
-        }
+      for (let marker of uimanager.getConfig().metadata.markers) {
+        const markerPosition = 100 / duration * marker.time; // convert absolute time to percentage
+        const markerDuration = 100 / duration * marker.duration;
+        this.timelineMarkers.push({ marker, position: markerPosition, duration: markerDuration });
       }
 
       // Populate the timeline with the markers
@@ -434,6 +444,11 @@ export class SeekBar extends Component<SeekBarConfig> {
     player.addEventHandler(player.EVENT.ON_READY, setupMarkers);
     // Remove markers when unloaded
     player.addEventHandler(player.EVENT.ON_SOURCE_UNLOADED, clearMarkers);
+    // Update markers when the size of the seekbar changes
+    player.addEventHandler(player.EVENT.ON_PLAYER_RESIZE, () => this.updateMarkers());
+    // Update markers when a marker is added or removed
+    uimanager.getConfig().events.onUpdated.subscribe(setupMarkers);
+    uimanager.onRelease.subscribe(() => uimanager.getConfig().events.onUpdated.unsubscribe(setupMarkers));
 
     // Init markers at startup
     setupMarkers();
@@ -497,8 +512,8 @@ export class SeekBar extends Component<SeekBarConfig> {
     });
     this.seekBarMarkersContainer = seekBarChapterMarkersContainer;
 
-    seekBar.append(seekBarBackdrop, seekBarBufferLevel, seekBarSeekPosition,
-      seekBarPlaybackPosition, seekBarChapterMarkersContainer, seekBarPlaybackPositionMarker);
+    seekBar.append(this.seekBarBackdrop, this.seekBarBufferPosition, this.seekBarSeekPosition,
+      this.seekBarPlaybackPosition, this.seekBarMarkersContainer, this.seekBarPlaybackPositionMarker);
 
     let seeking = false;
 
@@ -527,7 +542,7 @@ export class SeekBar extends Component<SeekBarConfig> {
       seeking = false;
 
       // Fire seeked event
-      this.onSeekedEvent(snappedChapter ? snappedChapter.time : targetPercentage);
+      this.onSeekedEvent(snappedChapter ? snappedChapter.position : targetPercentage);
     };
 
     // A seek always start with a touchstart or mousedown directly on the seekbar.
@@ -597,30 +612,51 @@ export class SeekBar extends Component<SeekBarConfig> {
 
   protected updateMarkers(): void {
     this.seekBarMarkersContainer.empty();
+
+    const seekBarWidthPx = this.seekBar.width();
+
     for (let marker of this.timelineMarkers) {
+      const markerClasses = ['seekbar-marker'].concat(marker.marker.cssClasses || [])
+        .map(cssClass => this.prefixCss(cssClass));
+
+      const cssProperties: {[propertyName: string]: string} = {
+        'width': marker.position + '%',
+      };
+
+      if (marker.duration > 0) {
+        const markerWidthPx = Math.round(seekBarWidthPx / 100 * marker.duration);
+        cssProperties['border-right-width'] = markerWidthPx + 'px';
+        cssProperties['margin-left'] = '0';
+      }
+
       this.seekBarMarkersContainer.append(new DOM('div', {
-        'class': this.prefixCss('seekbar-marker'),
-        'data-marker-time': String(marker.time),
-        'data-marker-title': String(marker.title),
-      }).css({
-        'width': marker.time + '%',
-      }));
+        'class': markerClasses.join(' '),
+        'data-marker-time': String(marker.marker.time),
+        'data-marker-title': String(marker.marker.title),
+      }).css(cssProperties));
     }
   }
 
-  protected getMarkerAtPosition(percentage: number): TimelineMarker | null {
-    let snappedMarker: TimelineMarker = null;
-    let snappingRange = 1;
+  protected getMarkerAtPosition(percentage: number): SeekBarMarker | null {
+    const snappingRange = 1;
+
     if (this.timelineMarkers.length > 0) {
       for (let marker of this.timelineMarkers) {
-        if (percentage >= marker.time - snappingRange && percentage <= marker.time + snappingRange) {
-          snappedMarker = marker;
-          break;
+        // Handle interval markers
+        if (marker.duration > 0
+          && percentage >= marker.position - snappingRange
+          && percentage <= marker.position + marker.duration + snappingRange) {
+          return marker;
+        }
+        // Handle position markers
+        else if (percentage >= marker.position - snappingRange
+          && percentage <= marker.position + snappingRange) {
+          return marker;
         }
       }
     }
 
-    return snappedMarker;
+    return null;
   }
 
   /**
@@ -721,8 +757,17 @@ export class SeekBar extends Component<SeekBarConfig> {
     }
     let style = this.config.vertical ?
       // -ms-transform required for IE9
-      { 'transform': 'translateY(' + px + 'px)', '-ms-transform': 'translateY(' + px + 'px)' } :
-      { 'transform': 'translateX(' + px + 'px)', '-ms-transform': 'translateX(' + px + 'px)' };
+      // -webkit-transform required for Android 4.4 WebView
+      {
+        'transform': 'translateY(' + px + 'px)',
+        '-ms-transform': 'translateY(' + px + 'px)',
+        '-webkit-transform': 'translateY(' + px + 'px)',
+      } :
+      {
+        'transform': 'translateX(' + px + 'px)',
+        '-ms-transform': 'translateX(' + px + 'px)',
+        '-webkit-transform': 'translateX(' + px + 'px)',
+      };
     this.seekBarPlaybackPositionMarker.css(style);
   }
 
@@ -757,10 +802,30 @@ export class SeekBar extends Component<SeekBarConfig> {
    */
   private setPosition(element: DOM, percent: number) {
     let scale = percent / 100;
+
+    // When the scale is exactly 1 or very near 1 (and the browser internally rounds it to 1), browsers seem to render
+    // the elements differently and the height gets slightly off, leading to mismatching heights when e.g. the buffer
+    // level bar has a width of 1 and the playback position bar has a width < 1. A jittering buffer level around 1
+    // leads to an even worse flickering effect.
+    // Various changes in CSS styling and DOM hierarchy did not solve the issue so the workaround is to avoid a scale
+    // of exactly 1.
+    if (scale >= 0.99999 && scale <= 1.00001) {
+      scale = 0.99999;
+    }
+
     let style = this.config.vertical ?
       // -ms-transform required for IE9
-      { 'transform': 'scaleY(' + scale + ')', '-ms-transform': 'scaleY(' + scale + ')' } :
-      { 'transform': 'scaleX(' + scale + ')', '-ms-transform': 'scaleX(' + scale + ')' };
+      // -webkit-transform required for Android 4.4 WebView
+      {
+        'transform': 'scaleY(' + scale + ')',
+        '-ms-transform': 'scaleY(' + scale + ')',
+        '-webkit-transform': 'scaleY(' + scale + ')',
+      } :
+      {
+        'transform': 'scaleX(' + scale + ')',
+        '-ms-transform': 'scaleX(' + scale + ')',
+        '-webkit-transform': 'scaleX(' + scale + ')',
+      };
     element.css(style);
   }
 
@@ -809,15 +874,34 @@ export class SeekBar extends Component<SeekBarConfig> {
   protected onSeekPreviewEvent(percentage: number, scrubbing: boolean) {
     let snappedMarker = this.getMarkerAtPosition(percentage);
 
+    let seekPositionPercentage = percentage;
+
+    if (snappedMarker) {
+      if (snappedMarker.duration > 0) {
+        if (percentage < snappedMarker.position) {
+          // Snap the position to the start of the interval if the seek is within the left snap margin
+          // We know that we are within a snap margin when we are outside the marker interval but still
+          // have a snappedMarker
+          seekPositionPercentage = snappedMarker.position;
+        } else if (percentage > snappedMarker.position + snappedMarker.duration) {
+          // Snap the position to the end of the interval if the seek is within the right snap margin
+          seekPositionPercentage = snappedMarker.position + snappedMarker.duration;
+        }
+      } else {
+        // Position markers always snap to their marker position
+        seekPositionPercentage = snappedMarker.position;
+      }
+    }
+
     if (this.label) {
       this.label.getDomElement().css({
-        'left': (snappedMarker ? snappedMarker.time : percentage) + '%',
+        'left': seekPositionPercentage + '%',
       });
     }
 
     this.seekBarEvents.onSeekPreview.dispatch(this, {
       scrubbing: scrubbing,
-      position: percentage,
+      position: seekPositionPercentage,
       marker: snappedMarker,
     });
   }
