@@ -120,13 +120,15 @@ describe('BitdashDirective', () => {
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, {});
   });
 
   it('Should set up the player for audio only with default StillImageUrl', () => {
+    const audioOnlyOverlayConfig = {audioOnlyOverlayConfig: {backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true}};
+
     $rootScope.webcastMainVm.webcast.layout.layout = 'audio-only';
     $rootScope.webcastMainVm.webcast.theme.audioOnlyFileUrl = 'https://www.ima.ge/image.jpg';
     spyOn(document, 'getElementsByClassName').and.callThrough();
@@ -134,28 +136,23 @@ describe('BitdashDirective', () => {
     $rootScope.$apply();
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth)
       .toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight)
       .toEqual('101px');
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
-    expect((document.getElementsByClassName('mi-wbc-ui-audioonly-overlay')[0] as IMyElement).style.backgroundImage)
-      .toEqual('url(https://www.ima.ge/image.jpg)');
-    expect((document.getElementsByClassName('mi-wbc-ui-audioonly-overlay')[0] as IMyElement).style.backgroundSize)
-      .toEqual('contain');
-    expect((document.getElementsByClassName('mi-wbc-ui-audioonly-overlay')[0] as IMyElement).style.backgroundPosition)
-      .toEqual('50% 50%');
+    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, audioOnlyOverlayConfig);
   });
 
   it('Should set up the player video audio without options attribute', () => {
+    const audioOnlyOverlayConfig = {audioOnlyOverlayConfig: {backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true}};
     $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
     spyOn(document, 'getElementsByClassName').and.callThrough();
     const element = $compile(template)($rootScope);
     $rootScope.$apply();
     const scope = element.isolateScope() as IBitdashDirective;
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, audioOnlyOverlayConfig);
     expect(scope.options).toBeUndefined();
   });
 
@@ -169,8 +166,8 @@ describe('BitdashDirective', () => {
     const element = $compile(angular.element(template))($rootScope);
     $rootScope.$apply();
     const scope = element.isolateScope() as IBitdashDirective;
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(2);
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
+    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, {});
     expect(scope.options).toBeDefined();
     expect(scope.options.forcedState).toBe('live');
   });

@@ -34,8 +34,17 @@ export interface IPlayer {
 }
 
 export interface IBitmovinUIManager {
-  buildAudioOnlyUI(player: IPlayer): void;
+  buildAudioOnlyUI(player: IPlayer, playerConfig: IMIUIConfig): void;
   buildAudioVideoUI(player: IPlayer): void;
+}
+
+export interface IUIAudioOnlyOverlayConfig {
+  backgroundImageUrl?: string;
+  hiddeIndicator?: boolean;
+}
+
+export interface IMIUIConfig {
+  audioOnlyOverlayConfig?: IUIAudioOnlyOverlayConfig;
 }
 
 export interface IReason {

@@ -6,44 +6,35 @@ import {PlaybackToggleButton} from './components/playbacktogglebutton';
 import {FullscreenToggleButton} from './components/fullscreentogglebutton';
 import {VRToggleButton} from './components/vrtogglebutton';
 import {VolumeToggleButton} from './components/volumetogglebutton';
-import { SeekBar, SeekBarMarker } from './components/seekbar';
+import {SeekBar, SeekBarMarker} from './components/seekbar';
 import {PlaybackTimeLabel, PlaybackTimeLabelMode} from './components/playbacktimelabel';
 import {ControlBar} from './components/controlbar';
-import {NoArgs, EventDispatcher, CancelEventArgs} from './eventdispatcher';
+import {CancelEventArgs, EventDispatcher, NoArgs} from './eventdispatcher';
 import {SettingsToggleButton} from './components/settingstogglebutton';
 import {SettingsPanel, SettingsPanelItem} from './components/settingspanel';
 import {SubtitleSettingsPanel} from './components/subtitlesettings/subtitlesettingspanel';
 import {SubtitleSettingsLabel} from './components/subtitlesettings/subtitlesettingslabel';
 import {SubtitleSettingsOpenButton} from './components/subtitlesettings/subtitlesettingsopenbutton';
 import {VideoQualitySelectBox} from './components/videoqualityselectbox';
-import {Watermark} from './components/watermark';
+// import {Watermark} from './components/watermark';
 import {AudioQualitySelectBox} from './components/audioqualityselectbox';
 import {AudioTrackSelectBox} from './components/audiotrackselectbox';
 import {SeekBarLabel} from './components/seekbarlabel';
 import {VolumeSlider} from './components/volumeslider';
 import {SubtitleSelectBox} from './components/subtitleselectbox';
 import {SubtitleOverlay} from './components/subtitleoverlay';
-import {VolumeControlButton} from './components/volumecontrolbutton';
+// import {VolumeControlButton} from './components/volumecontrolbutton';
 import {CastToggleButton} from './components/casttogglebutton';
 import {CastStatusOverlay} from './components/caststatusoverlay';
 import {ErrorMessageOverlay} from './components/errormessageoverlay';
 import {TitleBar} from './components/titlebar';
-import PlayerAPI = bitmovin.PlayerAPI;
 import {RecommendationOverlay} from './components/recommendationoverlay';
-import {AdMessageLabel} from './components/admessagelabel';
-import {AdSkipButton} from './components/adskipbutton';
-import {AdClickOverlay} from './components/adclickoverlay';
-import EVENT = bitmovin.PlayerAPI.EVENT;
-import PlayerEventCallback = bitmovin.PlayerAPI.PlayerEventCallback;
-import AdStartedEvent = bitmovin.PlayerAPI.AdStartedEvent;
 import {PlaybackSpeedSelectBox} from './components/playbackspeedselectbox';
 import {BufferingOverlay} from './components/bufferingoverlay';
-import {CastUIContainer} from './components/castuicontainer';
+// import {CastUIContainer} from './components/castuicontainer';
 import {PlaybackToggleOverlay} from './components/playbacktoggleoverlay';
 import {CloseButton} from './components/closebutton';
 import {MetadataLabel, MetadataLabelContent} from './components/metadatalabel';
-import {Label} from './components/label';
-import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 import {AirPlayToggleButton} from './components/airplaytogglebutton';
 import {PictureInPictureToggleButton} from './components/pictureinpicturetogglebutton';
 import {AudioOnlyOverlay} from './components/audioonlyoverlay';
@@ -51,6 +42,15 @@ import {Spacer} from './components/spacer';
 import {UIUtils} from './uiutils';
 import {ArrayUtils} from './arrayutils';
 import {BrowserUtils} from './browserutils';
+import PlayerAPI = bitmovin.PlayerAPI;
+// import {AdMessageLabel} from './components/admessagelabel';
+// import {AdSkipButton} from './components/adskipbutton';
+// import {AdClickOverlay} from './components/adclickoverlay';
+import EVENT = bitmovin.PlayerAPI.EVENT;
+import PlayerEventCallback = bitmovin.PlayerAPI.PlayerEventCallback;
+import AdStartedEvent = bitmovin.PlayerAPI.AdStartedEvent;
+// import {Label} from './components/label';
+import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 
 export interface UIRecommendationConfig {
   title: string;
@@ -277,7 +277,7 @@ export class UIManager {
     });
 
     if (config.container) {
-      // Unfortunately "uiContainerElement = new DOM(config.container)" will not accept the container with
+      // Unfortunately 'uiContainerElement = new DOM(config.container)' will not accept the container with
       // string|HTMLElement type directly, although it accepts both types, so we need to spit these two cases up here.
       // TODO check in upcoming TS versions if the container can be passed in directly, or fix the constructor
       this.uiContainerElement = config.container instanceof HTMLElement ?
@@ -572,9 +572,18 @@ export class UIManager {
   }
 }
 
+export interface UIAudioOnlyOverlayConfig {
+    backgroundImageUrl?: string;
+    hiddeIndicator?: boolean;
+}
+
+export interface MIUIConfig extends UIConfig {
+    audioOnlyOverlayConfig?: UIAudioOnlyOverlayConfig;
+}
+
 export namespace UIManager.Factory {
 
-  export function buildAudioVideoUI(player: PlayerAPI, config: UIConfig = {}): UIManager {    // show smallScreen UI only on mobile/handheld devices
+  export function buildAudioVideoUI(player: PlayerAPI, config: MIUIConfig = {}): UIManager {    // show smallScreen UI only on mobile/handheld devices
     let smallScreenSwitchWidth = 600;
 
     return new UIManager(player, [{
@@ -587,7 +596,7 @@ export namespace UIManager.Factory {
     }], config);
   }
 
-  export function buildAudioOnlyUI(player: PlayerAPI, config: UIConfig = {}): UIManager {   // show smallScreen UI only on mobile/handheld devices
+  export function buildAudioOnlyUI(player: PlayerAPI, config: MIUIConfig = {}): UIManager {   // show smallScreen UI only on mobile/handheld devices
     let smallScreenSwitchWidth = 600;
 
     return new UIManager(player, [{
