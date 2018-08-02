@@ -293,8 +293,8 @@ declare namespace bitmovin {
        */
       transitionTime?: number;
       /**
-       * The maximum displacement speed in degrees per second. Default values are 90°/s for keyboard controls, and Infinity
-       * for mouse and API controls.
+       * The maximum displacement speed in degrees per second. Default values are 90°/s for keyboard controls, and
+       * Infinity for mouse and API controls.
        */
       maxDisplacementSpeed?: number;
     }
@@ -390,6 +390,11 @@ declare namespace bitmovin {
        * HLS content can easily and for free be generated using our encoding solution bitcodin.
        */
       hls?: string;
+      /**
+       * An URL to a Microsoft Smooth Streaming Manifest (normally ends with .ism/Manifest but can also be a .xml)
+       * @since 7.5
+       */
+      smooth?: string;
       /**
        * An Array of objects to video files, used for progressive download as fallback. Is only used when all
        * other methods fail. Multiple progressive files can be used, e.g. .mp4 and .webm files to support as
@@ -625,20 +630,20 @@ declare namespace bitmovin {
         maxSelectableVideoBitrate?: number | string;
       };
       /**
-       * A callback function to customize the player's adaptation logic that is called before the player tries to download
-       * a new video segment.
-       * @param data An object carrying the <code>suggested</code> attribute, holding the suggested representation/quality
-       *   ID the player would select
+       * A callback function to customize the player's adaptation logic that is called before the player tries to
+       * download a new video segment.
+       * @param data An object carrying the <code>suggested</code> attribute, holding the suggested
+       *   representation/quality ID the player would select
        * @return A valid representation/quality ID which the player should use, based on your custom logic (or
        *   <code>data.suggested</code> to switch to the suggested quality)
        * @see PlayerAPI#getAvailableVideoQualities to get a list of all available video qualities
        */
       onVideoAdaptation?: (data: { suggested: string }) => string;
       /**
-       * A callback function to customize the player's adaptation logic that is called before the player tries to download
-       * a new audio segment.
-       * @param data An object carrying the <code>suggested</code> attribute, holding the suggested representation/quality
-       *   ID the player would select
+       * A callback function to customize the player's adaptation logic that is called before the player tries to
+       * download a new audio segment.
+       * @param data An object carrying the <code>suggested</code> attribute, holding the suggested
+       *   representation/quality ID the player would select
        * @return A valid representation/quality ID which the player should use, based on your custom logic (or
        *   <code>data.suggested</code> to switch to the suggested quality)
        * @see PlayerAPI#getAvailableAudioQualities to get a list of all available audio qualities
@@ -716,6 +721,12 @@ declare namespace bitmovin {
        * an offset and a tag property.
        */
       schedule?: { [name: string]: AdvertisingScheduleItem; };
+      /**
+       * If set to true, mid-roll ads are only played during normal playback. Seeking to a time after the
+       * mid-roll ads doesn't trigger ad playback.
+       * @since 7.1
+       */
+      allowSeekingOverMidRollAds?: boolean;
     }
 
     interface LocationConfig {
@@ -758,6 +769,180 @@ declare namespace bitmovin {
        * Maximum value is 30000 (30 seconds).
        */
       delay?: number;
+    }
+
+    /**
+     * Values the `HttpRequestType` property can have in the network API config callbacks.
+     */
+    enum HttpRequestType {
+      MANIFEST_DASH,
+      MANIFEST_HLS_MASTER,
+      MANIFEST_HLS_VARIANT,
+      MANIFEST_SMOOTH,
+      MANIFEST_ADS,
+
+      MEDIA_AUDIO,
+      MEDIA_VIDEO,
+      MEDIA_SUBTITLES,
+      MEDIA_THUMBNAILS,
+
+      DRM_LICENSE_WIDEVINE,
+      DRM_LICENSE_PLAYREADY,
+      DRM_LICENSE_FAIRPLAY,
+      DRM_LICENSE_PRIMETIME,
+      DRM_LICENSE_CLEARKEY,
+
+      DRM_CERTIFICATE_FAIRPLAY,
+
+      KEY_HLS_AES,
+    }
+
+    enum HttpResponseType {
+      ARRAYBUFFER,
+      BLOB,
+      DOCUMENT,
+      JSON,
+      TEXT,
+    }
+
+    /**
+     * Allowed types of the {@link HttpRequest.body}
+     */
+    type HttpRequestBody = ArrayBuffer | ArrayBufferView | Blob | FormData | string | Document | URLSearchParams;
+
+    /**
+     * Possible types of {@link HttpResponse.body}
+     */
+    type HttpResponseBody = string | ArrayBuffer | Blob | Object | Document;
+
+    /**
+     * Allowed HTTP request method
+     */
+    enum HttpRequestMethod {
+      GET,
+      POST,
+      HEAD,
+    }
+
+    interface HttpRequest {
+      /**
+       * HTTP method of the request
+       */
+      method: HttpRequestMethod;
+      /**
+       * URL of the request
+       */
+      url: string;
+      /**
+       * Headers of this request
+       */
+      headers: Header[];
+      /**
+       * Request body to send to the server (optional).
+       */
+      body?: HttpRequestBody;
+      /**
+       * Type we expect the {@link HttpResponse.body} to be.
+       */
+      responseType: HttpResponseType;
+      /**
+       * The credentials property as used in the `fetch` API and mapped to the `XmlHttpRequest` as follows:
+       * <pre>
+       * 'include' ... withCredentials = true
+       * 'omit'    ... withCredentials = false
+       * </pre>
+       */
+      credentials: 'omit' | 'same-origin' | 'include';
+    }
+
+    interface HttpResponse<ResponseBody extends HttpResponseBody> {
+      /**
+       * Corresponding request object of this response
+       */
+      request: HttpRequest;
+      /**
+       * URL of the actual request. May differ from {@link HttpRequest.url} when redirects have happened.
+       */
+      url: string;
+      /**
+       * Headers of the response.
+       */
+      headers: Header[];
+      /**
+       * HTTP status code
+       */
+      status: number;
+      /**
+       * Status text provided by the server or default value if not present in response.
+       */
+      statusText: string;
+      /**
+       * Body of the response with type defined by {@link HttpRequest.responseType} (optional).
+       */
+      body?: ResponseBody;
+      /**
+       * Amount of bytes of the response body (optional).
+       */
+      length?: number;
+    }
+
+    interface HttpResponseTiming {
+      /**
+       * The timestamp at which the request was opened.
+       */
+      openedTimestamp?: number;
+      /**
+       * The timestamp at which the headers where received.
+       */
+      headersReceivedTimestamp?: number;
+      /**
+       * The timestamp of the current progress event.
+       */
+      progressTimestamp?: number;
+      /**
+       * The timestamp at which the request was finished.
+       */
+      doneTimestamp?: number;
+    }
+
+    interface RequestProgress {
+      loadedBytes: number;
+      totalBytes: number;
+      responseTiming?: HttpResponseTiming;
+    }
+
+    /**
+     * This interfaces needs to be implemented and returned by {@link NetworkConfig.sendHttpRequest} and can be used
+     * to implement custom network request implementations. The default implementation of the player uses
+     * `XMLHttpRequest`.
+     */
+    interface RequestController<T> {
+      /**
+       * Is called by the player if it wants to cancel the current request (e.g. on seek)
+       */
+      cancel(): void;
+
+      /**
+       * Provides the data transfer progress to the player (if available).
+       * @param {(requestProgress: RequestProgress) => void} listener
+       */
+      setProgressListener(listener: (requestProgress: RequestProgress) => void): void;
+
+      /**
+       * Returns a Promise that resolves with the actual {@link HttpResponse}
+       * @returns {Promise<HttpResponse<T>>}
+       */
+      getResponse(): Promise<HttpResponse<T>>;
+    }
+
+    interface NetworkConfig {
+      preprocessHttpRequest?: (type: HttpRequestType, request: HttpRequest) => Promise<HttpRequest>;
+      sendHttpRequest?: <T extends HttpResponseBody>(type: HttpRequestType,
+                                                     request: HttpRequest) => RequestController<T>;
+      retryHttpRequest?: <T extends HttpResponseBody>(type: HttpRequestType, response: HttpResponse<T>, retry: number) =>
+        Promise<HttpRequest>;
+      preprocessHttpResponse?: <T extends HttpResponseBody>(type: HttpRequestType, response: HttpResponse<T>) =>
+        Promise<HttpResponse<T>>;
     }
 
     interface Config {
@@ -812,6 +997,10 @@ declare namespace bitmovin {
        * Licensing configuration.
        */
       licensing?: LicensingConfig;
+      /**
+       * Network configuration.
+       */
+      network?: NetworkConfig;
     }
   }
 }

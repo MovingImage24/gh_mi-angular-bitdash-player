@@ -1,49 +1,73 @@
-import {ContainerConfig, Container} from './container';
-import {UIInstanceManager} from '../uimanager';
+import {Container, ContainerConfig} from './container';
+import {MIUIConfig, UIAudioOnlyOverlayConfig, UIInstanceManager} from '../uimanager';
 import {Component, ComponentConfig} from './component';
-// import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
+import {Timeout} from '../timeout';
+
+/**
+ * Configuration interface for the {@link AudioOnlyOverlay} component.
+ */
+export interface AudioOnlyOverlayConfig extends ContainerConfig {
+}
 
 /**
  * Overlays the player and displays an audio-only indicator.
  */
-export class AudioOnlyOverlay extends Container<ContainerConfig> {
+export class AudioOnlyOverlay extends Container<AudioOnlyOverlayConfig> {
+  private indicatorConfig: Component<ComponentConfig>[];
+  private componentConfig: UIAudioOnlyOverlayConfig;
 
-  private audioonly: Component<ComponentConfig>[];
-
-  constructor(config: ContainerConfig = {}) {
+  constructor(config: AudioOnlyOverlayConfig = {}) {
     super(config);
 
-    this.audioonly = [
-      new Component<ComponentConfig>({ tag: 'div', cssClass: 'ui-audioonly-overlay-indicator' }),
+    this.indicatorConfig = [
+      new Component<ComponentConfig>({tag: 'div', cssClass: 'ui-audioonly-overlay-indicator', hidden: true}),
     ];
 
-    this.config = this.mergeConfig(config, <ComponentConfig>{
+    this.config = this.mergeConfig(config, <AudioOnlyOverlayConfig>{
       cssClass: 'ui-audioonly-overlay',
-      components: this.audioonly,
       hidden: false,
+      components: this.indicatorConfig,
     }, this.config);
   }
 
   configure(player: bitmovin.PlayerAPI, uimanager: UIInstanceManager): void {
     super.configure(player, uimanager);
 
-    let self = this;
-    let image = self.getDomElement().css('background-image');
+    this.componentConfig = (uimanager.getConfig() as MIUIConfig).audioOnlyOverlayConfig || {};
+    const config = <AudioOnlyOverlayConfig>this.getConfig();
+    const indicator = config.components[0];
 
-    // Hide overlay when Player is paused, so we can see the Big Play Button
+    const backgroundImageUrl = this.componentConfig.backgroundImageUrl;
+    const element = this.getDomElement();
 
-    // player.addEventHandler(player.EVENT.ON_PAUSED, (event) => {
-    //   self.getDomElement().css('background-image', 'none');
-    // });
-    //
-    // player.addEventHandler(player.EVENT.ON_PLAY, (event) => {
-    //   self.getDomElement().css('background-image', image);
-    // });
-    //
-    // // Hide overlay if player is  paused at init (e.g. on mobile devices)
-    // if (!player.isPlaying()) {
-    //   self.getDomElement().css('background-image', 'none');
-    // }
+    const showBackgroundImage = () => {
+      element.css('backgroundImage', `url(${backgroundImageUrl})`);
+      element.css('backgroundSize', 'contain');
+      element.css('backgroundColor', '#000000');
+      element.css('animation', 'none');
+      element.css('backgroundPosition', 'center');
+    };
+
+    const overlayShowTimeout = new Timeout(400, () => {
+      indicator.show();
+    });
+
+    const showOverlay = () => {
+      overlayShowTimeout.start();
+    };
+
+    const hideOverlay = () => {
+      overlayShowTimeout.clear();
+      indicator.hide();
+    };
+
+    if (backgroundImageUrl) {
+      showBackgroundImage();
+    }
+
+    if (!this.componentConfig.hiddeIndicator) {
+      player.addEventHandler(player.EVENT.ON_PLAY, showOverlay);
+      player.addEventHandler(player.EVENT.ON_PAUSED, hideOverlay);
+    }
   }
-
 }

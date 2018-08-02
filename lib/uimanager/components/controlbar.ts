@@ -16,19 +16,17 @@ export interface ControlBarConfig extends ContainerConfig {
  */
 export class ControlBar extends Container<ControlBarConfig> {
 
-  constructor(config: ControlBarConfig, autoHide: boolean) {
+  constructor(config: ControlBarConfig) {
     super(config);
 
     this.config = this.mergeConfig(config, {
       cssClass: 'ui-controlbar',
-      hidden: autoHide,
+      hidden: true,
     }, <ControlBarConfig>this.config);
   }
 
   configure(player: bitmovin.PlayerAPI, uimanager: UIInstanceManager): void {
     super.configure(player, uimanager);
-
-    let self = this;
 
     // Counts how many components are hovered and block hiding of the control bar
     let hoverStackCount = 0;
@@ -51,20 +49,14 @@ export class ControlBar extends Container<ControlBarConfig> {
     });
 
     uimanager.onControlsShow.subscribe(() => {
-      if (self.config.hidden) {
-        self.show();
-      }
+      this.show();
     });
-
     uimanager.onPreviewControlsHide.subscribe((sender, args) => {
       // Cancel the hide event if hovered child components block hiding
       args.cancel = (hoverStackCount > 0);
     });
-
     uimanager.onControlsHide.subscribe(() => {
-      if (self.config.hidden) {
-        self.hide();
-      }
+      this.hide();
     });
   }
 }

@@ -7,7 +7,12 @@ export class Timeout {
   private delay: number;
   private callback: () => void;
   private repeat: boolean;
-  private timeoutHandle: number;
+  // There's two setTimeout declarations, one on Window which returns type "number" and one in NodeJS which returns
+  // type "Timer". For unknown reasons builds on Jenkins fail due to a type mismatch when we use type "number" here,
+  // although it works on other platforms (e.g. Windows, Codeship).
+  // To work around the issue we use type "any". The type does not matter anyway because we're not working with
+  // this value except providing it to clearTimeout.
+  private timeoutHandle: any;
 
   /**
    * Creates a new timeout callback handler.
@@ -35,7 +40,7 @@ export class Timeout {
    * Clears the timeout. The callback will not be called if clear is called during the timeout.
    */
   clear(): void {
-    clearTimeout(this.timeoutHandle);
+    this.clearInternal();
   }
 
   /**
@@ -45,7 +50,7 @@ export class Timeout {
     let lastScheduleTime = 0;
     let delayAdjust = 0;
 
-    this.clear();
+    this.clearInternal();
 
     let internalCallback = () => {
       this.callback();
@@ -63,11 +68,15 @@ export class Timeout {
         lastScheduleTime = now;
 
         // Schedule next execution by the adjusted delay
-        this.timeoutHandle = window.setTimeout(internalCallback, this.delay + delayAdjust);
+        this.timeoutHandle = setTimeout(internalCallback, this.delay + delayAdjust);
       }
     };
 
     lastScheduleTime = Date.now();
-    this.timeoutHandle = window.setTimeout(internalCallback, this.delay);
+    this.timeoutHandle = setTimeout(internalCallback, this.delay);
+  }
+
+  private clearInternal(): void {
+    clearTimeout(this.timeoutHandle);
   }
 }

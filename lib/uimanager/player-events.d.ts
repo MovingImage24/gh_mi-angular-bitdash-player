@@ -37,6 +37,7 @@ declare namespace bitmovin {
       ON_CAST_STOPPED: EVENT;
       ON_CAST_PLAYBACK_FINISHED: EVENT;
       ON_CAST_TIME_UPDATED: EVENT;
+      ON_CUE_PARSED: EVENT;
       ON_CUE_ENTER: EVENT;
       ON_CUE_UPDATE: EVENT;
       ON_CUE_EXIT: EVENT;
@@ -47,8 +48,10 @@ declare namespace bitmovin {
       ON_FULLSCREEN_EXIT: EVENT;
       ON_HIDE_CONTROLS: EVENT;
       ON_METADATA: EVENT;
+      ON_METADATA_PARSED: EVENT;
       ON_MUTED: EVENT;
       ON_PAUSED: EVENT;
+      ON_PERIOD_SWITCH: EVENT;
       ON_PERIOD_SWITCHED: EVENT;
       ON_PLAY: EVENT;
       ON_PLAYING: EVENT;
@@ -86,6 +89,10 @@ declare namespace bitmovin {
       ON_AIRPLAY_AVAILABLE: EVENT;
       ON_VR_VIEWING_DIRECTION_CHANGE: EVENT;
       ON_VR_VIEWING_DIRECTION_CHANGED: EVENT;
+      ON_DESTROY: EVENT;
+      ON_AD_BREAK_STARTED: EVENT;
+      ON_AD_BREAK_FINISHED: EVENT;
+      ON_PLAYBACK_SPEED_CHANGED: EVENT;
     }
 
     interface PlayerEvent {
@@ -148,6 +155,17 @@ declare namespace bitmovin {
     }
 
     interface ErrorEvent extends PlayerEvent {
+      /**
+       * The error code used to identify the occurred error
+       */
+      code: number;
+      /**
+       * The error message to explain the reason for the error
+       */
+      message: string;
+    }
+
+    interface WarningEvent extends PlayerEvent {
       /**
        * The error code used to identify the occurred error
        */
@@ -283,17 +301,63 @@ declare namespace bitmovin {
        * ID of the representation this segment belongs to
        */
       representationId: string;
+      EXPERIMENTAL?: any;
+    }
+
+    enum MetadataType {
+      /**
+       * HLS `#EXT-X-CUE-OUT`, `#EXT-X-CUE-OUT-CONT` and `#EXT-X-CUE-IN` tags are surfaced with this type.
+       */
+      CUETAG,
+      /**
+       * DASH `EventStream` events (also known as `MPD Events`) are surfaced with this type.
+       */
+      EVENT_STREAM,
+      /**
+       * All custom, i.e. unknown/unsupported HLS tags are surfaced with this type.
+       */
+      CUSTOM,
+      /**
+       * HLS `#EXT-X-SCTE35` tags are surfaced with this type.
+       */
+      SCTE,
+      /**
+       * ID3 tags from MPEG-2 Transport Stream container formats are surfaced with this type.
+       * See {@link MetadataType.EMSG} for the MP4 equivalent.
+       */
+      ID3,
+      /**
+       * EMSG data from MP4 container formats are surfaced with this type.
+       * See {@link MetadataType.ID3} for the MPEG-2 TS equivalent.
+       */
+      EMSG,
+      /**
+       * Used for custom messages between the sender and the remote receiver, such as a Chromecast receiver app.
+       * Refer to {@link PlayerAPI.addMetadata} for details.
+       */
+      CAST,
     }
 
     interface MetadataEvent extends PlayerEvent {
       /**
        * ID3 and EMSG (<span class="highlight">[new in v4.2]</span>) are supported types.
        */
-      metadataType: string;
+      metadataType: MetadataType;
       /**
        * The metadata object as encountered in the stream.
        */
       metadata: Object;
+      /**
+       * The start time of the event.
+       */
+      start?: number;
+      /**
+       * The end time of the event.
+       */
+      end?: number;
+    }
+
+    export interface MetadataParsedEvent extends MetadataEvent {
     }
 
     interface AdaptationEvent extends PlayerEvent {
@@ -504,8 +568,55 @@ declare namespace bitmovin {
       };
     }
 
+    interface PlaybackSpeedChangedEvent extends PlayerEvent {
+      from: number;
+      to: number;
+    }
+
     interface PlayerEventCallback {
       (event: PlayerEvent): void;
+    }
+
+    interface AdStartedEvent extends PlayerEvent {
+      /**
+       * The target URL to open once the user clicks on the ad
+       * @since v4.2
+       */
+      clickThroughUrl: string;
+      /**
+       * The index of the ad in the queue
+       * @since v6.0
+       */
+      indexInQueue: number;
+      clientType: string;
+      /**
+       * The duration of the ad
+       * @since v6.0
+       */
+      duration: number;
+      /**
+       * The skip offset of the ad
+       * @since v6.0
+       */
+      skipOffset: number;
+      timeOffset: string;
+      adMessage?: string;
+      skipMessage?: SkipMessage;
+    }
+
+    interface TimeShiftEvent extends UserInteractionEvent {
+      /**
+       * The position from which we start the timeshift (currentTime before the timeshift)
+       */
+      position: number;
+      /**
+       * The position to which we want to jump for the timeshift ( currentTime after timeshift has completed)
+       */
+      target: number;
+    }
+
+    interface SubtitleCueParsedEvent extends SubtitleCueEvent {
+      subtitleId: string;
     }
   }
 }

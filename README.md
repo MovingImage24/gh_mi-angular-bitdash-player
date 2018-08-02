@@ -54,6 +54,12 @@ In case of a tagged version and success (node.js 7.0) an automated pbulish to np
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
+## update player-ui
+1. clone `https://github.com/MattDoddsMI/bitmovin-player-ui` repository and build it
+2. copy the content from `bitmovin-player-ui/src/ts` to `mi-angular-bitdash-player/lib/uimanager`
+3. add `(window as any).bitmovin.playerui = playerui;` in `mi-angular-bitdash-player/lib/uimanager/main.ts`
+4. run `npm run build`
+
 
 # License
 

@@ -1,4 +1,5 @@
 import * as angular from 'angular';
+import {IMIUIConfig} from '../interface/interfaces';
 import {IBitdashDirective, IBitmovinUIManager, IConfig, IMyElement, IPlayer, IReason, IWindow} from './../interface/interfaces';
 
 const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
@@ -46,20 +47,24 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
           }
         }
 
+        function getAudioOnlyPlayerConfig(): IMIUIConfig {
+          return webcast.theme.audioOnlyFileUrl ? {audioOnlyOverlayConfig: {backgroundImageUrl: webcast.theme.audioOnlyFileUrl, hiddeIndicator: true}} : {};
+        }
+
         function loadPlayer(conf: IConfig): void {
           bitmovinPlayer
             .setup(conf)
             .then(() => {
               bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+
               if (isAudioOnly()) {
-                bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer);
-                setAudioOnlyStillImage();
+                bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer, getAudioOnlyPlayerConfig());
               } else {
                 bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
               }
 
               bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
-              if (angular.isDefined(bitmovinControlbar)) {
+              if (bitmovinControlbar) {
                 bitmovinControlbar.style.minWidth = '175px';
                 bitmovinControlbar.style.minHeight = '101px';
                 document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
@@ -71,20 +76,6 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
 
         function isAudioOnly(): boolean {
           return webcast.layout.layout === 'audio-only';
-        }
-
-        function setAudioOnlyStillImage(): void {
-          const element = getElementsByClassName('mi-wbc-ui-audioonly-overlay') as IMyElement;
-          if (angular.isDefined(webcast.theme.audioOnlyFileUrl) && webcast.theme.audioOnlyFileUrl) {
-            element.style.backgroundImage = `url(${webcast.theme.audioOnlyFileUrl})`;
-            element.style.backgroundSize = 'contain';
-            element.style.animation = 'none';
-            element.style.backgroundPosition = 'center';
-          } else {
-            const image = element.style.backgroundImage;
-            bitmovinPlayer.addEventHandler('onPaused', () => element.style.backgroundImage = 'none');
-            bitmovinPlayer.addEventHandler('onPlay', () => element.style.backgroundImage = image);
-          }
         }
 
         function getElementsByClassName(className: string): IMyElement {
