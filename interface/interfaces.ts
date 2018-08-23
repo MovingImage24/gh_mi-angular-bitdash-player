@@ -59,6 +59,6 @@ export interface IConfig {
   tweaks: {context_menu_entries: any};
   logs: {bitmovin: boolean};
   events: object;
-  source?: {dash: string, hls: string, hiveServiceUrl: string};
+  source?: {dash: string, hls?: string, hls_ticket?: string};
   style?: {ux: boolean};
 }

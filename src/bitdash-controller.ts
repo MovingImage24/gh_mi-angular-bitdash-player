@@ -52,7 +52,7 @@ class BitmovinController {
     return webcast.useDVRPlaybackInPostlive && webcast.state === 'postlive' ?
       this.getDVRPlaybackToPostlive(webcast)
       : this.getPlayerConfigSourceByState(webcast)
-    ;
+      ;
   }
 
   private getDVRPlaybackToPostlive(webcast: any): any {
@@ -94,7 +94,7 @@ class BitmovinController {
         hls += `${offsetPrefix}start=${offset}`;
       }
     }
-    return {hls, title, hiveServiceUrl};
+    return hiveServiceUrl ? {title, hls_ticket: hiveServiceUrl} : {hls, title};
   }
 
   private getHiveServiceUrlByLang(webcast: any): string {
