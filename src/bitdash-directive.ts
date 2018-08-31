@@ -17,7 +17,7 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
     let bitmovinPlayer: IPlayer;
     let bitmovinUIManager: IBitmovinUIManager;
     let bitmovinControlbar: IMyElement;
-    const config: IConfig = scope.config;
+    let config: IConfig = scope.config;
     const webcast: any = scope.webcast;
     buildPlayer();
 
@@ -31,7 +31,13 @@ const BitdashDirective = ($window: IWindow, $log: angular.ILogService) => ({
 
       if ((webcast.state === 'live') && config.source.hls_ticket) {
         // Get a hive-enabled player through bitdash.initHiveSDN
-        $window.window.bitmovin.initHiveSDN(bitmovinPlayer, {debugLevel: 'off'});
+        const masterConfig = angular.copy(config);
+
+        try {
+          $window.window.bitmovin.initHiveSDN(bitmovinPlayer, {debugLevel: 'off'});
+        } catch (error) {
+          config = masterConfig;
+        }
       }
 
       loadPlayer(config);
