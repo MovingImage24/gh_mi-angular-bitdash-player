@@ -79,10 +79,6 @@ class BitmovinController {
     const title: string = webcast.name;
     const hiveServiceUrl: string = this.getHiveServiceUrlByLang(webcast);
 
-    if (angular.isDefined(this.state.data.playout.videoManagerHlsUrl) && this.state.data.playout.videoManagerHlsUrl) {
-      hls = this.state.data.playout.videoManagerHlsUrl;
-    }
-
     if (angular.isDefined(this.state.data.playout.offset)) {
       const offset: number = parseInt(this.state.data.playout.offset, 10);
 

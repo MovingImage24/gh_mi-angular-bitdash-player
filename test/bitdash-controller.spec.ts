@@ -120,14 +120,6 @@ describe('BitdashController', () => {
       'videodb_519_76439_7579412_16x9_hd.mp4/master.m3u8');
   });
 
-  it('should configure the player with vmpro HLS URL', () => {
-    $scope.webcast.liveStateData.playout.videoManagerHlsUrl = $scope.webcast.liveStateData.playout.hlsUrl;
-    $scope.options = {forcedState: 'live'};
-    const vm = new createController();
-    vm.$onInit();
-    expect(vm.config.source.hls).toBe('https://live-origin.edge-cdn.net/webcast/myStream/master.m3u8');
-  });
-
   it('should configure the player with offset', () => {
     $scope.webcast.postliveStateData.playout.offset = 10;
     const vm = new createController();
