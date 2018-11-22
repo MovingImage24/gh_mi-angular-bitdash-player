@@ -95,7 +95,7 @@
     "curly": true,
     "eofline": false,
     "forin": true,
-    "interface-name": true,
+    "interface-name": false,
     "jsdoc-format": true,
     "label-position": true,
     "no-shadowed-variable": true,
@@ -123,7 +123,7 @@
     ],
     "object-curly-spacing": [
       true,
-      "never"
+      "always"
     ],
     "block-spacing": [
       true,

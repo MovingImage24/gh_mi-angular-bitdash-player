@@ -1,12 +1,14 @@
+import { PreferredTech } from './preferred-tech.types';
+import { BitdashDirectiveScope, BitmovinPlayerApi, IBitmovinUIManager, IMyElement } from '../interface/interfaces';
+import BitmovinPlayerDirective from './bitmovin-player.directive';
+
 declare const angular;
-import {IBitdashDirective, IBitmovinUIManager, IMyElement, IPlayer} from '../interface/interfaces';
-import BitdashDirective from '../src/bitdash-directive';
 
 interface IRootScope extends angular.IRootScopeService {
   webcastMainVm: any;
 }
 
-describe('BitdashDirective', () => {
+describe('BitmovinPlayerDirective', () => {
   let $q: angular.IQService;
   let $compile: angular.ICompileService;
   let $rootScope: IRootScope;
@@ -22,9 +24,9 @@ describe('BitdashDirective', () => {
   const windowSpy = {
     window: {
       bitmovin: {
-        initHiveSDN: () => true,
-        player: () => bitmovinPlayer as IPlayer,
-        playerui: {UIManager: {Factory}}
+        initHiveSDN: jasmine.createSpy('initHiveSDN').and.returnValue(true),
+        player: () => bitmovinPlayer as BitmovinPlayerApi,
+        playerui: { UIManager: { Factory } }
       }
     }
   };
@@ -48,7 +50,7 @@ describe('BitdashDirective', () => {
     };
 
     angular.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
-      $compileProvider.directive('miBitdashPlayer', BitdashDirective);
+      $compileProvider.directive('miBitdashPlayer', BitmovinPlayerDirective);
       $controllerProvider.register('MiBitdashController', ($scope) => {
         $scope.state = stateMock;
         return;
@@ -87,7 +89,7 @@ describe('BitdashDirective', () => {
   it('Should failed to set up the player', () => {
     spyOn(document, 'getElementsByClassName').and.callThrough();
     spyOn($log, 'log').and.callThrough();
-    bitmovinPlayer.setup.and.returnValue($q.reject({code: 404, message: 'stream not found'}));
+    bitmovinPlayer.setup.and.returnValue($q.reject({ code: 404, message: 'stream not found' }));
     bitmovinPlayer.isReady.and.returnValue(false);
 
     $compile(template)($rootScope);
@@ -135,7 +137,7 @@ describe('BitdashDirective', () => {
   });
 
   it('Should set up the player for audio only with default StillImageUrl', () => {
-    const audioOnlyOverlayConfig = {audioOnlyOverlayConfig: {backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true}};
+    const audioOnlyOverlayConfig = { audioOnlyOverlayConfig: { backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true } };
 
     $rootScope.webcastMainVm.webcast.layout.layout = 'audio-only';
     $rootScope.webcastMainVm.webcast.theme.audioOnlyFileUrl = 'https://www.ima.ge/image.jpg';
@@ -155,14 +157,14 @@ describe('BitdashDirective', () => {
   });
 
   it('Should set up the player video audio without options attribute', () => {
-    const audioOnlyOverlayConfig = {audioOnlyOverlayConfig: {backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true}};
+    const audioOnlyOverlayConfig = { audioOnlyOverlayConfig: { backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true } };
     $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
     spyOn(document, 'getElementsByClassName').and.callThrough();
 
     const element = $compile(template)($rootScope);
     $rootScope.$apply();
 
-    const scope = element.isolateScope() as IBitdashDirective;
+    const scope = element.isolateScope() as BitdashDirectiveScope;
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, audioOnlyOverlayConfig);
     expect(scope.options).toBeUndefined();
@@ -174,12 +176,12 @@ describe('BitdashDirective', () => {
       'webcast="webcastMainVm.webcast" ' +
       'options="webcastMainVm.options">' +
       '</mi-bitdash-player>';
-    $rootScope.webcastMainVm.options = {forcedState: 'live'};
+    $rootScope.webcastMainVm.options = { forcedState: 'live' };
 
     const element = $compile(angular.element(template))($rootScope);
     $rootScope.$apply();
 
-    const scope = element.isolateScope() as IBitdashDirective;
+    const scope = element.isolateScope() as BitdashDirectiveScope;
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, {});
     expect(scope.options).toBeDefined();
@@ -222,6 +224,13 @@ describe('BitdashDirective', () => {
   it('Should load player for hive stream', () => {
     $rootScope.webcastMainVm.webcast.state = 'live';
     $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
+
+    stateMock.data.preferredTech = PreferredTech.HIVE;
+    stateMock.data.hiveSettings = {
+      origHlsUrl: 'orig-hls-url',
+      serviceUrl: 'hive-url',
+    };
+
     configMock.source.hls_ticket = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
     spyOn(document, 'getElementsByClassName').and.callThrough();
 
@@ -235,6 +244,7 @@ describe('BitdashDirective', () => {
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
     expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
     expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect(windowSpy.window.bitmovin.initHiveSDN).toHaveBeenCalled();
   });
 
 });

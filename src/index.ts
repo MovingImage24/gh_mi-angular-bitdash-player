@@ -1,7 +1,7 @@
 import * as angular from 'angular';
-import BitdashController from './bitdash-controller';
-import BitdashDirective from './bitdash-directive';
+import BitmovinController from './bitmovin-player.controller';
+import BitmovinPlayerDirective from './bitmovin-player.directive';
 
 export default angular.module('mi.BitdashPlayer', [])
-                                   .controller('MiBitdashController', BitdashController)
-                                   .directive('miBitdashPlayer', BitdashDirective);
+                                   .controller('MiBitdashController', BitmovinController)
+                                   .directive('miBitdashPlayer', BitmovinPlayerDirective);
