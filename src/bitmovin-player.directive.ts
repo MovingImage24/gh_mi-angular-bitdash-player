@@ -30,6 +30,13 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
     let bitmovinControlbar: IMyElement;
     let bitmovinPlayer: BitmovinPlayerApi;
     let hivePluginFailed = false;
+    let ksdnPlugin: any;
+
+    // todo: move to controller
+    const ksdnSettings = {
+      token: 'pub-ZW1haWxAbWkuY29tI21p',
+      urn: 'urn:kid:eval:mi:moid:241d57b8-60b0-4731-9447-6c1e2386f63f',
+    };
 
     init();
 
@@ -42,11 +49,24 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
         bitmovinPlayer = getPlayer();
       }
 
-      if (scope.state.data.preferredTech === PreferredTech.HIVE) {
-        initHivePlugin();
+      switch (scope.state.data.preferredTech) {
+        case PreferredTech.HIVE:
+          initHivePlugin();
+          break;
+        case PreferredTech.KSDN:
+          initKsdnPlugin();
+          break;
       }
 
       createPlayer(bitmovinPlayerConfig);
+    }
+
+    function initKsdnPlugin(): void {
+      const options = {
+        auth: ksdnSettings.token,
+      };
+
+      ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
     }
 
     function initHivePlugin(): void {
@@ -65,7 +85,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
 
     function createPlayer(conf: BitmovinPlayerConfig): void {
       bitmovinPlayer.setup(conf)
-        .then(() => {
+        .then((playerApi) => {
           bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
 
           if (isAudioOnly()) {
@@ -80,6 +100,56 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
             bitmovinControlbar.style.minHeight = '101px';
             document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
           }
+
+          if (ksdnPlugin) {
+            const callbacks = {
+              didSetSource: (plugin: any) => {
+                console.log('didSetSource');
+              },
+              onAgentDetected: (plugin: any, supportsSessions: any, agent: any) => {
+                console.log('onAgentDetected');
+              },
+              onAgentNotDetected: (plugin, reasons) => {
+                console.log('onAgentNotDetected');
+              },
+              onAgentRejected: (plugin: any, criteria: any) => {
+                console.log('onAgentRejected');
+              },
+              onCommand: (plugin: any, command: any, data: any) => {
+                console.log('onCommand');
+              },
+              onPlaybackRequestFailure: (plugin: any, request: any) => {
+                console.log('onPlaybackRequestFailure');
+              },
+              onPlaybackRequestSuccess: (plugin: any, contentInfo: any) => {
+                console.log('onPlaybackRequestSuccess');
+              },
+              onPrimingFailure: (plugin: any) => {
+                console.log('onPrimingFailure');
+              },
+              onPrimingStart: (plugin: any) => {
+                console.log('onPrimingStart');
+              },
+              onProgress: (plugin: any, progress: any, urn: any) => {
+                console.log('onProgress');
+              },
+              onSessionFailure: (plugin: any) => {
+                console.log('onSessionFailure');
+              },
+              onSessionStart: (plugin: any) => {
+                console.log('onSessionStart');
+              },
+              setSource: (player: any, src, type, isThroughECDN) => {
+                console.log('setSource');
+              },
+              willSetSource: (plugin: any) => {
+                console.log('willSetSource');
+              },
+            };
+
+            ksdnPlugin.play(playerApi, ksdnSettings.urn, callbacks);
+          }
+
         }, (reason: IReason) => {
           $log.log(`Error: ${reason.code} - ${reason.message}`);
 

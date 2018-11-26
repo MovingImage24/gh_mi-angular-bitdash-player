@@ -48,6 +48,7 @@ export interface IBitmovin {
 
 export interface IWindowInterface extends Window {
   bitmovin: IBitmovin;
+  ksdn: any;
 }
 
 export interface BitmovinPlayerApi {

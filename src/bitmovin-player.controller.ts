@@ -129,6 +129,9 @@ class BitmovinPlayerController {
       tech = PreferredTech.HIVE;
     }
 
+    // todo: write logic in controller
+    tech = PreferredTech.KSDN;
+
     return tech;
   }
 }
