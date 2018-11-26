@@ -60,6 +60,8 @@ In case of a tagged version and success (node.js 7.0) an automated pbulish to np
 3. add `(window as any).bitmovin.playerui = playerui;` in `mi-angular-bitdash-player/lib/uimanager/main.ts`
 4. run `npm run build`
 
+## links
+* [hive plugin documentation](https://media-players.hivestreaming.com/docs/bitmovin/docs/4.1.0/)
 
 # License
 

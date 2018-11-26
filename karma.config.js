@@ -4,13 +4,12 @@ const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js', 'interface/*.js'];
 
-module.exports = function (karma) {
+module.exports = function(karma) {
   karma.set({
     frameworks: ['jasmine', 'source-map-support'],
     files: [
       'node_modules/angular/angular.js',
       'node_modules/angular-mocks/angular-mocks.js',
-      'test/*spec.ts',
       'src/**/*.ts'
     ],
     reporters: ['jasmine-diff', 'progress', 'junit', 'coverage', 'coveralls'],
@@ -52,7 +51,6 @@ module.exports = function (karma) {
       ]
     },
     preprocessors: {
-      'test/**/*spec.ts': ['webpack'],
       'src/**/*.ts': ['webpack']
     },
     webpack: {
@@ -81,7 +79,7 @@ module.exports = function (karma) {
             enforce: 'post',
             test: /\.ts$/,
             loader: 'istanbul-instrumenter-loader',
-            exclude: /(test|lib|node_modules)\//
+            exclude: /(tests|node_modules|\.spec\.ts)$/
           }
         ]
       },
