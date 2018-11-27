@@ -58,6 +58,13 @@ class BitmovinPlayerController {
       };
     }
 
+    // todo: replace with real data
+    this.state.data.ksdnSettings = {
+      fallBackUrl: this.playerConfig.source.hls,
+      token: 'pub-ZW1haWxAbWkuY29tI21p',
+      urn: 'urn:kid:eval:mi:moid:241d57b8-60b0-4731-9447-6c1e2386f63f',
+    };
+
     this.state.data.preferredTech = this.getDefaultPreferredTech(webcast);
   }
 
@@ -127,10 +134,10 @@ class BitmovinPlayerController {
 
     if (webcast.state === WebcastState.LIVE && this.state.data.hiveSettings) {
       tech = PreferredTech.HIVE;
+    } else if (this.state.data.ksdnSettings) {
+      tech = PreferredTech.KSDN;
     }
 
-    // todo: write logic in controller
-    tech = PreferredTech.KSDN;
 
     return tech;
   }

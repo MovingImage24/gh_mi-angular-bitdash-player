@@ -32,44 +32,37 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
     let hivePluginFailed = false;
     let ksdnPlugin: any;
 
-    // todo: move to controller
-    const ksdnSettings = {
-      token: 'pub-ZW1haWxAbWkuY29tI21p',
-      urn: 'urn:kid:eval:mi:moid:241d57b8-60b0-4731-9447-6c1e2386f63f',
-    };
-
     init();
 
     function init(): void {
+      console.log('init');
       bitmovinPlayer = getPlayer();
-      const hasPlayer = angular.isDefined(bitmovinPlayer) && bitmovinPlayer.isReady() === true;
-
-      if (hasPlayer) {
-        bitmovinPlayer.destroy();
-        bitmovinPlayer = getPlayer();
-      }
 
       switch (scope.state.data.preferredTech) {
         case PreferredTech.HIVE:
-          initHivePlugin();
+          setupHivePlayer();
           break;
         case PreferredTech.KSDN:
-          initKsdnPlugin();
+          setupKsdnPlayer();
           break;
+        default:
+          createPlayer(bitmovinPlayerConfig);
       }
 
+    }
+
+    function setupKsdnPlayer(): void {
+      const options = {
+        auth: scope.state.data.ksdnSettings.token,
+      };
+
+      bitmovinPlayerConfig.source = null;
+
+      ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
       createPlayer(bitmovinPlayerConfig);
     }
 
-    function initKsdnPlugin(): void {
-      const options = {
-        auth: ksdnSettings.token,
-      };
-
-      ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
-    }
-
-    function initHivePlugin(): void {
+    function setupHivePlayer(): void {
       const hiveOptions = {
         HiveJava: {
           onError: () => hiveErrorHandler(),
@@ -81,87 +74,107 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
       bitmovinPlayerConfig.source.hls_ticket = scope.state.data.hiveSettings.serviceUrl;
 
       $window.window.bitmovin.initHiveSDN(bitmovinPlayer, hiveOptions);
+      createPlayer(bitmovinPlayerConfig);
     }
 
     function createPlayer(conf: BitmovinPlayerConfig): void {
       bitmovinPlayer.setup(conf)
         .then((playerApi) => {
-          bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+          setupPlayerUi();
 
-          if (isAudioOnly()) {
-            bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer, getAudioOnlyPlayerConfig());
-          } else {
-            bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
+          if (scope.state.data.preferredTech === PreferredTech.KSDN) {
+            startKsdnPlayback(playerApi);
           }
-
-          bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
-          if (bitmovinControlbar) {
-            bitmovinControlbar.style.minWidth = '175px';
-            bitmovinControlbar.style.minHeight = '101px';
-            document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
-          }
-
-          if (ksdnPlugin) {
-            const callbacks = {
-              didSetSource: (plugin: any) => {
-                console.log('didSetSource');
-              },
-              onAgentDetected: (plugin: any, supportsSessions: any, agent: any) => {
-                console.log('onAgentDetected');
-              },
-              onAgentNotDetected: (plugin, reasons) => {
-                console.log('onAgentNotDetected');
-              },
-              onAgentRejected: (plugin: any, criteria: any) => {
-                console.log('onAgentRejected');
-              },
-              onCommand: (plugin: any, command: any, data: any) => {
-                console.log('onCommand');
-              },
-              onPlaybackRequestFailure: (plugin: any, request: any) => {
-                console.log('onPlaybackRequestFailure');
-              },
-              onPlaybackRequestSuccess: (plugin: any, contentInfo: any) => {
-                console.log('onPlaybackRequestSuccess');
-              },
-              onPrimingFailure: (plugin: any) => {
-                console.log('onPrimingFailure');
-              },
-              onPrimingStart: (plugin: any) => {
-                console.log('onPrimingStart');
-              },
-              onProgress: (plugin: any, progress: any, urn: any) => {
-                console.log('onProgress');
-              },
-              onSessionFailure: (plugin: any) => {
-                console.log('onSessionFailure');
-              },
-              onSessionStart: (plugin: any) => {
-                console.log('onSessionStart');
-              },
-              setSource: (player: any, src, type, isThroughECDN) => {
-                console.log('setSource');
-              },
-              willSetSource: (plugin: any) => {
-                console.log('willSetSource');
-              },
-            };
-
-            ksdnPlugin.play(playerApi, ksdnSettings.urn, callbacks);
-          }
-
-        }, (reason: IReason) => {
-          $log.log(`Error: ${reason.code} - ${reason.message}`);
-
+        })
+        .catch((reason: IReason) => {
           if (hivePluginFailed) {
+            $log.warn('Using hive-plugin failed, choose fallback.');
             hivePluginFailed = false;
             bitmovinPlayerConfig.source.hls = scope.state.data.hiveSettings.origHlsUrl;
 
             setTimeout(() => {
               createPlayer(bitmovinPlayerConfig);
             }, 60);
+          } else {
+            $log.error(`Error: ${reason.code} - ${reason.message}`);
           }
         });
+    }
+
+    function setupPlayerUi(): void {
+      const isAudioOnly = webcast.layout.layout === 'audio-only';
+
+      bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+
+      if (isAudioOnly) {
+        bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer, getAudioOnlyPlayerConfig());
+      } else {
+        bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
+      }
+
+      bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
+      if (bitmovinControlbar) {
+        bitmovinControlbar.style.minWidth = '175px';
+        bitmovinControlbar.style.minHeight = '101px';
+        document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
+      }
+    }
+
+    function startKsdnPlayback(playerApi: BitmovinPlayerApi): void {
+      const callbacks = {
+        didSetSource: (plugin: any) => {
+          console.log('didSetSource');
+        },
+        onAgentDetected: (plugin: any, supportsSessions: any, agent: any) => {
+          console.log('onAgentDetected');
+        },
+        onAgentNotDetected: (plugin, reasons) => {
+          console.log('onAgentNotDetected');
+        },
+        onAgentRejected: (plugin: any, criteria: any) => {
+          console.log('onAgentRejected');
+        },
+        onCommand: (plugin: any, command: any, data: any) => {
+          console.log('onCommand');
+        },
+        onPlaybackRequestFailure: (plugin: any, request: any) => {
+          $log.warn('Using kollective-plugin failed, choose fallback.');
+          setTimeout(() => {
+            const source = {
+              hls: scope.state.data.ksdnSettings.fallBackUrl,
+            };
+            bitmovinPlayer.load(source);
+          }, 100);
+
+          return false;
+        },
+        onPlaybackRequestSuccess: (plugin: any, contentInfo: any) => {
+          console.log('onPlaybackRequestSuccess');
+        },
+        onPrimingFailure: (plugin: any) => {
+          console.log('onPrimingFailure');
+        },
+        onPrimingStart: (plugin: any) => {
+          console.log('onPrimingStart');
+        },
+        onProgress: (plugin: any, progress: any, urn: any) => {
+          console.log('onProgress');
+        },
+        onSessionFailure: (plugin: any) => {
+          console.log('onSessionFailure');
+        },
+        onSessionStart: (plugin: any) => {
+          console.log('onSessionStart');
+        },
+        setSource: (player: any, src, type, isThroughECDN) => {
+          console.log('setSource');
+        },
+        willSetSource: (plugin: any) => {
+          console.log('willSetSource');
+        },
+      };
+
+      ksdnPlugin.play(playerApi, scope.state.data.ksdnSettings.urn, callbacks);
     }
 
     function hiveErrorHandler(): void {
@@ -172,10 +185,6 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
       return webcast.theme.audioOnlyFileUrl ? { audioOnlyOverlayConfig: { backgroundImageUrl: webcast.theme.audioOnlyFileUrl, hiddeIndicator: true } } : {};
     }
 
-    function isAudioOnly(): boolean {
-      return webcast.layout.layout === 'audio-only';
-    }
-
     function getElementsByClassName(className: string): IMyElement {
       return document.getElementsByClassName(className)[0] as IMyElement;
     }
@@ -183,6 +192,16 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
     function getPlayer(): BitmovinPlayerApi {
       return $window.window.bitmovin.player(playerId);
     }
+
+    function cleanup(): void {
+      bitmovinPlayer.destroy();
+      bitmovinPlayer = null;
+      ksdnPlugin = null;
+    }
+
+    scope.$on('$destroy', () => {
+      cleanup();
+    });
   }
 
 } as angular.IDirective);

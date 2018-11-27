@@ -8,7 +8,6 @@ module.exports = function (env) {
   const srcPath = resolve(__dirname, 'src', 'index.ts');
   const libPath = resolve(__dirname, 'lib', 'uimanager', 'main.ts');
   const hivePath = resolve(__dirname, 'lib', 'hive', 'bitmovin.hive.min.js');
-  const kollectivPath = resolve(__dirname, 'lib', 'kollective', 'kollective-sdn-1.1.0-prerelease.min.js');
   const dstPath = resolve(__dirname, 'dist');
   const devtool = env.prod ? 'inline-source-map' : 'cheap-module-source-map';
   const filename = env.prod ? 'mi-angular-bitdash-player.js' : 'mi-angular-bitdash-player.min.js';
@@ -17,7 +16,7 @@ module.exports = function (env) {
   const ifMin = plugin => (env.min ? plugin : undefined);
 
   return {
-    entry: [srcPath, libPath, hivePath, kollectivPath],
+    entry: [srcPath, libPath, hivePath],
     output: {
       path: dstPath,
       filename: filename,
@@ -46,7 +45,7 @@ module.exports = function (env) {
           exclude: [/(test|node_modules)/]
         }
       ],
-      noParse: [hivePath, kollectivPath]
+      noParse: [hivePath]
     },
     resolve: {
       extensions: ['.ts', '.js']
