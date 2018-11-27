@@ -1,0 +1,2 @@
+Kollective SDK v1.1.0
+f69809a
