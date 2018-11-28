@@ -20,7 +20,6 @@ const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.
     let bitmovinControlbar: IMyElement;
     let bitmovinPlayer: BitmovinPlayerApi;
     let hivePluginFailed = false;
-    let ksdnPlugin: any;
 
     init();
 
@@ -176,7 +175,7 @@ const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.
         auth: scope.state.data.ksdnSettings.token,
       };
 
-      ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
+      let ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
       ksdnPlugin.play(playerApi, scope.state.data.ksdnSettings.urn, callbacks);
     }
 
@@ -199,7 +198,6 @@ const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.
     function cleanup(): void {
       bitmovinPlayer.destroy();
       bitmovinPlayer = null;
-      ksdnPlugin = null;
     }
 
     scope.$on('$destroy', () => {
