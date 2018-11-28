@@ -1,5 +1,5 @@
 import BitmovinPlayerController from './bitmovin-player.controller';
-import { PreferredTech } from './preferred-tech.types';
+import { PreferredTech } from './player-plugin.type';
 import { WebcastState } from './webcast.state';
 
 declare const angular;

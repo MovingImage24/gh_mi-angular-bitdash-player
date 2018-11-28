@@ -1,17 +1,7 @@
 import * as angular from 'angular';
-import {
-  BitdashDirectiveScope,
-  BitmovinPlayerApi,
-  BitmovinPlayerConfig,
-  IBitmovinUIManager,
-  IMIUIConfig,
-  IMyElement,
-  IReason,
-  IWindow
-} from '../interface/interfaces';
-import { PreferredTech } from './preferred-tech.types';
+import { MiAngularBitmovinPlayerDirectiveScope } from '../interface/directive.model';
 
-const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) => ({
+const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.ILogService) => ({
   controller: 'MiBitdashController',
   controllerAs: 'bitdashVm',
   replace: true,
@@ -22,7 +12,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
     webcast: '=',
   },
   template: `<div id="mi-bitdash-player" width="100%" height="auto"></div>`,
-  link(scope: BitdashDirectiveScope): void {
+  link(scope: MiAngularBitmovinPlayerDirectiveScope): void {
     const playerId = 'mi-bitdash-player';
     const webcast = scope.webcast;
     const bitmovinPlayerConfig = scope.config;

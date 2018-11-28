@@ -1,5 +1,5 @@
-import { PreferredTech } from './preferred-tech.types';
-import { BitdashDirectiveScope, BitmovinPlayerApi, IBitmovinUIManager, IMyElement } from '../interface/interfaces';
+import { PreferredTech } from './player-plugin.type';
+import { MiAngularBitmovinPlayerDirectiveScope, BitmovinPlayerApi, IBitmovinUIManager, IMyElement } from '../interface/directive.model';
 import BitmovinPlayerDirective from './bitmovin-player.directive';
 
 declare const angular;
@@ -164,7 +164,7 @@ describe('BitmovinPlayerDirective', () => {
     const element = $compile(template)($rootScope);
     $rootScope.$apply();
 
-    const scope = element.isolateScope() as BitdashDirectiveScope;
+    const scope = element.isolateScope() as MiAngularBitmovinPlayerDirectiveScope;
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, audioOnlyOverlayConfig);
     expect(scope.options).toBeUndefined();
@@ -181,7 +181,7 @@ describe('BitmovinPlayerDirective', () => {
     const element = $compile(angular.element(template))($rootScope);
     $rootScope.$apply();
 
-    const scope = element.isolateScope() as BitdashDirectiveScope;
+    const scope = element.isolateScope() as MiAngularBitmovinPlayerDirectiveScope;
     expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, {});
     expect(scope.options).toBeDefined();

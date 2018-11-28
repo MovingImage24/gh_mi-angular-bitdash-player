@@ -1,31 +1,46 @@
 import * as angular from 'angular';
-import { BitdashDirectiveScope, BitmovinPlayerConfig, BitmovinSourceConfig, StateData, WebcastModel, WebcastOptions } from '../interface/interfaces';
-import { PreferredTech } from './preferred-tech.types';
 import { WebcastState } from './webcast.state';
+import { ControllerModel, MiAngularBitmovinPlayerDirectiveScope, PlayerSource, WebcastOptions } from '../interface';
 
 class BitmovinPlayerController {
   public static $inject: string[] = ['$scope', '$log'];
-  public playerConfig: BitmovinPlayerConfig = { key: null };
-  public state: StateData = {};
-  private options: WebcastOptions = {};
+  public vm: ControllerModel;
+  private options: WebcastOptions;
 
-  constructor(private $scope: BitdashDirectiveScope,
+  constructor(private $scope: MiAngularBitmovinPlayerDirectiveScope,
               private $log: angular.ILogService) {
   }
 
   public $onInit(): void {
     const hasValidConfig = this.$scope.config && this.$scope.config.key && this.$scope.webcast;
 
-    this.state = this.$scope.state = {};
     this.options = this.$scope.options || {};
 
     if (hasValidConfig) {
-      this.playerConfig = this.$scope.config;
-      this.processWebcast(this.$scope.webcast);
+      this.vm.playerSource = this.getPlayerSource(this.$scope.webcast);
+
+      // this.processWebcast(this.$scope.webcast);
     } else {
       this.$log.error(`basic config for bitdash player is missing!`);
     }
   }
+
+  private getPlayerSource(webcast: WebcastModel): any {
+    const activeLanguage = this.getActiveLanguage(webcast.languages, webcast.language);
+    let source = activeLanguage.Player;
+
+    if (this.options.forcedState === WebcastState.LIVE) {
+      source = activeLanguage.PlayerLive;
+    }
+  }
+
+
+  private getActiveLanguage(languages: WebcastLanguage[], language: string): WebcastLanguage {
+    return languages.find((lang) => language === lang.language);
+  }
+
+
+  // ---------------------------------------------------------------------
 
   private processWebcast(webcast: WebcastModel): void {
     const state = this.options.forcedState || webcast.state;
