@@ -62,7 +62,7 @@ class BitmovinPlayerController {
     this.state.data.ksdnSettings = {
       fallBackUrl: this.playerConfig.source.hls,
       token: 'pub-ZW1haWxAbWkuY29tI21p',
-      urn: 'urn:kid:eval:mi:moid:241d57b8-60b0-4731-9447-6c1e2386f63f',
+      urn: 'urn:kid:eval:mi:moid:65e8a97d-fab1-4a2f-bfc8-1ff152598a51',
     };
 
     this.state.data.preferredTech = this.getDefaultPreferredTech(webcast);

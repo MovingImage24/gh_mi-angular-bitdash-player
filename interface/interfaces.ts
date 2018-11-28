@@ -109,7 +109,7 @@ export interface IReason {
 }
 
 export interface BitmovinSourceConfig {
-  title: string;
+  title?: string;
   hls?: string;
   hls_ticket?: string;
 }

@@ -52,13 +52,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
     }
 
     function setupKsdnPlayer(): void {
-      const options = {
-        auth: scope.state.data.ksdnSettings.token,
-      };
-
-      bitmovinPlayerConfig.source = null;
-
-      ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
+      bitmovinPlayerConfig.source = {};
       createPlayer(bitmovinPlayerConfig);
     }
 
@@ -83,7 +77,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
           setupPlayerUi();
 
           if (scope.state.data.preferredTech === PreferredTech.KSDN) {
-            startKsdnPlayback(playerApi);
+            startKsdnPlugin(playerApi);
           }
         })
         .catch((reason: IReason) => {
@@ -120,22 +114,40 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
       }
     }
 
-    function startKsdnPlayback(playerApi: BitmovinPlayerApi): void {
+    function startKsdnPlugin(playerApi: BitmovinPlayerApi): void {
       const callbacks = {
         didSetSource: (plugin: any) => {
-          console.log('didSetSource');
+          console.log('didSetSource', plugin);
+
+          console.log('player version: ', plugin.player.version);
+          console.log('isSetup: ', plugin.player.isSetup());
+          console.log('isPlaying: ', plugin.player.isPlaying());
+          console.log('isStalled: ', plugin.player.isStalled());
+          console.log('getConfig - source: ', plugin.player.getConfig().source);
+          console.log('getConfig: ', plugin.player.getConfig());
+
+          console.log(plugin.getLogs());
         },
         onAgentDetected: (plugin: any, supportsSessions: any, agent: any) => {
-          console.log('onAgentDetected');
+          const agentData = plugin.getAgentData();
+          const version = agentData.version;
+          const urnPrefix = agentData.urn_namespace;
+          console.log('onAgentDetected: supportsSessions=' + supportsSessions + ', agentVersion=' + version + ', urnNamespace=' + urnPrefix);
         },
-        onAgentNotDetected: (plugin, reasons) => {
+        onAgentNotDetected: (plugin: any, reasons: any) => {
           console.log('onAgentNotDetected');
+          console.log(reasons);
         },
         onAgentRejected: (plugin: any, criteria: any) => {
-          console.log('onAgentRejected');
+          if (!criteria.provisionedForCurrentUrn) {
+            console.log('Agent detected but not provisioned for URN');
+          }
+          if (!criteria.notBlackedOut) {
+            console.log('Agent detected but is currently blacked out');
+          }
         },
         onCommand: (plugin: any, command: any, data: any) => {
-          console.log('onCommand');
+          console.log('onCommand', plugin, command, data);
         },
         onPlaybackRequestFailure: (plugin: any, request: any) => {
           $log.warn('Using kollective-plugin failed, choose fallback.');
@@ -148,8 +160,8 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
 
           return false;
         },
-        onPlaybackRequestSuccess: (plugin: any, contentInfo: any) => {
-          console.log('onPlaybackRequestSuccess');
+        onPlaybackRequestSuccess: (plugin: any, info: any) => {
+          console.log('onPlaybackRequestSuccess: ' + info.moid);
         },
         onPrimingFailure: (plugin: any) => {
           console.log('onPrimingFailure');
@@ -158,7 +170,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
           console.log('onPrimingStart');
         },
         onProgress: (plugin: any, progress: any, urn: any) => {
-          console.log('onProgress');
+          console.log('onProgress: ' + progress + ' (' + urn + ')');
         },
         onSessionFailure: (plugin: any) => {
           console.log('onSessionFailure');
@@ -166,14 +178,15 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
         onSessionStart: (plugin: any) => {
           console.log('onSessionStart');
         },
-        setSource: (player: any, src, type, isThroughECDN) => {
-          console.log('setSource');
-        },
         willSetSource: (plugin: any) => {
           console.log('willSetSource');
         },
       };
+      const options = {
+        auth: scope.state.data.ksdnSettings.token,
+      };
 
+      ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
       ksdnPlugin.play(playerApi, scope.state.data.ksdnSettings.urn, callbacks);
     }
 
