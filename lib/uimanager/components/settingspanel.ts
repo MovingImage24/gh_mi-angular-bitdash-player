@@ -9,7 +9,7 @@ import {Timeout} from '../timeout';
 import {Event, EventDispatcher, NoArgs} from '../eventdispatcher';
 
 /**
- * Configuration interface for a {@link SettingsPanel}.
+ * Configuration models for a {@link SettingsPanel}.
  */
 export interface SettingsPanelConfig extends ContainerConfig {
   /**

@@ -1,7 +1,7 @@
 import {Button, ButtonConfig} from './button';
 
 /**
- * Configuration interface for a {@link ClickOverlay}.
+ * Configuration models for a {@link ClickOverlay}.
  */
 export interface ClickOverlayConfig extends ButtonConfig {
   /**

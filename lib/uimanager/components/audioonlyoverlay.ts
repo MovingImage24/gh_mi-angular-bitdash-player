@@ -4,7 +4,7 @@ import {Component, ComponentConfig} from './component';
 import {Timeout} from '../timeout';
 
 /**
- * Configuration interface for the {@link AudioOnlyOverlay} component.
+ * Configuration models for the {@link AudioOnlyOverlay} component.
  */
 export interface AudioOnlyOverlayConfig extends ContainerConfig {
 }

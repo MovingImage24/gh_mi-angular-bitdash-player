@@ -16,7 +16,7 @@ export enum MetadataLabelContent {
 }
 
 /**
- * Configuration interface for {@link MetadataLabel}.
+ * Configuration models for {@link MetadataLabel}.
  */
 export interface MetadataLabelConfig extends LabelConfig {
   /**

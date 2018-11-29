@@ -5,7 +5,7 @@ import {UIInstanceManager} from '../uimanager';
 import {Timeout} from '../timeout';
 
 /**
- * Configuration interface for a {@link VolumeControlButton}.
+ * Configuration models for a {@link VolumeControlButton}.
  */
 export interface VolumeControlButtonConfig extends ContainerConfig {
   /**

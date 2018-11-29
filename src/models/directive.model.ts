@@ -1,10 +1,10 @@
-import { WebcastState } from '../src/webcast.state';
+import { WebcastState } from '../webcast.state';
 import { BitmovinPlayerConfig } from './bitmovin.model';
 import { PlayerSource, WebcastModel } from './webcast.model';
 
-export interface MiAngularBitmovinPlayerDirectiveScope extends angular.IScope {
+export interface DirectiveScope extends angular.IScope {
   config: BitmovinPlayerConfig;
-  options: WebcastOptions;
+  options?: WebcastOptions;
   webcast: WebcastModel;
 
   vm: ControllerModel;
@@ -27,7 +27,7 @@ export interface WebcastOptions {
 //
 //
 //
-// export interface StateData {
+// export models StateData {
 //   data?: {
 //     playout: any;
 //     preferredTech: PreferredTech | null;
@@ -36,15 +36,15 @@ export interface WebcastOptions {
 //   };
 // }
 //
-// export interface IMyElement extends Element {
+// export models IMyElement extends Element {
 //   style: any;
 // }
 //
-// export interface IWindow extends angular.IWindowService {
-//   window: IWindowInterface;
-// }
+export interface IWindow extends angular.IWindowService {
+  window: IWindowInterface;
+}
 //
-// export interface IBitmovin {
+// export models IBitmovin {
 //   playerui: any;
 //
 //   initHiveSDN(bitmovinPlayer: BitmovinPlayerApi, debug?: any): any;
@@ -52,12 +52,12 @@ export interface WebcastOptions {
 //   player(id: string): BitmovinPlayerApi;
 // }
 //
-// export interface IWindowInterface extends Window {
-//   bitmovin: IBitmovin;
-//   ksdn: any;
-// }
+export interface IWindowInterface extends Window {
+  bitmovin: any;
+  ksdn: any;
+}
 //
-// export interface BitmovinPlayerApi {
+// export models BitmovinPlayerApi {
 //   load(source: any): any;
 //
 //   isReady(): boolean;
@@ -75,28 +75,28 @@ export interface WebcastOptions {
 //   addEventHandler(eventName: string, callback: (event?: any) => void): void;
 // }
 //
-// export interface HiveSettings {
+// export models HiveSettings {
 //   serviceUrl: string;
 //   origHlsUrl: string;
 // }
 //
-// export interface IBitmovinUIManager {
+// export models IBitmovinUIManager {
 //   buildAudioOnlyUI(player: BitmovinPlayerApi, playerConfig: IMIUIConfig): void;
 //
 //   buildAudioVideoUI(player: BitmovinPlayerApi): void;
 // }
 //
 //
-// export interface IUIAudioOnlyOverlayConfig {
+// export models IUIAudioOnlyOverlayConfig {
 //   backgroundImageUrl?: string;
 //   hiddeIndicator?: boolean;
 // }
 //
-// export interface IMIUIConfig {
+// export models IMIUIConfig {
 //   audioOnlyOverlayConfig?: IUIAudioOnlyOverlayConfig;
 // }
 //
-// export interface IReason {
+// export models IReason {
 //   code: number;
 //   message: string;
 // }

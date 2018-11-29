@@ -1,9 +1,15 @@
-import { PlayerPluginType } from '../src/player-plugin.type';
+import { PlayerSourceType } from '../player-source.type';
 
 export interface WebcastModel {
   name: string;
   language: string;
   languages: WebcastLanguage[];
+  theme: {
+    audioOnlyFileUrl?: string;
+  },
+  layout: {
+    layout: string;
+  };
 }
 
 export interface WebcastLanguage {
@@ -14,7 +20,7 @@ export interface WebcastLanguage {
 
 export interface PlayerSource {
   hlsUrl: string;
-  type: PlayerPluginType;
+  type: PlayerSourceType;
   p2p: {
     urn?: string;
     url?: string;

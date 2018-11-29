@@ -3,7 +3,7 @@ import {UIInstanceManager} from '../uimanager';
 import {MetadataLabel, MetadataLabelContent} from './metadatalabel';
 
 /**
- * Configuration interface for a {@link TitleBar}.
+ * Configuration models for a {@link TitleBar}.
  */
 export interface TitleBarConfig extends ContainerConfig {
   /**

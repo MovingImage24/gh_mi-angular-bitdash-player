@@ -2,7 +2,7 @@
 const {resolve} = require('path');
 const webpack = require('webpack');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js', 'interface/*.js'];
+const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js'];
 
 module.exports = function(karma) {
   karma.set({

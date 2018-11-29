@@ -6,7 +6,7 @@ import {StringUtils} from '../stringutils';
 import {ImageLoader} from '../imageloader';
 
 /**
- * Configuration interface for a {@link SeekBarLabel}.
+ * Configuration models for a {@link SeekBarLabel}.
  */
 export interface SeekBarLabelConfig extends ContainerConfig {
   // nothing yet

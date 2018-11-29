@@ -14,7 +14,7 @@ export interface ErrorMessageMap {
 }
 
 /**
- * Configuration interface for the {@link ErrorMessageOverlay}.
+ * Configuration models for the {@link ErrorMessageOverlay}.
  */
 export interface ErrorMessageOverlayConfig extends ContainerConfig {
   /**

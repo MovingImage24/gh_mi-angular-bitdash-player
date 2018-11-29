@@ -1,4 +1,4 @@
-export enum PlayerPluginType {
+export enum PlayerSourceType {
   DEFAULT = 'default',
   HIVE = 'hive',
   KSDN = 'kollective',

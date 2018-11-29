@@ -4,7 +4,7 @@ import {UIUtils} from '../uiutils';
 import {Spacer} from './spacer';
 
 /**
- * Configuration interface for the {@link ControlBar}.
+ * Configuration models for the {@link ControlBar}.
  */
 export interface ControlBarConfig extends ContainerConfig {
   // nothing yet

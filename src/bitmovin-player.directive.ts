@@ -1,7 +1,9 @@
 import * as angular from 'angular';
-import { MiAngularBitmovinPlayerDirectiveScope } from '../interface/directive.model';
 
-const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.ILogService) => ({
+import BitmovinPlayerController from './bitmovin-player.controller';
+import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow } from './models';
+
+const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) => ({
   controller: 'MiBitdashController',
   controllerAs: 'bitdashVm',
   replace: true,
@@ -12,99 +14,75 @@ const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.
     webcast: '=',
   },
   template: `<div id="mi-bitdash-player" width="100%" height="auto"></div>`,
-  link(scope: MiAngularBitmovinPlayerDirectiveScope): void {
+  link(scope: DirectiveScope, element: any, attrs: any, controller: BitmovinPlayerController): void {
     const playerId = 'mi-bitdash-player';
     const webcast = scope.webcast;
-    const bitmovinPlayerConfig = scope.config;
-    let bitmovinUIManager: IBitmovinUIManager;
-    let bitmovinControlbar: IMyElement;
-    let bitmovinPlayer: BitmovinPlayerApi;
-    let hivePluginFailed = false;
+    const playerConfig = scope.config;
+    let player: BitmovinPlayerApi;
 
     init();
 
     function init(): void {
-      console.log('init');
-      bitmovinPlayer = getPlayer();
-
-      switch (scope.state.data.preferredTech) {
-        case PreferredTech.HIVE:
-          setupHivePlayer();
-          break;
-        case PreferredTech.KSDN:
-          setupKsdnPlayer();
-          break;
-        default:
-          createPlayer(bitmovinPlayerConfig);
+      if (!controller.vm.playerSource) {
+        return;
       }
 
+      player = $window.window.bitmovin.player(playerId);
+
+      createKollectivePlayer();
+
+      // switch (controller.vm.playerSource.type) {
+      //   case PlayerSourceType.KSDN:
+      //     createKollectivePlayer();
+      //     break;
+      //   case PlayerSourceType.HIVE:
+      //     createHivePlayer();
+      //     break;
+      //   default:
+      //     createDefaultPlayer();
+      // }
     }
 
-    function setupKsdnPlayer(): void {
-      bitmovinPlayerConfig.source = {};
-      createPlayer(bitmovinPlayerConfig);
+    function createDefaultPlayer(): void {
+      createPlayer()
+        .catch(playerErrorHandler);
     }
 
-    function setupHivePlayer(): void {
-      const hiveOptions = {
-        HiveJava: {
-          onError: () => hiveErrorHandler(),
-        },
-        debugLevel: 'off',
-      };
-
-      bitmovinPlayerConfig.source.hls = null;
-      bitmovinPlayerConfig.source.hls_ticket = scope.state.data.hiveSettings.serviceUrl;
-
-      $window.window.bitmovin.initHiveSDN(bitmovinPlayer, hiveOptions);
-      createPlayer(bitmovinPlayerConfig);
-    }
-
-    function createPlayer(conf: BitmovinPlayerConfig): void {
-      bitmovinPlayer.setup(conf)
+    function createPlayer(): Promise<BitmovinPlayerApi> {
+      return player.setup(playerConfig)
         .then((playerApi) => {
           setupPlayerUi();
 
-          if (scope.state.data.preferredTech === PreferredTech.KSDN) {
-            startKsdnPlugin(playerApi);
-          }
-        })
-        .catch((reason: IReason) => {
-          if (hivePluginFailed) {
-            $log.warn('Using hive-plugin failed, choose fallback.');
-            hivePluginFailed = false;
-            bitmovinPlayerConfig.source.hls = scope.state.data.hiveSettings.origHlsUrl;
-
-            setTimeout(() => {
-              createPlayer(bitmovinPlayerConfig);
-            }, 60);
-          } else {
-            $log.error(`Error: ${reason.code} - ${reason.message}`);
-          }
+          return playerApi;
         });
     }
 
-    function setupPlayerUi(): void {
-      const isAudioOnly = webcast.layout.layout === 'audio-only';
+    function createKollectivePlayer(): void {
+      playerConfig.source = {}; // we want to set the source by the plugin
+      // const auth = controller.vm.playerSource.p2p.token;
+      // const urn = controller.vm.playerSource.p2p.urn;
+      // const host = controller.vm.playerSource.p2p.host;
 
-      bitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+      const auth = 'pub-ZW1haWxAbWkuY29tI21p';
+      const urn = 'urn:kid:eval:mi:moid:65e8a97d-fab1-4a2f-bfc8-1ff152598a51';
+      const host = undefined;
 
-      if (isAudioOnly) {
-        bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer, getAudioOnlyPlayerConfig());
-      } else {
-        bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
-      }
+      createPlayer()
+        .then((playerApi) => {
+          console.log('player ', player);
+          console.log('playerApi ', playerApi);
+          const ksdnPlugin = new $window.window.ksdn.Players.Bitmovin({ auth });
+          const callbacks = getKollectiveLivecyleHooks();
 
-      bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
-      if (bitmovinControlbar) {
-        bitmovinControlbar.style.minWidth = '175px';
-        bitmovinControlbar.style.minHeight = '101px';
-        document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
-      }
+          ksdnPlugin.play(playerApi, urn, callbacks);
+        })
+        .catch(playerErrorHandler);
     }
 
-    function startKsdnPlugin(playerApi: BitmovinPlayerApi): void {
-      const callbacks = {
+    function getKollectiveLivecyleHooks(): any {
+      console.log('getKollectiveLivecyleHooks...');
+
+      return {
         didSetSource: (plugin: any) => {
           console.log('didSetSource', plugin);
 
@@ -139,14 +117,7 @@ const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.
           console.log('onCommand', plugin, command, data);
         },
         onPlaybackRequestFailure: (plugin: any, request: any) => {
-          $log.warn('Using kollective-plugin failed, choose fallback.');
-          setTimeout(() => {
-            const source = {
-              hls: scope.state.data.ksdnSettings.fallBackUrl,
-            };
-            bitmovinPlayer.load(source);
-          }, 100);
-
+          $log.error('Using kollective-plugin failed');
           return false;
         },
         onPlaybackRequestSuccess: (plugin: any, info: any) => {
@@ -171,33 +142,115 @@ const BitmovinPlayerDirective = ($window: angular.IWindowService, $log: angular.
           console.log('willSetSource');
         },
       };
-      const options = {
-        auth: scope.state.data.ksdnSettings.token,
+    }
+
+    function createHivePlayer(): void {
+      let hivePluginFailed = false;
+
+      playerConfig.source = {
+        hls_ticket: controller.vm.playerSource.p2p.url
       };
 
-      let ksdnPlugin = new $window.window.ksdn.Players.Bitmovin(options);
-      ksdnPlugin.play(playerApi, scope.state.data.ksdnSettings.urn, callbacks);
+      const hiveOptions = {
+        HiveJava: {
+          onError: () => {
+            hivePluginFailed = true;
+          },
+        },
+        debugLevel: 'off',
+      };
+
+      const playerRef = $window.window.bitmovin.player(playerId);
+      $window.window.bitmovin.initHiveSDN(playerRef, hiveOptions);
+
+      createPlayer()
+        .catch(() => {
+          $log.warn('Using hive-plugin failed, choose fallback.');
+          playerConfig.source.hls = controller.vm.playerSource.hlsUrl;
+
+          setTimeout(() => {
+            createDefaultPlayer();
+          }, 60);
+        });
     }
 
-    function hiveErrorHandler(): void {
-      hivePluginFailed = true;
+    function playerErrorHandler(error: any): void {
+      $log.error(error);
     }
 
-    function getAudioOnlyPlayerConfig(): IMIUIConfig {
-      return webcast.theme.audioOnlyFileUrl ? { audioOnlyOverlayConfig: { backgroundImageUrl: webcast.theme.audioOnlyFileUrl, hiddeIndicator: true } } : {};
+
+    function setupPlayerUi(): void {
+      const isAudioOnly = webcast.layout.layout === 'audio-only';
+      const bitmovinUIManager: BitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+
+      if (isAudioOnly) {
+        bitmovinUIManager.buildAudioOnlyUI(player, controller.getAudioOnlyPlayerConfig());
+      } else {
+        bitmovinUIManager.buildAudioVideoUI(player);
+      }
+
+      const bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
+      if (bitmovinControlbar) {
+        bitmovinControlbar.style.minWidth = '175px';
+        bitmovinControlbar.style.minHeight = '101px';
+        document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
+      }
     }
 
-    function getElementsByClassName(className: string): IMyElement {
-      return document.getElementsByClassName(className)[0] as IMyElement;
-    }
+    // function setupHivePlayer(): void {
+    //   const hiveOptions = {
+    //     HiveJava: {
+    //       onError: () => hiveErrorHandler(),
+    //     },
+    //     debugLevel: 'off',
+    //   };
+    //
+    //   bitmovinPlayerConfig.source.hls = null;
+    //   bitmovinPlayerConfig.source.hls_ticket = scope.state.data.hiveSettings.serviceUrl;
+    //
+    //   $window.window.bitmovin.initHiveSDN(bitmovinPlayer, hiveOptions);
+    //   createPlayer(bitmovinPlayerConfig);
+    // }
+    //
+    // function createPlayeaar(conf: BitmovinPlayerConfig): void {
+    //   bitmovinPlayer.setup(conf)
+    //     .then((playerApi) => {
+    //       setupPlayerUi();
+    //
+    //       if (scope.state.data.preferredTech === PreferredTech.KSDN) {
+    //         startKsdnPlugin(playerApi);
+    //       }
+    //     })
+    //     .catch((reason: IReason) => {
+    //       if (hivePluginFailed) {
+    //         $log.warn('Using hive-plugin failed, choose fallback.');
+    //         hivePluginFailed = false;
+    //         bitmovinPlayerConfig.source.hls = scope.state.data.hiveSettings.origHlsUrl;
+    //
+    //         setTimeout(() => {
+    //           createPlayer(bitmovinPlayerConfig);
+    //         }, 60);
+    //       } else {
+    //         $log.error(`Error: ${reason.code} - ${reason.message}`);
+    //       }
+    //     });
+    // }
 
-    function getPlayer(): BitmovinPlayerApi {
-      return $window.window.bitmovin.player(playerId);
+
+    //
+    // function hiveErrorHandler(): void {
+    //   hivePluginFailed = true;
+    // }
+
+    function getElementsByClassName(className: string): HTMLElement {
+      return document.getElementsByClassName(className)[0] as HTMLElement;
     }
 
     function cleanup(): void {
-      bitmovinPlayer.destroy();
-      bitmovinPlayer = null;
+      if (player) {
+        player.destroy();
+        player = null;
+      }
     }
 
     scope.$on('$destroy', () => {

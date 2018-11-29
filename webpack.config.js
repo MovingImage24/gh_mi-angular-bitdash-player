@@ -11,7 +11,7 @@ module.exports = function (env) {
   const dstPath = resolve(__dirname, 'dist');
   const devtool = env.prod ? 'inline-source-map' : 'cheap-module-source-map';
   const filename = env.prod ? 'mi-angular-bitdash-player.js' : 'mi-angular-bitdash-player.min.js';
-  const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js', 'interface/*.js'];
+  const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js'];
   const cleanArray = array => array.filter((item) => !!item);
   const ifMin = plugin => (env.min ? plugin : undefined);
 

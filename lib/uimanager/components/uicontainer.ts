@@ -7,7 +7,7 @@ import PlayerResizeEvent = bitmovin.PlayerAPI.PlayerResizeEvent;
 import {CancelEventArgs} from '../eventdispatcher';
 
 /**
- * Configuration interface for a {@link UIContainer}.
+ * Configuration models for a {@link UIContainer}.
  */
 export interface UIContainerConfig extends ContainerConfig {
   /**

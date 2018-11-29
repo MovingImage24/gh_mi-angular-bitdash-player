@@ -3,7 +3,7 @@ import {DOM} from '../dom';
 import {ArrayUtils} from '../arrayutils';
 
 /**
- * Configuration interface for a {@link Container}.
+ * Configuration models for a {@link Container}.
  */
 export interface ContainerConfig extends ComponentConfig {
   /**
