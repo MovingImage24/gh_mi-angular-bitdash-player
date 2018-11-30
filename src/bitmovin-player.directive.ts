@@ -1,7 +1,9 @@
 import * as angular from 'angular';
+import { ksdn } from '../lib/kollective/kollective-sdn-1.1.0.min';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
 import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow } from './models';
+import { PlayerSourceType } from './player-source.type';
 
 const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) => ({
   controller: 'MiBitdashController',
@@ -27,119 +29,62 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
         return;
       }
 
-      player = $window.window.bitmovin.player(playerId);
-
-      createKollectivePlayer();
-
-      // switch (controller.vm.playerSource.type) {
-      //   case PlayerSourceType.KSDN:
-      //     createKollectivePlayer();
-      //     break;
-      //   case PlayerSourceType.HIVE:
-      //     createHivePlayer();
-      //     break;
-      //   default:
-      //     createDefaultPlayer();
-      // }
+      switch (controller.vm.playerSource.type) {
+        case PlayerSourceType.KSDN:
+          createKollectivePlayer();
+          break;
+        case PlayerSourceType.HIVE:
+          createHivePlayer();
+          break;
+        default:
+          createDefaultPlayer();
+      }
     }
 
     function createDefaultPlayer(): void {
+      playerConfig.source = { hls: controller.vm.playerSource.hlsUrl };
+
       createPlayer()
-        .catch(playerErrorHandler);
-    }
-
-    function createPlayer(): Promise<BitmovinPlayerApi> {
-      return player.setup(playerConfig)
-        .then((playerApi) => {
-          setupPlayerUi();
-
-          return playerApi;
-        });
+        .catch((err) => playerErrorHandler(err));
     }
 
     function createKollectivePlayer(): void {
       playerConfig.source = {}; // we want to set the source by the plugin
-      // const auth = controller.vm.playerSource.p2p.token;
-      // const urn = controller.vm.playerSource.p2p.urn;
-      // const host = controller.vm.playerSource.p2p.host;
-
-      const auth = 'pub-ZW1haWxAbWkuY29tI21p';
-      const urn = 'urn:kid:eval:mi:moid:65e8a97d-fab1-4a2f-bfc8-1ff152598a51';
-      const host = undefined;
+      const auth = controller.vm.playerSource.p2p.token;
+      const urn = controller.vm.playerSource.p2p.urn;
+      const host = controller.vm.playerSource.p2p.host;
 
       createPlayer()
         .then((playerApi) => {
-          console.log('player ', player);
-          console.log('playerApi ', playerApi);
-          const ksdnPlugin = new $window.window.ksdn.Players.Bitmovin({ auth });
-          const callbacks = getKollectiveLivecyleHooks();
+          const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host });
+          const livecycleHooks = getKollectiveLivecyleHooks();
 
-          ksdnPlugin.play(playerApi, urn, callbacks);
+          ksdnPlugin.play(playerApi, urn, livecycleHooks);
         })
-        .catch(playerErrorHandler);
+        .catch((err) => playerErrorHandler(err));
     }
 
     function getKollectiveLivecyleHooks(): any {
-      console.log('getKollectiveLivecyleHooks...');
+      const errorPrefix = 'Kollective plugin error: ';
 
       return {
-        didSetSource: (plugin: any) => {
-          console.log('didSetSource', plugin);
-
-          console.log('player version: ', plugin.player.version);
-          console.log('isSetup: ', plugin.player.isSetup());
-          console.log('isPlaying: ', plugin.player.isPlaying());
-          console.log('isStalled: ', plugin.player.isStalled());
-          console.log('getConfig - source: ', plugin.player.getConfig().source);
-          console.log('getConfig: ', plugin.player.getConfig());
-
-          console.log(plugin.getLogs());
-        },
-        onAgentDetected: (plugin: any, supportsSessions: any, agent: any) => {
-          const agentData = plugin.getAgentData();
-          const version = agentData.version;
-          const urnPrefix = agentData.urn_namespace;
-          console.log('onAgentDetected: supportsSessions=' + supportsSessions + ', agentVersion=' + version + ', urnNamespace=' + urnPrefix);
-        },
         onAgentNotDetected: (plugin: any, reasons: any) => {
-          console.log('onAgentNotDetected');
-          console.log(reasons);
+          $log.error(`${errorPrefix} ${reasons}`);
         },
         onAgentRejected: (plugin: any, criteria: any) => {
           if (!criteria.provisionedForCurrentUrn) {
-            console.log('Agent detected but not provisioned for URN');
+            $log.error(`${errorPrefix} Agent detected but not provisioned for URN`);
           }
           if (!criteria.notBlackedOut) {
-            console.log('Agent detected but is currently blacked out');
+            $log.error(`${errorPrefix} Agent detected but is currently blacked out`);
           }
         },
-        onCommand: (plugin: any, command: any, data: any) => {
-          console.log('onCommand', plugin, command, data);
-        },
         onPlaybackRequestFailure: (plugin: any, request: any) => {
-          $log.error('Using kollective-plugin failed');
+          $log.error(`${errorPrefix} onPlaybackRequestFailure: ${request}`);
           return false;
         },
-        onPlaybackRequestSuccess: (plugin: any, info: any) => {
-          console.log('onPlaybackRequestSuccess: ' + info.moid);
-        },
-        onPrimingFailure: (plugin: any) => {
-          console.log('onPrimingFailure');
-        },
-        onPrimingStart: (plugin: any) => {
-          console.log('onPrimingStart');
-        },
-        onProgress: (plugin: any, progress: any, urn: any) => {
-          console.log('onProgress: ' + progress + ' (' + urn + ')');
-        },
-        onSessionFailure: (plugin: any) => {
-          console.log('onSessionFailure');
-        },
-        onSessionStart: (plugin: any) => {
-          console.log('onSessionStart');
-        },
-        willSetSource: (plugin: any) => {
-          console.log('willSetSource');
+        onSessionFailure: () => {
+          $log.error(`${errorPrefix} onSessionFailure`);
         },
       };
     }
@@ -164,13 +109,16 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
       $window.window.bitmovin.initHiveSDN(playerRef, hiveOptions);
 
       createPlayer()
-        .catch(() => {
-          $log.warn('Using hive-plugin failed, choose fallback.');
-          playerConfig.source.hls = controller.vm.playerSource.hlsUrl;
+        .catch((err: any) => {
+          if (hivePluginFailed) {
+            $log.warn(`Hive plugin failed, fallback to default player. Error: ${err}`);
 
-          setTimeout(() => {
-            createDefaultPlayer();
-          }, 60);
+            setTimeout(() => {
+              createDefaultPlayer();
+            }, 60);
+          } else {
+            playerErrorHandler(err);
+          }
         });
     }
 
@@ -178,72 +126,41 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
       $log.error(error);
     }
 
-
-    function setupPlayerUi(): void {
+    function setupPlayerUi(playerApi: BitmovinPlayerApi): void {
       const isAudioOnly = webcast.layout.layout === 'audio-only';
-      const bitmovinUIManager: BitmovinUIManager = $window.window.bitmovin.playerui.UIManager.Factory;
+      const bitmovinUIManager: BitmovinUIManager = $window.window.miBitmovinUi.playerui.UIManager.Factory;
 
       if (isAudioOnly) {
-        bitmovinUIManager.buildAudioOnlyUI(player, controller.getAudioOnlyPlayerConfig());
+        bitmovinUIManager.buildAudioOnlyUI(playerApi, controller.getAudioOnlyPlayerConfig());
       } else {
-        bitmovinUIManager.buildAudioVideoUI(player);
+        bitmovinUIManager.buildAudioVideoUI(playerApi);
       }
 
       const bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
       if (bitmovinControlbar) {
         bitmovinControlbar.style.minWidth = '175px';
         bitmovinControlbar.style.minHeight = '101px';
-        document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
+        $window.document.getElementById('bitmovinplayer-video-mi-bitdash-player').setAttribute('title', webcast.name);
       }
     }
 
-    // function setupHivePlayer(): void {
-    //   const hiveOptions = {
-    //     HiveJava: {
-    //       onError: () => hiveErrorHandler(),
-    //     },
-    //     debugLevel: 'off',
-    //   };
-    //
-    //   bitmovinPlayerConfig.source.hls = null;
-    //   bitmovinPlayerConfig.source.hls_ticket = scope.state.data.hiveSettings.serviceUrl;
-    //
-    //   $window.window.bitmovin.initHiveSDN(bitmovinPlayer, hiveOptions);
-    //   createPlayer(bitmovinPlayerConfig);
-    // }
-    //
-    // function createPlayeaar(conf: BitmovinPlayerConfig): void {
-    //   bitmovinPlayer.setup(conf)
-    //     .then((playerApi) => {
-    //       setupPlayerUi();
-    //
-    //       if (scope.state.data.preferredTech === PreferredTech.KSDN) {
-    //         startKsdnPlugin(playerApi);
-    //       }
-    //     })
-    //     .catch((reason: IReason) => {
-    //       if (hivePluginFailed) {
-    //         $log.warn('Using hive-plugin failed, choose fallback.');
-    //         hivePluginFailed = false;
-    //         bitmovinPlayerConfig.source.hls = scope.state.data.hiveSettings.origHlsUrl;
-    //
-    //         setTimeout(() => {
-    //           createPlayer(bitmovinPlayerConfig);
-    //         }, 60);
-    //       } else {
-    //         $log.error(`Error: ${reason.code} - ${reason.message}`);
-    //       }
-    //     });
-    // }
-
-
-    //
-    // function hiveErrorHandler(): void {
-    //   hivePluginFailed = true;
-    // }
-
     function getElementsByClassName(className: string): HTMLElement {
-      return document.getElementsByClassName(className)[0] as HTMLElement;
+      return $window.document.getElementsByClassName(className)[0] as HTMLElement;
+    }
+
+    function createPlayer(): Promise<BitmovinPlayerApi> {
+      const playerSDK = $window.window.bitmovin.player(playerId);
+
+      // TODO: set it in the app and not here
+      playerConfig.style = { ux: false };
+
+      return playerSDK.setup(playerConfig)
+        .then((playerApi) => {
+          player = playerApi;
+          setupPlayerUi(playerApi);
+
+          return playerApi;
+        });
     }
 
     function cleanup(): void {

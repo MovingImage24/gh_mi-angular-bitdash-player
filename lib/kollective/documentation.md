@@ -299,7 +299,7 @@ The following code installs a custom plugin, and then instantiates that plugin.
 
 ```js
 var key = "CustomPlayer";
-var playerInterface = { models };
+var playerInterface = { /* player-specific interface */ };
 var options = { /* plugin options */ };
 ksdn.installPlayerPlugin(name, playerInterface);
 var customPlayerPlugin = new ksdn.Players.CustomPlayer(options);
