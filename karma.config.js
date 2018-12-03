@@ -1,59 +1,32 @@
 'use strict';
-const {resolve} = require('path');
-const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js'];
 
 module.exports = function(karma) {
   karma.set({
     frameworks: ['jasmine', 'source-map-support'],
     files: [
-      'node_modules/angular/angular.js',
-      'node_modules/angular-mocks/angular-mocks.js',
-      'src/**/*.ts'
+      'src/tests.ts'
     ],
-    reporters: ['jasmine-diff', 'progress', 'junit', 'coverage', 'coveralls'],
+    reporters: ['progress', 'junit', 'coverage'],
     junitReporter: {
       outputDir: 'coverage/junit/', // results will be saved as $outputDir/$browserName.xml
       //outputFile: undefined, // if included, results will be saved as $outputDir/$browserName/$outputFile
       suite: '', // suite will become the package name attribute in xml testsuite element
       useBrowserName: true // add browser name to report and classes names
     },
-    jasmineDiffReporter: {
-      color: {
-        expectedBg: 'bgRed',
-        expectedWhitespaceBg: 'bgRed',
-        expectedFg: 'white',
-
-        actualBg: 'bgGreen',
-        actualWhitespaceBg: 'bgGreen',
-        actualFg: 'white',
-
-        warningBg: 'bgYellow',
-        warningWhitespaceBg: 'bgYellow',
-        warningFg: 'white',
-
-        defaultBg: 'bgBlue',
-        defaultFg: 'white'
-      },
-      pretty: false,
-      multiline: false,
-      verbose: true,
-      matchers: {}
-    },
     coverageReporter: {
       dir: 'coverage/',
       reporters: [
-        {type: 'html', subdir: 'html-js'},
+        {type: 'html', subdir: 'html'},
         {type: 'json', subdir: 'json'},
         {type: 'lcov', subdir: 'report-lcov'},
         {type: 'text-summary'}
       ]
     },
     preprocessors: {
-      'src/**/*.ts': ['webpack']
+      'src/tests.ts': ['webpack']
     },
     webpack: {
+      mode: 'development',
       devtool: 'inline-source-map',
       module: {
         rules: [
@@ -67,45 +40,22 @@ module.exports = function(karma) {
             test: /\.ts$/,
             loader: 'awesome-typescript-loader',
             options: {
-              configFileName: 'tsconfig/tsconfig.test.json',
+              configFileName: 'tsconfig.test.json',
               usePrecompiledFiles: false,
               transpileOnly: true,
               isolatedModules: false,
               useCache: false
             },
-            exclude: [/(dist|node_modules|lib)\//]
+            exclude: /(dist|node_modules|lib)$/
           },
           {
             enforce: 'post',
             test: /\.ts$/,
             loader: 'istanbul-instrumenter-loader',
-            exclude: /(tests|node_modules|\.spec\.ts)$/
+            exclude: /(node_modules|\.spec\.ts)$/
           }
         ]
       },
-      externals: {
-        'angular': 'angular'
-      },
-      plugins: [
-        new webpack.LoaderOptionsPlugin({
-          options: {
-            tslint: {
-              tsConfigFile: 'tsconfig/tsconfig.test.json',
-              formatter: "codeFrame",
-              configFile: false,
-              emitErrors: true,
-              failOnHint: true,
-              fix: false
-            }
-          }
-        }),
-        new CleanWebpackPlugin(CleanCompiledJS,
-          {
-            root: resolve('.'),
-            verbose: true,
-            dry: false
-          })
-      ],
       resolve: {
         extensions: ['.ts', '.js']
       }

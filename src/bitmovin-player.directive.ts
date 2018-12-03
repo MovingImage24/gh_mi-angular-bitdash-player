@@ -1,11 +1,10 @@
 import * as angular from 'angular';
-import { ksdn } from '../lib/kollective/kollective-sdn-1.1.0.min';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
 import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow } from './models';
 import { PlayerSourceType } from './player-source.type';
 
-const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) => ({
+const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService, ksdn: any) => ({
   controller: 'MiBitdashController',
   controllerAs: 'bitdashVm',
   replace: true,
@@ -180,4 +179,4 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
 
 export default BitmovinPlayerDirective;
 
-BitmovinPlayerDirective.$inject = ['$window', '$log'];
+BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn'];

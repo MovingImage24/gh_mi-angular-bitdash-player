@@ -1,26 +1,20 @@
 'use strict';
 const webpack = require('webpack');
 const {resolve} = require('path');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-module.exports = function (env) {
+module.exports = function(env, argv) {
   const srcPath = resolve(__dirname, 'src', 'index.ts');
-  const libPath = resolve(__dirname, 'lib', 'uimanager', 'main.ts');
+  const playerUiPath = resolve(__dirname, 'lib', 'uimanager', 'main.ts');
   const hivePath = resolve(__dirname, 'lib', 'hive', 'bitmovin.hive.min.js');
   const dstPath = resolve(__dirname, 'dist');
-  const devtool = env.prod ? 'inline-source-map' : 'cheap-module-source-map';
-  const filename = env.prod ? 'mi-angular-bitdash-player.js' : 'mi-angular-bitdash-player.min.js';
-  const CleanCompiledJS = ['src/**/*.js', 'lib/uimanager/**/*.js'];
-  const cleanArray = array => array.filter((item) => !!item);
-  const ifMin = plugin => (env.min ? plugin : undefined);
+  const devtool = argv.mode === 'production' ? false : 'cheap-module-source-map';
+  const filename = argv.mode === 'production' ? 'mi-angular-bitdash-player.min.js' : 'mi-angular-bitdash-player.js';
 
   return {
-    entry: [srcPath, libPath, hivePath],
+    entry: [srcPath, playerUiPath, hivePath],
     output: {
       path: dstPath,
-      filename: filename,
-      pathinfo: env.dev
+      filename: filename
     },
     context: resolve(__dirname, 'src'),
     devtool: devtool,
@@ -30,7 +24,15 @@ module.exports = function (env) {
           enforce: 'pre',
           test: /\.ts$/,
           loader: 'tslint-loader',
-          exclude: [/(test|node_modules|lib)/]
+          options: {
+            tsConfigFile: 'tsconfig.json',
+            formatter: "codeFrame",
+            configFile: false,
+            emitErrors: true,
+            failOnHint: true,
+            fix: false
+          },
+          exclude: [/(test|node_modules|lib|\.spec\.ts)/]
         },
         {
           test: /\.ts$/,
@@ -40,9 +42,9 @@ module.exports = function (env) {
             transpileOnly: false,
             isolatedModules: false,
             useCache: false,
-            configFileName: 'tsconfig/tsconfig.app.json'
+            configFileName: resolve(__dirname, 'tsconfig.json')
           },
-          exclude: [/(test|node_modules)/]
+          exclude: [/(test|node_modules|\.spec\.ts)/]
         }
       ],
       noParse: [hivePath]
@@ -50,33 +52,6 @@ module.exports = function (env) {
     resolve: {
       extensions: ['.ts', '.js']
     },
-    plugins: cleanArray([
-      new webpack.LoaderOptionsPlugin({
-        minimize: true,
-        debug: false,
-        quiet: true,
-        options: {
-          tslint: {
-            tsConfigFile: 'tsconfig/tsconfig.app.json',
-            formatter: "codeFrame",
-            configFile: false,
-            emitErrors: true,
-            failOnHint: true,
-            fix: false
-          }
-        }
-      }),
-      ifMin(new UglifyJSPlugin({
-        compress: { warnings: false}
-      })),
-      new webpack.optimize.OccurrenceOrderPlugin(),
-      new CleanWebpackPlugin(CleanCompiledJS,
-        {
-          root: resolve('.'),
-          verbose: true,
-          dry: false
-        }),
-    ]),
     externals: {
       'angular': 'angular'
     }
