@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "removeComments": true,
+    "declaration": false,
+    "importHelpers": true,
+    "module": "commonjs",
+    "target": "es5",
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "moduleResolution": "node",
+    "suppressImplicitAnyIndexErrors": true,
+    "sourceMap": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noEmitHelpers": false,
+    "allowJs": false,
+    "lib": ["es2015", "dom"],
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "compileOnSave": false,
+  "buildOnSave": false
+}

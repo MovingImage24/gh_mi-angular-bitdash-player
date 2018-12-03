@@ -1,18 +1,11 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "removeComments": false,
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "inlineSourceMap": true,
-    "types": [
-      "node",
-      "angular",
-      "angular-mocks",
-      "karma",
-      "karma-jasmine"
-    ]
+    "inlineSourceMap": true
   },
   "awesomeTypescriptLoaderOptions": {
     "forkChecker": true,
