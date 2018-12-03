@@ -2,7 +2,7 @@ import { PlayerSourceType } from '../player-source.type';
 
 export interface WebcastModel {
   name: string;
-  language: string;
+  language?: string;
   languages: WebcastLanguage[];
   theme: {
     audioOnlyFileUrl?: string;
@@ -14,14 +14,14 @@ export interface WebcastModel {
 
 export interface WebcastLanguage {
   language: string;
-  player: PlayerSource;
-  playerLive: PlayerSource;
+  player?: PlayerSource;
+  playerLive?: PlayerSource;
 }
 
 export interface PlayerSource {
   hlsUrl: string;
   type: PlayerSourceType;
-  p2p: {
+  p2p?: {
     urn?: string;
     url?: string;
     token?: string;

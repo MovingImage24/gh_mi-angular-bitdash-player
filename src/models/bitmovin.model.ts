@@ -1,6 +1,6 @@
 export interface BitmovinPlayerConfig {
   source: BitmovinSourceConfig;
-  style: any;
+  style?: any;
 }
 
 export interface BitmovinSourceConfig {
