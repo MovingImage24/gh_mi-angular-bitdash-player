@@ -53,10 +53,11 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
       const auth = controller.vm.playerSource.p2p.token;
       const urn = controller.vm.playerSource.p2p.urn;
       const host = controller.vm.playerSource.p2p.host;
+      const fallbackSrc = controller.vm.playerSource.hlsUrl;
 
       createPlayer()
         .then((playerApi) => {
-          const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host });
+          const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host, fallbackSrc });
           const livecycleHooks = getKollectiveLivecyleHooks();
 
           ksdnPlugin.play(playerApi, urn, livecycleHooks);
@@ -81,7 +82,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService) =>
         },
         onPlaybackRequestFailure: (plugin: any, request: any) => {
           $log.error(`${errorPrefix} onPlaybackRequestFailure: ${request}`);
-          return false;
+          return true;
         },
         onSessionFailure: () => {
           $log.error(`${errorPrefix} onSessionFailure`);
