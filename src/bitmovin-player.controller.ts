@@ -1,4 +1,4 @@
-import * as angular from 'angular';
+import * as ng from 'angular';
 
 import { ControllerModel, DirectiveScope, IMIUIConfig, PlayerSource, WebcastLanguage, WebcastModel, WebcastOptions } from './models';
 import { WebcastState } from './webcast.state';
@@ -8,7 +8,7 @@ class BitmovinPlayerController {
   public vm: ControllerModel;
 
   constructor(private $scope: DirectiveScope,
-              private $log: angular.ILogService) {
+              private $log: ng.ILogService) {
     this.vm = {
       playerSource: null,
     };
