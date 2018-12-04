@@ -1,3 +1,4 @@
+import { PlayerSourceType } from '../player-source.type';
 import { WebcastState } from '../webcast.state';
 import { BitmovinPlayerConfig, IMIUIConfig } from './bitmovin.model';
 import { PlayerSource, WebcastModel } from './webcast.model';
@@ -17,6 +18,7 @@ export interface ControllerModel {
 
 export interface WebcastOptions {
   forcedState?: WebcastState;
+  forcedPlayer?: PlayerSourceType.DEFAULT;
 }
 
 export interface IWindow extends ng.IWindowService {

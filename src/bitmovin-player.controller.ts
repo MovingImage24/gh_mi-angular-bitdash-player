@@ -42,6 +42,10 @@ class BitmovinPlayerController {
       source = activeLanguage.playerLive;
     }
 
+    if (options.forcedPlayer) {
+      source.type = options.forcedPlayer;
+    }
+
     return source;
   }
 
