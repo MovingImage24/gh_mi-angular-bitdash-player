@@ -50,7 +50,7 @@ export interface ComponentHoverChangedEventArgs extends NoArgs {
 
 /**
  * The base class of the UI framework.
- * Each component must extend this class and optionally the config models.
+ * Each component must extend this class and optionally the config interface.
  */
 export class Component<Config extends ComponentConfig> {
 
