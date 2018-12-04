@@ -1,10 +1,10 @@
-import * as angular from 'angular';
+import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
 import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow } from './models';
 import { PlayerSourceType } from './player-source.type';
 
-const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService, ksdn: any) => ({
+const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: any) => ({
   controller: 'MiBitdashController',
   controllerAs: 'bitdashVm',
   replace: true,
@@ -175,7 +175,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: angular.ILogService, ks
     });
   }
 
-} as angular.IDirective);
+} as ng.IDirective);
 
 export default BitmovinPlayerDirective;
 
