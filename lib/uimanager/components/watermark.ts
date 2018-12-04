@@ -1,7 +1,7 @@
 import {ClickOverlay, ClickOverlayConfig} from './clickoverlay';
 
 /**
- * Configuration models for a {@link ClickOverlay}.
+ * Configuration interface for a {@link ClickOverlay}.
  */
 export interface WatermarkConfig extends ClickOverlayConfig {
   // nothing yet

@@ -2,7 +2,7 @@ import {SeekBar, SeekBarConfig} from './seekbar';
 import {UIInstanceManager} from '../uimanager';
 
 /**
- * Configuration models for the {@link VolumeSlider} component.
+ * Configuration interface for the {@link VolumeSlider} component.
  */
 export interface VolumeSliderConfig extends SeekBarConfig {
   /**

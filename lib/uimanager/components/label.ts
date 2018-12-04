@@ -3,7 +3,7 @@ import {DOM} from '../dom';
 import {EventDispatcher, Event, NoArgs} from '../eventdispatcher';
 
 /**
- * Configuration models for a {@link Label} component.
+ * Configuration interface for a {@link Label} component.
  */
 export interface LabelConfig extends ComponentConfig {
   /**

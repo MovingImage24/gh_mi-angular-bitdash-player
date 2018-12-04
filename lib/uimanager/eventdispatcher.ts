@@ -1,6 +1,6 @@
 import {ArrayUtils} from './arrayutils';
 /**
- * Function models for event listeners on the {@link EventDispatcher}.
+ * Function interface for event listeners on the {@link EventDispatcher}.
  */
 export interface EventListener<Sender, Args> {
   (sender: Sender, args: Args): void;

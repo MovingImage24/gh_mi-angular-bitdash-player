@@ -3,7 +3,7 @@ import {SettingsPanel} from './settingspanel';
 import {UIInstanceManager} from '../uimanager';
 
 /**
- * Configuration models for the {@link SettingsToggleButton}.
+ * Configuration interface for the {@link SettingsToggleButton}.
  */
 export interface SettingsToggleButtonConfig extends ToggleButtonConfig {
   /**

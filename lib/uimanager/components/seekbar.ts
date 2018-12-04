@@ -10,7 +10,7 @@ import LiveStreamDetectorEventArgs = PlayerUtils.LiveStreamDetectorEventArgs;
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 
 /**
- * Configuration models for the {@link SeekBar} component.
+ * Configuration interface for the {@link SeekBar} component.
  */
 export interface SeekBarConfig extends ComponentConfig {
   /**
@@ -32,7 +32,7 @@ export interface SeekBarConfig extends ComponentConfig {
 }
 
 /**
- * Event argument models for a seek preview event.
+ * Event argument interface for a seek preview event.
  */
 export interface SeekPreviewEventArgs extends SeekPreviewArgs {
   /**

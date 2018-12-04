@@ -3,7 +3,7 @@ import {UIInstanceManager} from '../uimanager';
 import {Component, ComponentConfig} from './component';
 
 /**
- * Configuration models for the {@link CloseButton}.
+ * Configuration interface for the {@link CloseButton}.
  */
 export interface CloseButtonConfig extends ButtonConfig {
   /**

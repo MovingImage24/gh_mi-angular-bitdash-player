@@ -4,7 +4,7 @@ import {EventDispatcher, NoArgs, Event} from '../eventdispatcher';
 import {UIInstanceManager} from '../uimanager';
 
 /**
- * Base configuration models for a component.
+ * Base configuration interface for a component.
  * Should be extended by components that want to add additional configuration options.
  */
 export interface ComponentConfig {

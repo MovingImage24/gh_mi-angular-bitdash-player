@@ -84,7 +84,7 @@ export class RecommendationOverlay extends Container<ContainerConfig> {
 }
 
 /**
- * Configuration models for the {@link RecommendationItem}
+ * Configuration interface for the {@link RecommendationItem}
  */
 interface RecommendationItemConfig extends ComponentConfig {
   itemConfig: UIRecommendationConfig;

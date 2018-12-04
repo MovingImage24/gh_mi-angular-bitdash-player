@@ -3,7 +3,7 @@ import {NoArgs, EventDispatcher, Event} from '../eventdispatcher';
 import { UIInstanceManager } from '../uimanager';
 
 /**
- * Configuration models for a toggle button component.
+ * Configuration interface for a toggle button component.
  */
 export interface ToggleButtonConfig extends ButtonConfig {
   /**
