@@ -8,7 +8,7 @@ module.exports = function(env, argv) {
   const hivePath = resolve(__dirname, 'lib', 'hive', 'bitmovin.hive.min.js');
   const dstPath = resolve(__dirname, 'dist');
   const devtool = argv.mode === 'production' ? false : 'cheap-module-source-map';
-  const filename = argv.mode === 'production' ? 'mi-angular-bitdash-player.min.js' : 'mi-angular-bitdash-player.js';
+  const filename = argv.mode === 'production' ? 'mi-angular-bitdash-player.js' : 'mi-angular-bitdash-player.dev.js';
 
   return {
     entry: [srcPath, playerUiPath, hivePath],
