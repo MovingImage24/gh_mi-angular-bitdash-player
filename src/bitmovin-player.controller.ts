@@ -1,135 +1,56 @@
-import * as angular from 'angular';
-import { BitdashDirectiveScope, BitmovinPlayerConfig, BitmovinSourceConfig, StateData, WebcastModel, WebcastOptions } from '../interface/interfaces';
-import { PreferredTech } from './preferred-tech.types';
+import * as ng from 'angular';
+
+import { ControllerModel, DirectiveScope, IMIUIConfig, PlayerSource, WebcastLanguage, WebcastModel, WebcastOptions } from './models';
 import { WebcastState } from './webcast.state';
 
 class BitmovinPlayerController {
   public static $inject: string[] = ['$scope', '$log'];
-  public playerConfig: BitmovinPlayerConfig = { key: null };
-  public state: StateData = {};
-  private options: WebcastOptions = {};
+  public vm: ControllerModel;
 
-  constructor(private $scope: BitdashDirectiveScope,
-              private $log: angular.ILogService) {
+  constructor(private $scope: DirectiveScope,
+              private $log: ng.ILogService) {
+    this.vm = {
+      playerSource: null,
+    };
   }
 
   public $onInit(): void {
-    const hasValidConfig = this.$scope.config && this.$scope.config.key && this.$scope.webcast;
-
-    this.state = this.$scope.state = {};
-    this.options = this.$scope.options || {};
+    const hasValidConfig = this.$scope.config && this.$scope.webcast;
 
     if (hasValidConfig) {
-      this.playerConfig = this.$scope.config;
-      this.processWebcast(this.$scope.webcast);
+      this.vm.playerSource = this.getPlayerSource(this.$scope.webcast);
     } else {
       this.$log.error(`basic config for bitdash player is missing!`);
     }
   }
 
-  private processWebcast(webcast: WebcastModel): void {
-    const state = this.options.forcedState || webcast.state;
-
-    switch (state) {
-      case WebcastState.ONDEMAND:
-        let languageIndex = 0;
-        webcast.languages.some((lang, index) => {
-          if (webcast.language === lang.language) {
-            languageIndex = index;
-            return true;
-          }
-        });
-        this.state.data = webcast.languages[languageIndex].ondemandStateData;
-        break;
-      default:
-        this.state.data = webcast[state + 'StateData'];
-    }
-
-    this.playerConfig.source = this.getPlayerConfigSource(webcast);
-    this.playerConfig.style = { ux: false };
-
-    this.state.data.hiveSettings = null;
-    const serviceUrl = this.getHiveServiceUrlByLang(this.$scope.webcast);
-
-    if (serviceUrl) {
-      this.state.data.hiveSettings = {
-        serviceUrl,
-        origHlsUrl: this.playerConfig.source.hls,
-      };
-    }
-
-    this.state.data.preferredTech = this.getDefaultPreferredTech(webcast);
-  }
-
-  private getPlayerConfigSource(webcast: WebcastModel): BitmovinSourceConfig {
-    const postLiveDVRPlayback = webcast.useDVRPlaybackInPostlive && webcast.state === WebcastState.POST_LIVE;
-
-    return postLiveDVRPlayback ? this.getDVRPlaybackSource(webcast) : this.getPlayerConfigSourceByState(webcast);
-  }
-
-  private getDVRPlaybackSource(webcast: WebcastModel): BitmovinSourceConfig {
-    const title = webcast.name;
-    let hls = webcast['liveStateData'].playout.hlsDvrUrl;
-
-    if (angular.isDefined(webcast['postliveStateData'].playout.offset)) {
-      const offset: number = parseInt(webcast['postliveStateData'].playout.offset, 10);
-
-      if (offset) {
-        let offsetPrefix: string;
-        const parser = document.createElement('a');
-        parser.href = webcast['liveStateData'].playout.hlsDvrUrl;
-        offsetPrefix = (parser.search) ? '&' : '?';
-        hls += `${offsetPrefix}wowzadvrplayliststart=${offset}000`;
+  public getAudioOnlyPlayerConfig(): IMIUIConfig {
+    return this.$scope.webcast.theme.audioOnlyFileUrl ? {
+      audioOnlyOverlayConfig: {
+        backgroundImageUrl: this.$scope.webcast.theme.audioOnlyFileUrl,
+        hiddeIndicator: true
       }
-    }
-
-    return { hls, title };
+    } : {};
   }
 
-  private getPlayerConfigSourceByState(webcast: WebcastModel): BitmovinSourceConfig {
-    let hls: string = this.state.data.playout.hlsUrl;
-    const title: string = webcast.name;
+  private getPlayerSource(webcast: WebcastModel): PlayerSource {
+    const options: WebcastOptions = this.$scope.options || {};
+    const activeLanguage = this.getActiveLanguage(webcast.languages, webcast.language);
+    let source = activeLanguage.player;
 
-    if (angular.isDefined(this.state.data.playout.videoManagerHlsUrl) && this.state.data.playout.videoManagerHlsUrl) {
-      hls = this.state.data.playout.videoManagerHlsUrl;
+    if (options.forcedState === WebcastState.LIVE && activeLanguage.playerLive) {
+      source = activeLanguage.playerLive;
     }
 
-    if (angular.isDefined(this.state.data.playout.offset)) {
-      const offset: number = parseInt(this.state.data.playout.offset, 10);
-
-      if (offset > 0) {
-        let offsetPrefix: string;
-        const parser = document.createElement('a');
-        parser.href = hls;
-        offsetPrefix = (parser.search) ? '&' : '?';
-        hls += `${offsetPrefix}start=${offset}`;
-      }
+    if (options.forcedPlayer) {
+      source.type = options.forcedPlayer;
     }
-    return { hls, title };
+
+    return source;
   }
 
-  private getHiveServiceUrlByLang(webcast: WebcastModel): string {
-    let hiveServiceUrl = null;
-
-    if (webcast.languages && webcast.language) {
-      webcast.languages.forEach((language) => {
-        if (language.language === webcast.language) {
-          hiveServiceUrl = language.hiveServiceUrl;
-        }
-      });
-    }
-
-    return hiveServiceUrl;
-  }
-
-  private getDefaultPreferredTech(webcast: WebcastModel): PreferredTech {
-    let tech = PreferredTech.DEFAULT;
-
-    if (webcast.state === WebcastState.LIVE && this.state.data.hiveSettings) {
-      tech = PreferredTech.HIVE;
-    }
-
-    return tech;
+  private getActiveLanguage(languages: WebcastLanguage[], language: string): WebcastLanguage {
+    return language ? languages.find((lang) => language === lang.language) : languages[0];
   }
 }
 

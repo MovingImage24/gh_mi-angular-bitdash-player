@@ -17,7 +17,7 @@ export class TvNoiseCanvas extends Component<ComponentConfig> {
   private frameInterval: number = 60;
   private useAnimationFrame: boolean = !!window.requestAnimationFrame;
   private noiseAnimationWindowPos: number;
-  private frameUpdateHandlerId: number;
+  private frameUpdateHandlerId: any;
 
   constructor(config: ComponentConfig = {}) {
     super(config);

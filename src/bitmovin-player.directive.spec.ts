@@ -1,74 +1,77 @@
-import { PreferredTech } from './preferred-tech.types';
-import { BitdashDirectiveScope, BitmovinPlayerApi, IBitmovinUIManager, IMyElement } from '../interface/interfaces';
+import * as ng from 'angular';
+
 import BitmovinPlayerDirective from './bitmovin-player.directive';
+import { PlayerSourceType } from './player-source.type';
 
-declare const angular;
-
-interface IRootScope extends angular.IRootScopeService {
+interface IRootScope extends ng.IRootScopeService {
   webcastMainVm: any;
 }
 
 describe('BitmovinPlayerDirective', () => {
-  let $q: angular.IQService;
-  let $compile: angular.ICompileService;
+  const template = `<mi-bitdash-player config="webcastMainVm.playerConfig" webcast="webcastMainVm.webcast"></mi-bitdash-player>`;
+  let $q: ng.IQService;
+  let $compile: ng.ICompileService;
   let $rootScope: IRootScope;
-  let $log: angular.ILogService;
-  let template: string = `<mi-bitdash-player config="webcastMainVm.playerConfig" webcast="webcastMainVm.webcast"></mi-bitdash-player>`;
-  let configMock;
-  let stateMock;
-
-  const playerFuncSpy: string [] = ['isReady', 'setup', 'destroy', 'addEventHandler'];
-  const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
-  const bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
-  const Factory: IBitmovinUIManager = jasmine.createSpyObj('Factory', playerUISpy);
-  const windowSpy = {
-    window: {
-      bitmovin: {
-        initHiveSDN: jasmine.createSpy('initHiveSDN').and.returnValue(true),
-        player: () => bitmovinPlayer as BitmovinPlayerApi,
-        playerui: { UIManager: { Factory } }
-      }
-    }
-  };
-  const documentSpy: angular.IAugmentedJQuery = angular
-    .element(document)
-    .find('body')
-    .append(`<div class="bitmovinplayer-container" style="min-width:195px; min-height:140px;">
-                             <div class="mi-wbc-ui-audioonly-overlay"
-                                style="background-image:url(data:image);background-size:contain;background-position:center;">
-                                <video id="bitmovinplayer-video-mi-bitdash-player"></video>
-                             </div>
-                          </div>`);
+  let $log: ng.ILogService;
+  let configMock: any;
+  let controllerVm: any;
+  let ksdnSpy: any;
+  let windowSpy: any;
+  let bitmovinPlayer: any;
+  let bitmovinUiFactory: any;
 
   beforeEach(() => {
-    stateMock = {
-      data: {
-        playout: {
-          audioOnly: false
-        }
+    const playerFuncSpy: string [] = ['setup', 'destroy'];
+    const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
+    bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
+    bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
+
+    controllerVm = { playerSource: null };
+    configMock = {};
+    ksdnSpy = jasmine.createSpyObj('ksdnMock', ['play']);
+
+    const fakeHtmlElement = { style: { minWidth: 0, minHeight: 0, } };
+
+    windowSpy = {
+      document: {
+        getElementById: jasmine.createSpy('getElementById').and.returnValue({
+          setAttribute: jasmine.createSpy('setAttribute'),
+        }),
+        getElementsByClassName: jasmine.createSpy('getElementsByClassName').and.returnValue([fakeHtmlElement]),
+      },
+      window: {
+        bitmovin: {
+          initHiveSDN: jasmine.createSpy('initHiveSDN').and.returnValue(true),
+          player: () => bitmovinPlayer,
+        },
+        miBitmovinUi: {
+          playerui: {
+            UIManager: {
+              Factory: bitmovinUiFactory,
+            }
+          }
+        },
       }
     };
 
-    angular.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
+    ng.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
       $compileProvider.directive('miBitdashPlayer', BitmovinPlayerDirective);
       $controllerProvider.register('MiBitdashController', ($scope) => {
-        $scope.state = stateMock;
-        return;
+        $scope.vm = controllerVm;
+        $scope.getAudioOnlyPlayerConfig = jasmine.createSpy('getAudioOnlyPlayerConfig');
+        return $scope;
       });
-      $provide.value('document', documentSpy);
+
       $provide.value('$window', windowSpy);
-    });
-    angular.mock.inject(($injector: angular.auto.IInjectorService) => {
-      $q = $injector.get('$q');
-      $compile = $injector.get('$compile');
-      $rootScope = $injector.get('$rootScope') as IRootScope;
-      $log = $injector.get('$log');
+      $provide.value('ksdn', { Players: { Bitmovin: () => ksdnSpy } });
     });
 
-    configMock = {
-      foo: 'bar',
-      source: {}
-    };
+    ng.mock.inject(($injector: ng.auto.IInjectorService) => {
+      $q = $injector.get('$q');
+      $compile = $injector.get('$compile');
+      $rootScope = $injector.get('$rootScope').$new() as IRootScope;
+      $log = $injector.get('$log');
+    });
 
     $rootScope.webcastMainVm = {
       playerConfig: configMock,
@@ -82,169 +85,156 @@ describe('BitmovinPlayerDirective', () => {
         }
       }
     };
-    bitmovinPlayer.setup.and.returnValue($q.when({}));
-    bitmovinPlayer.isReady.and.returnValue(true);
+    bitmovinPlayer.setup.and.returnValue($q.when(bitmovinPlayer));
   });
 
-  it('Should failed to set up the player', () => {
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-    spyOn($log, 'log').and.callThrough();
-    bitmovinPlayer.setup.and.returnValue($q.reject({ code: 404, message: 'stream not found' }));
-    bitmovinPlayer.isReady.and.returnValue(false);
+  it('should do nothing when no playersource is set', () => {
+    controllerVm.playerSource = null;
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+
+    expect(bitmovinPlayer.setup).not.toHaveBeenCalled();
+  });
+
+  it('should create default playback', () => {
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      type: PlayerSourceType.DEFAULT,
+    };
 
     $compile(template)($rootScope);
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.destroy).not.toHaveBeenCalled();
-    expect(document.getElementsByClassName).not.toHaveBeenCalled();
-    expect(Factory.buildAudioVideoUI).not.toHaveBeenCalled();
-    expect($log.log).toHaveBeenCalledWith('Error: 404 - stream not found');
+    expect(windowSpy.document.getElementsByClassName).toHaveBeenCalledTimes(1);
+    expect(windowSpy.document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
+    expect(windowSpy.document.getElementsByClassName).not.toHaveBeenCalledWith('mi-wbc-ui-audioonly-overlay');
+    expect(bitmovinUiFactory.buildAudioOnlyUI).toHaveBeenCalled();
   });
 
-  it('Should set up the player for video audio', () => {
-    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-    spyOn(document, 'getElementById').and.callThrough();
+  it('should create default playback with controlbar', () => {
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      type: PlayerSourceType.DEFAULT,
+    };
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+
+    expect(windowSpy.document.getElementById).toHaveBeenCalledWith('bitmovinplayer-video-mi-bitdash-player');
+    expect(bitmovinUiFactory.buildAudioOnlyUI).toHaveBeenCalled();
+  });
+
+  it('should create default playback with video ui', () => {
+    $rootScope.webcastMainVm.webcast.layout.layout = 'video';
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      type: PlayerSourceType.DEFAULT,
+    };
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+
+    expect(windowSpy.document.getElementById).toHaveBeenCalledWith('bitmovinplayer-video-mi-bitdash-player');
+    expect(bitmovinUiFactory.buildAudioVideoUI).toHaveBeenCalled();
+  });
+
+  it('should show error when default playback fails', () => {
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      type: PlayerSourceType.DEFAULT,
+    };
+    bitmovinPlayer.setup.and.returnValue($q.reject('error'));
+    spyOn($log, 'error');
 
     $compile(template)($rootScope);
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
-    expect(document.getElementsByClassName).not.toHaveBeenCalledWith('mi-wbc-ui-audioonly-overlay');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
-    expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
-    expect(document.getElementById).toHaveBeenCalledWith('bitmovinplayer-video-mi-bitdash-player');
+    expect($log.error).toHaveBeenCalledWith('error');
   });
 
-  it('Should set up the player for audio only', () => {
-    $rootScope.webcastMainVm.webcast.layout.layout = 'audio-only';
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-
-    $compile(template)($rootScope);
-    $rootScope.$apply();
-
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, {});
-  });
-
-  it('Should set up the player for audio only with default StillImageUrl', () => {
-    const audioOnlyOverlayConfig = { audioOnlyOverlayConfig: { backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true } };
-
-    $rootScope.webcastMainVm.webcast.layout.layout = 'audio-only';
-    $rootScope.webcastMainVm.webcast.theme.audioOnlyFileUrl = 'https://www.ima.ge/image.jpg';
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-
-    $compile(template)($rootScope);
-    $rootScope.$apply();
-
-    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth)
-      .toEqual('175px');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight)
-      .toEqual('101px');
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, audioOnlyOverlayConfig);
-  });
-
-  it('Should set up the player video audio without options attribute', () => {
-    const audioOnlyOverlayConfig = { audioOnlyOverlayConfig: { backgroundImageUrl: 'https://www.ima.ge/image.jpg', hiddeIndicator: true } };
-    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-
-    const element = $compile(template)($rootScope);
-    $rootScope.$apply();
-
-    const scope = element.isolateScope() as BitdashDirectiveScope;
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, audioOnlyOverlayConfig);
-    expect(scope.options).toBeUndefined();
-  });
-
-  it('Should set up the player video audio with options and forced state', () => {
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-    template = '<mi-bitdash-player config="webcastMainVm.playerConfig" ' +
-      'webcast="webcastMainVm.webcast" ' +
-      'options="webcastMainVm.options">' +
-      '</mi-bitdash-player>';
-    $rootScope.webcastMainVm.options = { forcedState: 'live' };
-
-    const element = $compile(angular.element(template))($rootScope);
-    $rootScope.$apply();
-
-    const scope = element.isolateScope() as BitdashDirectiveScope;
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(Factory.buildAudioOnlyUI).toHaveBeenCalledWith(bitmovinPlayer, {});
-    expect(scope.options).toBeDefined();
-    expect(scope.options.forcedState).toBe('live');
-  });
-
-  it('Should hide seekbar by live', () => {
-    spyOn(document, 'getElementsByClassName').and.callThrough();
-    $rootScope.webcastMainVm.webcast = {
-      layout: {
-        layout: 'split-p-s'
+  it('should create kollective playback', () => {
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      p2p: {
+        host: 'host-1',
+        token: 'token-1',
+        urn: 'urn-1',
       },
-      state: 'live'
+      type: PlayerSourceType.KSDN,
     };
 
-    $compile(angular.element(template))($rootScope);
+    $compile(template)($rootScope);
     $rootScope.$apply();
 
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect(ksdnSpy.play).toHaveBeenCalled();
   });
 
-  it('Should fails to load player for hive stream', () => {
-    $rootScope.webcastMainVm.webcast.state = 'live';
-    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
-    spyOn(document, 'getElementsByClassName').and.callThrough();
+  it('should show error when kollective player setup fails', () => {
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      p2p: {
+        host: 'host-1',
+        token: 'token-1',
+        urn: 'urn-1',
+      },
+      type: PlayerSourceType.KSDN,
+    };
+    bitmovinPlayer.setup.and.returnValue($q.reject('error'));
+    spyOn($log, 'error');
 
     $compile(template)($rootScope);
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
-    expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
+    expect($log.error).toHaveBeenCalledWith('error');
   });
 
-  it('Should load player for hive stream', () => {
-    $rootScope.webcastMainVm.webcast.state = 'live';
-    $rootScope.webcastMainVm.webcast.layout.layout = 'split-p-s';
 
-    stateMock.data.preferredTech = PreferredTech.HIVE;
-    stateMock.data.hiveSettings = {
-      origHlsUrl: 'orig-hls-url',
-      serviceUrl: 'hive-url',
+  it('should show default error when hive player setup fails', () => {
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      p2p: {
+        url: 'url-1',
+      },
+      type: PlayerSourceType.HIVE,
     };
-
-    configMock.source.hls_ticket = 'https://api-test.hivestreaming.com/v1/events/9021/597f';
-    spyOn(document, 'getElementsByClassName').and.callThrough();
+    bitmovinPlayer.setup.and.returnValue($q.reject('error'));
+    spyOn($log, 'error');
 
     $compile(template)($rootScope);
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.destroy).toHaveBeenCalled();
-    expect(document.getElementsByClassName).toHaveBeenCalledTimes(1);
-    expect(document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minWidth).toEqual('175px');
-    expect((document.getElementsByClassName('bitmovinplayer-container')[0] as IMyElement).style.minHeight).toEqual('101px');
-    expect(Factory.buildAudioVideoUI).toHaveBeenCalledWith(bitmovinPlayer);
-    expect(windowSpy.window.bitmovin.initHiveSDN).toHaveBeenCalled();
+    expect($log.error).toHaveBeenCalledWith('error');
   });
 
+  it('should show warning and reload with default player when hive plugin fails', () => {
+    jasmine.clock().install();
+
+    controllerVm.playerSource = {
+      hlsUrl: 'hls-url',
+      p2p: {
+        url: 'url-1',
+      },
+      type: PlayerSourceType.HIVE,
+    };
+    windowSpy.window.bitmovin.initHiveSDN.and.callFake((player: any, options: any) => {
+      options.HiveJava.onError();
+    });
+    bitmovinPlayer.setup.and.returnValue($q.reject('error'));
+    spyOn($log, 'warn');
+
+    $compile(template)($rootScope);
+    $rootScope.$apply();
+    jasmine.clock().tick(60);
+
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
+    expect($log.warn).toHaveBeenCalledWith('Hive plugin failed, fallback to default player. Error: error');
+    expect(bitmovinPlayer.setup).toHaveBeenCalledTimes(2);
+
+    jasmine.clock().uninstall();
+  });
 });
