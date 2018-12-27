@@ -14,8 +14,17 @@ export interface BitmovinPlayerApi {
   isReady(): boolean;
   setup(config: BitmovinPlayerConfig): Promise<BitmovinPlayerApi>;
   play(): void;
-  pause(): void;
+  pause(issuer?: string): void;
   destroy(): BitmovinPlayerApi;
+  seek(time: number, issuer?: string): boolean;
+  isMuted(): boolean;
+  getVolume(): number;
+  setVolume(volume: number, issuer?: string): void;
+  isPaused(): boolean;
+  getCurrentTime(): number
+  hasEnded(): boolean;
+  mute(issuer?: string): void;
+  getDuration(): number;
   initSession(hsl: string): any;
   addEventHandler(eventName: string, callback: (event?: any) => void): void;
 }

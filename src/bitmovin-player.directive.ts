@@ -1,7 +1,9 @@
 import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
-import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow } from './models';
+import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent } from './models';
+import { PlayerApi } from './player-api';
+import { PlayerEvent } from './player-event';
 import { PlayerSourceType } from './player-source.type';
 
 const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: any) => ({
@@ -12,6 +14,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
   scope: {
     config: '=',
     options: '=?',
+    playerApiReady: '&?',
     webcast: '=',
   },
   template: `<div id="mi-bitdash-player" width="100%" height="auto"></div>`,
@@ -44,6 +47,24 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       playerConfig.source = { hls: controller.vm.playerSource.hlsUrl };
 
       createPlayer()
+        .then(() => {
+          const playerApi = new PlayerApi(player);
+
+          // let isSeeked = false;
+          // playerApi.on(PlayerEvent.TimeChanged, (event) => {
+          //   console.log('time changed... ', event.time);
+          //
+          //   if (!isSeeked && event.time > 6) {
+          //     console.log('seek...');
+          //     isSeeked = playerApi.seek(26);
+          //   }
+          // });
+
+          const $event: PlayerApiReadyEvent = {
+            playerApi,
+          };
+          (scope.playerApiReady || ng.noop)({ $event });
+        })
         .catch((err) => playerErrorHandler(err));
     }
 
@@ -145,7 +166,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     }
 
     function getElementsByClassName(className: string): HTMLElement {
-      return $window.document.getElementsByClassName(className)[0] as HTMLElement;
+      return $window.document.getElementsByClassName(className)[ 0 ] as HTMLElement;
     }
 
     function createPlayer(): Promise<BitmovinPlayerApi> {
@@ -179,4 +200,4 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
 
 export default BitmovinPlayerDirective;
 
-BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn'];
+BitmovinPlayerDirective.$inject = [ '$window', '$log', 'ksdn' ];
