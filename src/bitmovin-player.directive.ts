@@ -3,7 +3,6 @@ import * as ng from 'angular';
 import BitmovinPlayerController from './bitmovin-player.controller';
 import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent } from './models';
 import { PlayerApi } from './player-api';
-import { PlayerEvent } from './player-event';
 import { PlayerSourceType } from './player-source.type';
 
 const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: any) => ({
@@ -47,24 +46,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       playerConfig.source = { hls: controller.vm.playerSource.hlsUrl };
 
       createPlayer()
-        .then(() => {
-          const playerApi = new PlayerApi(player);
-
-          // let isSeeked = false;
-          // playerApi.on(PlayerEvent.TimeChanged, (event) => {
-          //   console.log('time changed... ', event.time);
-          //
-          //   if (!isSeeked && event.time > 6) {
-          //     console.log('seek...');
-          //     isSeeked = playerApi.seek(26);
-          //   }
-          // });
-
-          const $event: PlayerApiReadyEvent = {
-            playerApi,
-          };
-          (scope.playerApiReady || ng.noop)({ $event });
-        })
+        .then(() => dispatchPlayerReadyEvent())
         .catch((err) => playerErrorHandler(err));
     }
 
@@ -78,17 +60,35 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       createPlayer()
         .then((playerApi) => {
           const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host, fallbackSrc });
-          const livecycleHooks = getKollectiveLivecyleHooks();
+          const livecycleHooks = getKollectiveLivecyleHooks(playerApi);
 
           ksdnPlugin.play(playerApi, urn, livecycleHooks);
         })
         .catch((err) => playerErrorHandler(err));
     }
 
-    function getKollectiveLivecyleHooks(): any {
+    function getKollectiveLivecyleHooks(playerApi: BitmovinPlayerApi): any {
       const errorPrefix = 'Kollective plugin error: ';
 
       return {
+        didSetSource: () => {
+          let counter = 0;
+          const waitTime = 1000; // 1 sec
+          const maxTries = 5 * 60000; // ~5 minutes based on waitTime
+
+          const intervalId = setInterval(() => {
+            counter++;
+            if (playerApi.isReady()) {
+              clearInterval(intervalId);
+              dispatchPlayerReadyEvent();
+            }
+
+            if (counter > maxTries) {
+              clearInterval(intervalId);
+              $log.error(`${errorPrefix} Player not ready.`);
+            }
+          }, waitTime);
+        },
         onAgentNotDetected: (plugin: any, reasons: any) => {
           $log.error(`${errorPrefix} ${reasons}`);
         },
@@ -130,6 +130,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       $window.window.bitmovin.initHiveSDN(playerRef, hiveOptions);
 
       createPlayer()
+        .then(() => dispatchPlayerReadyEvent())
         .catch((err: any) => {
           if (hivePluginFailed) {
             $log.warn(`Hive plugin failed, fallback to default player. Error: ${err}`);
@@ -182,6 +183,15 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
 
           return playerApi;
         });
+    }
+
+    function dispatchPlayerReadyEvent(): void {
+      const playerApi = new PlayerApi(player).getPublicApi();
+      const $event: PlayerApiReadyEvent = {
+        playerApi,
+      };
+
+      (scope.playerApiReady || ng.noop)({ $event });
     }
 
     function cleanup(): void {

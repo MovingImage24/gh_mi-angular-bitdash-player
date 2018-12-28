@@ -60,7 +60,24 @@ export class PlayerApi {
   }
 
   public destroy(): void {
-    // implement me
+    this.playerRef.destroy();
+  }
+
+  public getPublicApi(): any {
+    return {
+      destroy: () => this.destroy(),
+      getCurrentTime: () => this.getCurrentTime(),
+      getDuration: () => this.getDuration(),
+      getVolume: () => this.getVolume(),
+      hasEnded: () => this.hasEnded(),
+      isMuted: () => this.isMuted(),
+      isPaused: () => this.isPaused(),
+      mute: (issuer?: string) => this.mute(issuer),
+      on: (eventType: PlayerEvent, callback: (event: any) => void) => this.on(eventType, callback),
+      pause: (issuer?: string) => this.pause(issuer),
+      seek: (time: number, issuer?: string) => this.seek(time, issuer),
+      setVolume: (volume: number, issuer?: string) => this.setVolume(volume, issuer),
+    };
   }
 
   private addListeners(): void {
