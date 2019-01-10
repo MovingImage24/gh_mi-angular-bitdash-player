@@ -21,14 +21,14 @@ describe('BitmovinPlayerDirective', () => {
   let bitmovinUiFactory: any;
 
   beforeEach(() => {
-    const playerFuncSpy: string [] = ['setup', 'destroy'];
-    const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
+    const playerFuncSpy: string [] = [ 'setup', 'destroy', 'addEventHandler' ];
+    const playerUISpy: string [] = [ 'buildAudioOnlyUI', 'buildAudioVideoUI' ];
     bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
 
     controllerVm = { playerSource: null };
     configMock = {};
-    ksdnSpy = jasmine.createSpyObj('ksdnMock', ['play']);
+    ksdnSpy = jasmine.createSpyObj('ksdnMock', [ 'play' ]);
 
     const fakeHtmlElement = { style: { minWidth: 0, minHeight: 0, } };
 
@@ -37,7 +37,7 @@ describe('BitmovinPlayerDirective', () => {
         getElementById: jasmine.createSpy('getElementById').and.returnValue({
           setAttribute: jasmine.createSpy('setAttribute'),
         }),
-        getElementsByClassName: jasmine.createSpy('getElementsByClassName').and.returnValue([fakeHtmlElement]),
+        getElementsByClassName: jasmine.createSpy('getElementsByClassName').and.returnValue([ fakeHtmlElement ]),
       },
       window: {
         bitmovin: {
