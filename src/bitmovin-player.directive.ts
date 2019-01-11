@@ -21,7 +21,6 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     const playerId = 'mi-bitdash-player';
     const webcast = scope.webcast;
     const playerConfig = scope.config;
-    // let player: BitmovinPlayerApi;
     let playerApi: PlayerApi;
 
     init();
@@ -30,8 +29,6 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       if (!controller.vm.playerSource) {
         return;
       }
-
-      console.log('controller.vm.playerSource.type', controller.vm.playerSource.type);
 
       switch (controller.vm.playerSource.type) {
         case PlayerSourceType.KSDN:
@@ -46,17 +43,12 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     }
 
     function createDefaultPlayer(): void {
-      console.log(' _ createDefaultPlayer');
-
       const source = { hls: controller.vm.playerSource.hlsUrl };
 
       playerConfig.source = {}; // we don't want to load sources on setup
 
       createPlayer()
-        .then((bitmovinPlayerApi) => {
-          console.log(' _ player is there: ', Boolean(bitmovinPlayerApi));
-          console.log(' _ player isReady: ', bitmovinPlayerApi ? bitmovinPlayerApi.isReady() : false);
-
+        .then(() => {
           return playerApi.load(source)
             .then(() => dispatchPlayerReadyEvent())
             .catch(() => dispatchPlayerReadyEvent());
@@ -74,35 +66,17 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       createPlayer()
         .then((bitmovinPlayerInstance) => {
           const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host, fallbackSrc });
-          const livecycleHooks = getKollectiveLivecyleHooks(bitmovinPlayerInstance);
+          const livecycleHooks = getKollectiveLivecyleHooks();
 
           ksdnPlugin.play(bitmovinPlayerInstance, urn, livecycleHooks);
         })
         .catch((err) => playerErrorHandler(err));
     }
 
-    function getKollectiveLivecyleHooks(bitmovinPlayerInstance: BitmovinPlayerApi): any {
+    function getKollectiveLivecyleHooks(): any {
       const errorPrefix = 'Kollective plugin error: ';
 
       return {
-        didSetSource: () => {
-          let counter = 0;
-          const waitTime = 1000; // 1 sec
-          const maxTries = 5 * 60000; // ~5 minutes based on waitTime
-
-          const intervalId = setInterval(() => {
-            counter++;
-            if (bitmovinPlayerInstance.isReady()) {
-              clearInterval(intervalId);
-              dispatchPlayerReadyEvent();
-            }
-
-            if (counter > maxTries) {
-              clearInterval(intervalId);
-              $log.error(`${errorPrefix} Player not ready.`);
-            }
-          }, waitTime);
-        },
         onAgentNotDetected: (plugin: any, reasons: any) => {
           $log.error(`${errorPrefix} ${reasons}`);
         },
@@ -121,6 +95,11 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
         onSessionFailure: () => {
           $log.error(`${errorPrefix} onSessionFailure`);
         },
+        setSource: (player: BitmovinPlayerApi, src: string) => {
+          player.load({ hls: src })
+            .then(() => dispatchPlayerReadyEvent())
+            .catch((err) => playerErrorHandler(err));
+        }
       };
     }
 
@@ -201,8 +180,6 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     }
 
     function dispatchPlayerReadyEvent(): void {
-      console.log(' _ dispatchPlayerReadyEvent x1');
-
       const $event: PlayerApiReadyEvent = {
         playerApi: playerApi.getPublicApi(),
       };
@@ -212,7 +189,6 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
 
 
     function cleanup(): void {
-      // todo:
       if (playerApi) {
         playerApi.destroy();
         playerApi = null;

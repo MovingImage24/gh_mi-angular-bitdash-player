@@ -67,22 +67,20 @@ export class PlayerApi {
     return this.playerRef.load(source);
   }
 
-  public reload(): Promise<void> {
+  public reload(): Promise<string> {
     if (!this.playerSource) {
       return Promise.reject();
     }
 
+    this.playerRef.unload();
+
     return new Promise((resolve, reject) => {
       this.load(this.playerSource)
         .then(() => {
-          resolve();
+          resolve('loaded');
         })
-        .catch(() => {
-          try {
-            reject();
-          } catch (err) {
-            console.log('weeeeeeee: ', err);
-          }
+        .catch((err) => {
+          reject(err);
         });
     });
   }

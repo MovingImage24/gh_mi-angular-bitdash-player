@@ -10,6 +10,7 @@ export interface BitmovinSourceConfig {
 }
 
 export interface BitmovinPlayerApi {
+  unload(): BitmovinPlayerApi;
   load(source: any): Promise<BitmovinPlayerApi>;
   isReady(): boolean;
   setup(config: BitmovinPlayerConfig): Promise<BitmovinPlayerApi>;
