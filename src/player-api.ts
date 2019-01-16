@@ -1,4 +1,4 @@
-import { BitmovinPlayerApi } from './models';
+import { BitmovinPlayerApi, BitmovinSourceConfig } from './models';
 import { PlayerEvent } from './player-event';
 
 export class PlayerApi {
@@ -6,6 +6,8 @@ export class PlayerApi {
   private eventListeners: { [index in PlayerEvent]: any[] } = {
     timechanged: []
   };
+
+  private playerSource: BitmovinSourceConfig;
 
   constructor(private playerRef: BitmovinPlayerApi) {
     this.addListeners();
@@ -18,7 +20,7 @@ export class PlayerApi {
   public on(eventType: PlayerEvent, callback: (event: any) => void): void {
     switch (eventType) {
       case PlayerEvent.TimeChanged:
-        this.eventListeners[ PlayerEvent.TimeChanged ].push(callback);
+        this.eventListeners[PlayerEvent.TimeChanged].push(callback);
         return;
     }
   }
@@ -59,6 +61,30 @@ export class PlayerApi {
     return this.playerRef.getDuration();
   }
 
+  public load(source: BitmovinSourceConfig): Promise<BitmovinPlayerApi> {
+    this.playerSource = source;
+
+    return this.playerRef.load(source);
+  }
+
+  public reload(): Promise<string> {
+    if (!this.playerSource) {
+      return Promise.reject();
+    }
+
+    this.playerRef.unload();
+
+    return new Promise((resolve, reject) => {
+      this.load(this.playerSource)
+        .then(() => {
+          resolve('loaded');
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
   public destroy(): void {
     this.playerRef.destroy();
   }
@@ -75,6 +101,7 @@ export class PlayerApi {
       mute: (issuer?: string) => this.mute(issuer),
       on: (eventType: PlayerEvent, callback: (event: any) => void) => this.on(eventType, callback),
       pause: (issuer?: string) => this.pause(issuer),
+      reload: () => this.reload(),
       seek: (time: number, issuer?: string) => this.seek(time, issuer),
       setVolume: (volume: number, issuer?: string) => this.setVolume(volume, issuer),
     };
@@ -82,7 +109,7 @@ export class PlayerApi {
 
   private addListeners(): void {
     this.playerRef.addEventHandler('onTimeChanged', (event: any) => {
-      this.eventListeners[ PlayerEvent.TimeChanged ].forEach((callback) => {
+      this.eventListeners[PlayerEvent.TimeChanged].forEach((callback) => {
         callback({ time: event.time });
       });
     });

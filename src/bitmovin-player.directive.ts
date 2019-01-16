@@ -21,7 +21,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     const playerId = 'mi-bitdash-player';
     const webcast = scope.webcast;
     const playerConfig = scope.config;
-    let player: BitmovinPlayerApi;
+    let playerApi: PlayerApi;
 
     init();
 
@@ -43,10 +43,16 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     }
 
     function createDefaultPlayer(): void {
-      playerConfig.source = { hls: controller.vm.playerSource.hlsUrl };
+      const source = { hls: controller.vm.playerSource.hlsUrl };
+
+      playerConfig.source = {}; // we don't want to load sources on setup
 
       createPlayer()
-        .then(() => dispatchPlayerReadyEvent())
+        .then(() => {
+          return playerApi.load(source)
+            .then(() => dispatchPlayerReadyEvent())
+            .catch(() => dispatchPlayerReadyEvent());
+        })
         .catch((err) => playerErrorHandler(err));
     }
 
@@ -58,37 +64,19 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       const fallbackSrc = controller.vm.playerSource.hlsUrl;
 
       createPlayer()
-        .then((playerApi) => {
+        .then((bitmovinPlayerInstance) => {
           const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host, fallbackSrc });
-          const livecycleHooks = getKollectiveLivecyleHooks(playerApi);
+          const livecycleHooks = getKollectiveLivecyleHooks();
 
-          ksdnPlugin.play(playerApi, urn, livecycleHooks);
+          ksdnPlugin.play(bitmovinPlayerInstance, urn, livecycleHooks);
         })
         .catch((err) => playerErrorHandler(err));
     }
 
-    function getKollectiveLivecyleHooks(playerApi: BitmovinPlayerApi): any {
+    function getKollectiveLivecyleHooks(): any {
       const errorPrefix = 'Kollective plugin error: ';
 
       return {
-        didSetSource: () => {
-          let counter = 0;
-          const waitTime = 1000; // 1 sec
-          const maxTries = 5 * 60000; // ~5 minutes based on waitTime
-
-          const intervalId = setInterval(() => {
-            counter++;
-            if (playerApi.isReady()) {
-              clearInterval(intervalId);
-              dispatchPlayerReadyEvent();
-            }
-
-            if (counter > maxTries) {
-              clearInterval(intervalId);
-              $log.error(`${errorPrefix} Player not ready.`);
-            }
-          }, waitTime);
-        },
         onAgentNotDetected: (plugin: any, reasons: any) => {
           $log.error(`${errorPrefix} ${reasons}`);
         },
@@ -107,6 +95,11 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
         onSessionFailure: () => {
           $log.error(`${errorPrefix} onSessionFailure`);
         },
+        setSource: (player: BitmovinPlayerApi, src: string) => {
+          player.load({ hls: src })
+            .then(() => dispatchPlayerReadyEvent())
+            .catch((err) => playerErrorHandler(err));
+        }
       };
     }
 
@@ -145,17 +138,17 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     }
 
     function playerErrorHandler(error: any): void {
-      $log.error(error);
+      $log.error('player error:', error);
     }
 
-    function setupPlayerUi(playerApi: BitmovinPlayerApi): void {
+    function setupPlayerUi(bitmovinPlayerInstance: BitmovinPlayerApi): void {
       const isAudioOnly = webcast.layout.layout === 'audio-only';
       const bitmovinUIManager: BitmovinUIManager = $window.window.miBitmovinUi.playerui.UIManager.Factory;
 
       if (isAudioOnly) {
-        bitmovinUIManager.buildAudioOnlyUI(playerApi, controller.getAudioOnlyPlayerConfig());
+        bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayerInstance, controller.getAudioOnlyPlayerConfig());
       } else {
-        bitmovinUIManager.buildAudioVideoUI(playerApi);
+        bitmovinUIManager.buildAudioVideoUI(bitmovinPlayerInstance);
       }
 
       const bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
@@ -167,7 +160,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     }
 
     function getElementsByClassName(className: string): HTMLElement {
-      return $window.document.getElementsByClassName(className)[ 0 ] as HTMLElement;
+      return $window.document.getElementsByClassName(className)[0] as HTMLElement;
     }
 
     function createPlayer(): Promise<BitmovinPlayerApi> {
@@ -177,27 +170,28 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       playerConfig.style = { ux: false };
 
       return playerSDK.setup(playerConfig)
-        .then((playerApi) => {
-          player = playerApi;
-          setupPlayerUi(playerApi);
+        .then((bitmovinPlayerApi) => {
+          setupPlayerUi(bitmovinPlayerApi);
 
-          return playerApi;
+          playerApi = new PlayerApi(bitmovinPlayerApi);
+
+          return bitmovinPlayerApi;
         });
     }
 
     function dispatchPlayerReadyEvent(): void {
-      const playerApi = new PlayerApi(player).getPublicApi();
       const $event: PlayerApiReadyEvent = {
-        playerApi,
+        playerApi: playerApi.getPublicApi(),
       };
 
       (scope.playerApiReady || ng.noop)({ $event });
     }
 
+
     function cleanup(): void {
-      if (player) {
-        player.destroy();
-        player = null;
+      if (playerApi) {
+        playerApi.destroy();
+        playerApi = null;
       }
     }
 
@@ -210,4 +204,4 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
 
 export default BitmovinPlayerDirective;
 
-BitmovinPlayerDirective.$inject = [ '$window', '$log', 'ksdn' ];
+BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn'];

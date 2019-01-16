@@ -21,14 +21,14 @@ describe('BitmovinPlayerDirective', () => {
   let bitmovinUiFactory: any;
 
   beforeEach(() => {
-    const playerFuncSpy: string [] = [ 'setup', 'destroy', 'addEventHandler' ];
-    const playerUISpy: string [] = [ 'buildAudioOnlyUI', 'buildAudioVideoUI' ];
+    const playerFuncSpy: string [] = ['setup', 'load', 'destroy', 'addEventHandler'];
+    const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
     bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
 
     controllerVm = { playerSource: null };
     configMock = {};
-    ksdnSpy = jasmine.createSpyObj('ksdnMock', [ 'play' ]);
+    ksdnSpy = jasmine.createSpyObj('ksdnMock', ['play']);
 
     const fakeHtmlElement = { style: { minWidth: 0, minHeight: 0, } };
 
@@ -37,7 +37,7 @@ describe('BitmovinPlayerDirective', () => {
         getElementById: jasmine.createSpy('getElementById').and.returnValue({
           setAttribute: jasmine.createSpy('setAttribute'),
         }),
-        getElementsByClassName: jasmine.createSpy('getElementsByClassName').and.returnValue([ fakeHtmlElement ]),
+        getElementsByClassName: jasmine.createSpy('getElementsByClassName').and.returnValue([fakeHtmlElement]),
       },
       window: {
         bitmovin: {
@@ -85,7 +85,9 @@ describe('BitmovinPlayerDirective', () => {
         }
       }
     };
+
     bitmovinPlayer.setup.and.returnValue($q.when(bitmovinPlayer));
+    bitmovinPlayer.load.and.returnValue($q.when(bitmovinPlayer));
   });
 
   it('should do nothing when no playersource is set', () => {
@@ -95,9 +97,11 @@ describe('BitmovinPlayerDirective', () => {
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).not.toHaveBeenCalled();
+    expect(bitmovinPlayer.load).not.toHaveBeenCalled();
   });
 
   it('should create default playback', () => {
+    const expectedSource = { hls: 'hls-url' };
     controllerVm.playerSource = {
       hlsUrl: 'hls-url',
       type: PlayerSourceType.DEFAULT,
@@ -107,6 +111,7 @@ describe('BitmovinPlayerDirective', () => {
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
+    expect(bitmovinPlayer.load).toHaveBeenCalledWith(expectedSource);
     expect(windowSpy.document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(windowSpy.document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
     expect(windowSpy.document.getElementsByClassName).not.toHaveBeenCalledWith('mi-wbc-ui-audioonly-overlay');
@@ -152,7 +157,7 @@ describe('BitmovinPlayerDirective', () => {
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect($log.error).toHaveBeenCalledWith('error');
+    expect($log.error).toHaveBeenCalledWith('player error:', 'error');
   });
 
   it('should create kollective playback', () => {
@@ -189,9 +194,8 @@ describe('BitmovinPlayerDirective', () => {
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect($log.error).toHaveBeenCalledWith('error');
+    expect($log.error).toHaveBeenCalledWith('player error:', 'error');
   });
-
 
   it('should show default error when hive player setup fails', () => {
     controllerVm.playerSource = {
@@ -208,7 +212,7 @@ describe('BitmovinPlayerDirective', () => {
     $rootScope.$apply();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect($log.error).toHaveBeenCalledWith('error');
+    expect($log.error).toHaveBeenCalledWith('player error:', 'error');
   });
 
   it('should show warning and reload with default player when hive plugin fails', () => {
