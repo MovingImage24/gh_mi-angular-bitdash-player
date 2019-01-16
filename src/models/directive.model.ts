@@ -21,6 +21,7 @@ export interface ControllerModel {
 export interface WebcastOptions {
   forcedState?: WebcastState;
   forcedPlayer?: PlayerSourceType.DEFAULT;
+  userId?: string;
 }
 
 export interface IWindow extends ng.IWindowService {

@@ -1,7 +1,7 @@
 import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
-import { DirectiveScope } from './models';
+import { DirectiveScope, KollectivePlugin } from './models';
 import { PlayerSourceType } from './player-source.type';
 import { WebcastState } from './webcast.state';
 
@@ -11,17 +11,19 @@ describe('BitmovinPlayerController', () => {
   let $log: ng.ILogService;
   let $scope: DirectiveScope;
   let createController: () => BitmovinPlayerController;
+  let ksdn: KollectivePlugin;
 
   beforeEach(() => {
     ng.mock.inject(($injector: ng.auto.IInjectorService) => {
       $controller = $injector.get('$controller');
       $rootScope = $injector.get('$rootScope') as ng.IRootScopeService;
       $log = jasmine.createSpyObj('$log', ['error']);
+      ksdn = jasmine.createSpyObj('KollectiveApi', ['createPublicToken']);
 
       $scope = getScopeVariables();
 
       createController = (): BitmovinPlayerController => {
-        const locals = { $scope, $log };
+        const locals = { $scope, $log, ksdn };
         return $controller(BitmovinPlayerController, locals);
       };
     });
