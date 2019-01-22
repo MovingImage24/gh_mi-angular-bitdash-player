@@ -21,10 +21,16 @@ export interface WebcastLanguage {
 export interface PlayerSource {
   hlsUrl: string;
   type: PlayerSourceType;
-  p2p?: {
-    urn?: string;
-    url?: string;
-    token?: string;
-    host?: string;
-  }
+  p2p?: P2PSource;
+}
+
+export interface P2PSource {
+  urn?: string;
+  url?: string;
+  token?: string;
+  host?: string;
+}
+
+export interface KollectivePlugin {
+  createPublicToken(userId: string, urn: string): string;
 }

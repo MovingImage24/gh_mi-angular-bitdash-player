@@ -1,14 +1,26 @@
 import * as ng from 'angular';
 
-import { ControllerModel, DirectiveScope, IMIUIConfig, PlayerSource, WebcastLanguage, WebcastModel, WebcastOptions } from './models';
+import {
+  ControllerModel,
+  DirectiveScope,
+  IMIUIConfig,
+  KollectivePlugin,
+  P2PSource,
+  PlayerSource,
+  WebcastLanguage,
+  WebcastModel,
+  WebcastOptions
+} from './models';
+import { PlayerSourceType } from './player-source.type';
 import { WebcastState } from './webcast.state';
 
 class BitmovinPlayerController {
-  public static $inject: string[] = ['$scope', '$log'];
+  public static $inject: string[] = ['$scope', '$log', 'ksdn'];
   public vm: ControllerModel;
 
   constructor(private $scope: DirectiveScope,
-              private $log: ng.ILogService) {
+              private $log: ng.ILogService,
+              private ksdn: KollectivePlugin) {
     this.vm = {
       playerSource: null,
     };
@@ -46,11 +58,19 @@ class BitmovinPlayerController {
       source.type = options.forcedPlayer;
     }
 
+    if (source.type === PlayerSourceType.KSDN) {
+      source.p2p.token = this.createKSDNPublicToken(options.userId, source.p2p);
+    }
+
     return source;
   }
 
   private getActiveLanguage(languages: WebcastLanguage[], language: string): WebcastLanguage {
     return language ? languages.find((lang) => language === lang.language) : languages[0];
+  }
+
+  private createKSDNPublicToken(userId: string, source: P2PSource): string {
+    return this.ksdn.createPublicToken(userId, source.urn);
   }
 }
 
