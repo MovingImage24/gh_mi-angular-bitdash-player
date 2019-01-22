@@ -78,7 +78,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
 
       return {
         onAgentNotDetected: (plugin: any, reasons: any) => {
-          $log.error(`${errorPrefix} ${reasons}`);
+          $log.error(`${errorPrefix} Machine does not have a Kollective Agent installed. Reason:`, reasons);
         },
         onAgentRejected: (plugin: any, criteria: any) => {
           if (!criteria.provisionedForCurrentUrn) {
@@ -89,11 +89,14 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
           }
         },
         onPlaybackRequestFailure: (plugin: any, request: any) => {
-          $log.error(`${errorPrefix} onPlaybackRequestFailure: ${request}`);
+          $log.error(`${errorPrefix}  Failure to retrieve playback info for the provided URN:`, request);
           return true;
         },
+        onPrimingFailure: (plugin: any) => {
+          $log.error(`${errorPrefix}  Agent fails to start priming the stream through the Kollective ECDN`);
+        },
         onSessionFailure: () => {
-          $log.error(`${errorPrefix} onSessionFailure`);
+          $log.error(`${errorPrefix} Failure to start a session with the agent`);
         },
         setSource: (player: BitmovinPlayerApi, src: string) => {
           player.load({ hls: src })
