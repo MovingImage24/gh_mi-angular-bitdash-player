@@ -10,6 +10,7 @@ export interface BitmovinSourceConfig {
 }
 
 export interface BitmovinPlayerApi {
+  EVENT: BitmovinPlayerEvents;
   unload(): BitmovinPlayerApi;
   load(source: any): Promise<BitmovinPlayerApi>;
   isReady(): boolean;
@@ -28,6 +29,12 @@ export interface BitmovinPlayerApi {
   getDuration(): number;
   initSession(hsl: string): any;
   addEventHandler(eventName: string, callback: (event?: any) => void): void;
+}
+
+interface BitmovinPlayerEvents {
+  ON_PLAYBACK_FINISHED: string;
+  ON_PLAY: string;
+  ON_TIME_CHANGED: string;
 }
 
 export interface BitmovinUIManager {

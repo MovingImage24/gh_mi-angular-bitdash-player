@@ -2,8 +2,10 @@ import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
 import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent } from './models';
+import { PlayerPlugin } from './models/plugins.model';
 import { PlayerApi } from './player-api';
 import { PlayerSourceType } from './player-source.type';
+import { AnalyticsPlugin } from './plugins/analytics.plugin';
 
 const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: any) => ({
   controller: 'MiBitdashController',
@@ -177,9 +179,21 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
           setupPlayerUi(bitmovinPlayerApi);
 
           playerApi = new PlayerApi(bitmovinPlayerApi);
+          const plugins = createPlugins(playerApi);
+          playerApi.setPlugins(plugins);
 
           return bitmovinPlayerApi;
         });
+    }
+
+    function createPlugins(api: PlayerApi): PlayerPlugin[] {
+      const plugins = [];
+
+      if (controller.vm.playerSource.videoId) {
+        plugins.push(new AnalyticsPlugin(api, controller.vm.playerSource.videoId));
+      }
+
+      return plugins;
     }
 
     function dispatchPlayerReadyEvent(): void {

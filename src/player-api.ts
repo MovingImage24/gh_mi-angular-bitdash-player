@@ -1,16 +1,24 @@
 import { BitmovinPlayerApi, BitmovinSourceConfig } from './models';
+import { PlayerPlugin } from './models/plugins.model';
 import { PlayerEvent } from './player-event';
 
 export class PlayerApi {
 
   private eventListeners: { [index in PlayerEvent]: any[] } = {
-    timechanged: []
+    ended: [],
+    playing: [],
+    timechanged: [],
   };
 
   private playerSource: BitmovinSourceConfig;
+  private plugins: PlayerPlugin[] = [];
 
   constructor(private playerRef: BitmovinPlayerApi) {
     this.addListeners();
+  }
+
+  public setPlugins(plugins: PlayerPlugin[]): void {
+    this.plugins = plugins;
   }
 
   public seek(time: number, issuer?: string): boolean {
@@ -18,11 +26,7 @@ export class PlayerApi {
   }
 
   public on(eventType: PlayerEvent, callback: (event: any) => void): void {
-    switch (eventType) {
-      case PlayerEvent.TimeChanged:
-        this.eventListeners[PlayerEvent.TimeChanged].push(callback);
-        return;
-    }
+    this.eventListeners[eventType].push(callback);
   }
 
   public pause(issuer?: string): void {
@@ -86,7 +90,9 @@ export class PlayerApi {
   }
 
   public destroy(): void {
+    this.playerRef.unload();
     this.playerRef.destroy();
+    this.plugins.forEach((plugin) => plugin.destroy());
   }
 
   public getPublicApi(): any {
@@ -108,9 +114,21 @@ export class PlayerApi {
   }
 
   private addListeners(): void {
-    this.playerRef.addEventHandler('onTimeChanged', (event: any) => {
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_TIME_CHANGED, (event: any) => {
       this.eventListeners[PlayerEvent.TimeChanged].forEach((callback) => {
         callback({ time: event.time });
+      });
+    });
+
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAY, (event: any) => {
+      this.eventListeners[PlayerEvent.PLAY].forEach((callback) => {
+        callback();
+      });
+    });
+
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAYBACK_FINISHED, (event: any) => {
+      this.eventListeners[PlayerEvent.ENDED].forEach((callback) => {
+        callback();
       });
     });
   }

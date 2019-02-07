@@ -73,5 +73,8 @@
     "build-prod": "npm run clean-web && webpack --mode=production",
     "pretest": "rimraf coverage",
     "test": "karma start karma.config.js"
+  },
+  "dependencies": {
+    "axios": "^0.18.0"
   }
 }
