@@ -2,7 +2,7 @@ import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
 import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent } from './models';
-import { PlayerPlugin } from './models/plugins.model';
+import { PlayerPlugin } from './models';
 import { PlayerApi } from './player-api';
 import { PlayerSourceType } from './player-source.type';
 import { AnalyticsPlugin } from './plugins/analytics.plugin';

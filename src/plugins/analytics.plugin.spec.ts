@@ -1,4 +1,4 @@
-import { Logger } from '../models/logger.model';
+import { Logger } from '../models';
 import { PlayerEvent } from '../player-event';
 import { AnalyticsPlugin, deps } from './analytics.plugin';
 
@@ -11,7 +11,7 @@ describe('AnalyticsPlugin', () => {
   let windowMock: any;
 
   beforeEach(() => {
-    playerApi = jasmine.createSpyObj('PlayerApi', ['on']);
+    playerApi = jasmine.createSpyObj('PlayerApi', ['on', 'off']);
     logger = jasmine.createSpyObj('Logger', ['error']);
     axios = jasmine.createSpyObj('Axios', ['create']);
     windowMock = jasmine.createSpyObj('WindowMock', ['removeEventListener', 'addEventListener']);
@@ -41,7 +41,7 @@ describe('AnalyticsPlugin', () => {
     expect(playerApi.on.calls.argsFor(2)[0]).toBe(PlayerEvent.TimeChanged);
   });
 
-  it('should send play event on play', () => {
+  it('should send plays event on first play', () => {
     const expectedCallParams = {
       params: { 'event': 'play', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
     };
@@ -56,6 +56,9 @@ describe('AnalyticsPlugin', () => {
     expect(plugin).toBeDefined();
     expect(axiosInstance.get).toHaveBeenCalledTimes(2);
     expect(axiosInstance.get).toHaveBeenCalledWith('event?', expectedCallParams);
+
+    expect(playerApi.off).toHaveBeenCalledTimes(1);
+    expect(playerApi.off.calls.argsFor(0)[0]).toBe('playing');
   });
 
   it('should send exit event on video ended', () => {
@@ -90,6 +93,10 @@ describe('AnalyticsPlugin', () => {
     expect(axiosInstance.get.calls.argsFor(0)[1]).toEqual(expectedViewEventParams);
     expect(axiosInstance.get.calls.argsFor(1)[1]).toEqual(expectedPlayEventParams);
     expect(axiosInstance.get.calls.argsFor(2)[1]).toEqual(expectedExitEventParams);
+
+    // after the video ends, we add the play-handler again
+    expect(playerApi.off).toHaveBeenCalledWith('playing', jasmine.any(Function));
+    expect(playerApi.on.calls.argsFor(3)[0]).toBe(PlayerEvent.PLAY);
   });
 
   it('should log error on send error', (done) => {

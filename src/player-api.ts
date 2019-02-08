@@ -32,6 +32,10 @@ export class PlayerApi {
     this.eventListeners[eventType].push(callback);
   }
 
+  public off(eventType: PlayerEvent, callback: PlayerCallback): void {
+    this.eventListeners[eventType] = this.eventListeners[eventType].filter((item) => item !== callback);
+  }
+
   public pause(issuer?: string): void {
     this.playerRef.pause(issuer);
   }
@@ -108,6 +112,7 @@ export class PlayerApi {
       isMuted: () => this.isMuted(),
       isPaused: () => this.isPaused(),
       mute: (issuer?: string) => this.mute(issuer),
+      off: (eventType: PlayerEvent, callback: PlayerCallback) => this.off(eventType, callback),
       on: (eventType: PlayerEvent, callback: PlayerCallback) => this.on(eventType, callback),
       pause: (issuer?: string) => this.pause(issuer),
       reload: () => this.reload(),

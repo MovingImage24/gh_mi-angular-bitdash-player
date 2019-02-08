@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { Logger } from '../models/logger.model';
+import { Logger } from '../models';
 import { PlayerApi } from '../player-api';
 import { PlayerEvent } from '../player-event';
 
@@ -14,7 +14,9 @@ export class AnalyticsPlugin {
 
   private http: AxiosInstance;
   private time: number = 0;
-  private readonly beforeUnloadEvent: () => void;
+  private readonly beforeUnloadHandler: () => void;
+  private readonly playHandler: () => void;
+  private readonly endedHandler: () => void;
 
   constructor(private playerApi: PlayerApi,
               private videoId: string,
@@ -23,18 +25,25 @@ export class AnalyticsPlugin {
       baseURL: 'https://c.video-cdn.net/',
     });
 
-    this.beforeUnloadEvent = () => this.sendExitEvent();
+    this.beforeUnloadHandler = () => this.sendExitEvent();
+    this.playHandler = () => this.sendPlayEvent();
+    this.endedHandler = () => {
+      deps.window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.playerApi.on(PlayerEvent.PLAY, this.playHandler);
+
+      this.sendExitEvent();
+    };
     this.sendViewEvent();
     this.addListeners();
   }
 
   public destroy(): void {
-    deps.window.removeEventListener('beforeunload', this.beforeUnloadEvent);
+    deps.window.removeEventListener('beforeunload', this.beforeUnloadHandler);
   }
 
   private addListeners(): void {
-    this.playerApi.on(PlayerEvent.PLAY, () => this.sendPlayEvent());
-    this.playerApi.on(PlayerEvent.ENDED, () => this.sendExitEvent());
+    this.playerApi.on(PlayerEvent.PLAY, this.playHandler);
+    this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
     this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
   }
 
@@ -43,7 +52,11 @@ export class AnalyticsPlugin {
   }
 
   private sendPlayEvent(): void {
-    deps.window.addEventListener('beforeunload', this.beforeUnloadEvent, true);
+    // listen for unexpected exits
+    deps.window.addEventListener('beforeunload', this.beforeUnloadHandler, true);
+
+    // we only want to track the first play
+    this.playerApi.off(PlayerEvent.PLAY, this.playHandler);
 
     this.sendEvent('play', { url: document.location.href });
   }
