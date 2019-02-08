@@ -190,7 +190,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       const plugins = [];
 
       if (controller.vm.playerSource.videoId) {
-        plugins.push(new AnalyticsPlugin(api, controller.vm.playerSource.videoId));
+        plugins.push(new AnalyticsPlugin(api, controller.vm.playerSource.videoId, $log));
       }
 
       return plugins;

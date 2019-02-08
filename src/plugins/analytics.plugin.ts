@@ -1,8 +1,14 @@
 import { AxiosInstance } from 'axios';
+import { Logger } from '../models/logger.model';
 import { PlayerApi } from '../player-api';
 import { PlayerEvent } from '../player-event';
 
 const axios = require('axios');
+
+export const deps = {
+  axios,
+  window,
+};
 
 export class AnalyticsPlugin {
 
@@ -10,20 +16,20 @@ export class AnalyticsPlugin {
   private time: number = 0;
   private readonly beforeUnloadEvent: () => void;
 
-  constructor(private playerApi: PlayerApi, private videoId: string) {
-    this.http = axios.create({
+  constructor(private playerApi: PlayerApi,
+              private videoId: string,
+              private logger: Logger) {
+    this.http = deps.axios.create({
       baseURL: 'https://c.video-cdn.net/',
     });
 
     this.beforeUnloadEvent = () => this.sendExitEvent();
-
     this.sendViewEvent();
-
     this.addListeners();
   }
 
   public destroy(): void {
-    window.removeEventListener('beforeunload', this.beforeUnloadEvent);
+    deps.window.removeEventListener('beforeunload', this.beforeUnloadEvent);
   }
 
   private addListeners(): void {
@@ -37,7 +43,7 @@ export class AnalyticsPlugin {
   }
 
   private sendPlayEvent(): void {
-    window.addEventListener('beforeunload', this.beforeUnloadEvent, true);
+    deps.window.addEventListener('beforeunload', this.beforeUnloadEvent, true);
 
     this.sendEvent('play', { url: document.location.href });
   }
@@ -57,12 +63,9 @@ export class AnalyticsPlugin {
       ...additionalParams,
     };
 
-    console.log('send event', type, params);
-
     this.http.get('event?', { params })
       .catch((error) => {
-        // handle error
-        console.log('mi-analytics error:', error);
+        this.logger.error('mi-analytics error', error);
       });
   }
 

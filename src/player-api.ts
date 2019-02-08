@@ -2,9 +2,12 @@ import { BitmovinPlayerApi, BitmovinSourceConfig } from './models';
 import { PlayerPlugin } from './models/plugins.model';
 import { PlayerEvent } from './player-event';
 
+
+type PlayerCallback = (event?: any) => void;
+
 export class PlayerApi {
 
-  private eventListeners: { [index in PlayerEvent]: any[] } = {
+  private eventListeners: { [index in PlayerEvent]: PlayerCallback[] } = {
     ended: [],
     playing: [],
     timechanged: [],
@@ -25,7 +28,7 @@ export class PlayerApi {
     return this.playerRef.seek(time, issuer);
   }
 
-  public on(eventType: PlayerEvent, callback: (event: any) => void): void {
+  public on(eventType: PlayerEvent, callback: PlayerCallback): void {
     this.eventListeners[eventType].push(callback);
   }
 
@@ -91,8 +94,8 @@ export class PlayerApi {
 
   public destroy(): void {
     this.playerRef.unload();
-    this.playerRef.destroy();
     this.plugins.forEach((plugin) => plugin.destroy());
+    this.playerRef.destroy();
   }
 
   public getPublicApi(): any {
@@ -105,7 +108,7 @@ export class PlayerApi {
       isMuted: () => this.isMuted(),
       isPaused: () => this.isPaused(),
       mute: (issuer?: string) => this.mute(issuer),
-      on: (eventType: PlayerEvent, callback: (event: any) => void) => this.on(eventType, callback),
+      on: (eventType: PlayerEvent, callback: PlayerCallback) => this.on(eventType, callback),
       pause: (issuer?: string) => this.pause(issuer),
       reload: () => this.reload(),
       seek: (time: number, issuer?: string) => this.seek(time, issuer),
@@ -114,19 +117,19 @@ export class PlayerApi {
   }
 
   private addListeners(): void {
-    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_TIME_CHANGED, (event: any) => {
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_TIME_CHANGED, (event: { time: number }) => {
       this.eventListeners[PlayerEvent.TimeChanged].forEach((callback) => {
         callback({ time: event.time });
       });
     });
 
-    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAY, (event: any) => {
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAY, () => {
       this.eventListeners[PlayerEvent.PLAY].forEach((callback) => {
         callback();
       });
     });
 
-    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAYBACK_FINISHED, (event: any) => {
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAYBACK_FINISHED, () => {
       this.eventListeners[PlayerEvent.ENDED].forEach((callback) => {
         callback();
       });
