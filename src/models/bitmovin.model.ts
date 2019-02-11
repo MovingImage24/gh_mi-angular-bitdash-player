@@ -23,6 +23,7 @@ export interface BitmovinPlayerApi {
   getVolume(): number;
   setVolume(volume: number, issuer?: string): void;
   isPaused(): boolean;
+  isPlaying(): boolean;
   getCurrentTime(): number
   hasEnded(): boolean;
   mute(issuer?: string): void;

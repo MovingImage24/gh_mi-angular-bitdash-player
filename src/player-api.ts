@@ -1,7 +1,5 @@
-import { BitmovinPlayerApi, BitmovinSourceConfig } from './models';
-import { PlayerPlugin } from './models/plugins.model';
+import { BitmovinPlayerApi, BitmovinSourceConfig, PlayerPlugin } from './models';
 import { PlayerEvent } from './player-event';
-
 
 type PlayerCallback = (event?: any) => void;
 
@@ -37,7 +35,12 @@ export class PlayerApi {
   }
 
   public pause(issuer?: string): void {
-    this.playerRef.pause(issuer);
+    // we have to check if we can safely call pause because
+    // when user seeks, pause, destroy and create new instance of the player,
+    // the new video will play, but the player will not fire play event
+    if (this.playerRef.isPlaying()) {
+      this.playerRef.pause(issuer);
+    }
   }
 
   public mute(issuer?: string): void {
