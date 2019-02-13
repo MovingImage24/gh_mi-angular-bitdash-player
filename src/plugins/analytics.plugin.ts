@@ -28,21 +28,42 @@ export class AnalyticsPlugin {
     this.beforeUnloadHandler = () => this.sendExitEvent();
     this.playHandler = () => this.sendPlayEvent();
     this.endedHandler = () => {
-      deps.window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.removeBeforeUnloadEvent();
       this.playerApi.on(PlayerEvent.PLAY, this.playHandler);
 
       this.sendExitEvent();
     };
+
+  }
+
+  public init(): void {
     this.sendViewEvent();
     this.addListeners();
   }
 
+  public initRecovered(time: number = 0): void {
+    this.time = time;
+    this.addListenersRecovered();
+  }
+
   public destroy(): void {
-    deps.window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+    this.removeBeforeUnloadEvent();
   }
 
   private addListeners(): void {
     this.playerApi.on(PlayerEvent.PLAY, this.playHandler);
+    this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
+    this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
+  }
+
+  /**
+   * this function is a workaround,
+   * because the webcast operator destroy the player and recreate it again
+   * and we don't want to track this "live-cycle"
+   *
+   */
+  private addListenersRecovered(): void {
+    this.addBeforeUnloadEvent();
     this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
     this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
   }
@@ -53,7 +74,7 @@ export class AnalyticsPlugin {
 
   private sendPlayEvent(): void {
     // listen for unexpected exits
-    deps.window.addEventListener('beforeunload', this.beforeUnloadHandler, true);
+    this.addBeforeUnloadEvent();
 
     // we only want to track the first play
     this.playerApi.off(PlayerEvent.PLAY, this.playHandler);
@@ -82,4 +103,11 @@ export class AnalyticsPlugin {
       });
   }
 
+  private addBeforeUnloadEvent(): void {
+    deps.window.addEventListener('beforeunload', this.beforeUnloadHandler);
+  }
+
+  private removeBeforeUnloadEvent(): void {
+    deps.window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+  }
 }
