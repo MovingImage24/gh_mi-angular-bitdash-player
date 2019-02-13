@@ -19,10 +19,8 @@ export interface ControllerModel {
 }
 
 interface RecoverState {
-  hasEnded: boolean;
-  currentTimestamp: number;
+  seekTo: number;
   currentVolume: number;
-  isPaused: boolean;
   isMuted: boolean;
 }
 

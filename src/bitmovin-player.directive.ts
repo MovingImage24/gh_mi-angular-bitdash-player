@@ -194,7 +194,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
         const miAnalytics = new AnalyticsPlugin(api, controller.vm.playerSource.videoId, $log);
 
         if (recoverState) {
-          miAnalytics.initRecovered(recoverState.currentTimestamp);
+          miAnalytics.initRecovered(recoverState.seekTo);
         } else {
           miAnalytics.init();
         }
@@ -208,7 +208,10 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     function playerReady(): void {
       if (recoverState) {
         playerApi.setVolume(recoverState.currentVolume);
-        playerApi.seek(recoverState.currentTimestamp);
+
+        if (recoverState.seekTo) {
+          playerApi.seek(recoverState.seekTo);
+        }
 
         if (recoverState.isMuted) {
           playerApi.mute();
