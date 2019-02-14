@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { Logger } from '../models';
+import { Logger, RecoverState } from '../models';
 import { PlayerApi } from '../player-api';
 import { PlayerEvent } from '../player-event';
 
@@ -46,10 +46,10 @@ export class AnalyticsPlugin {
    * and we don't want to track this "live-cycle"
    *
    */
-  public initRecovered(time: number, hasEnded: boolean): void {
-    this.time = time;
+  public initRecovered(state: RecoverState): void {
+    this.time = state.seekTo || 0;
 
-    if (hasEnded || time === 0) {
+    if (state.hasEnded || !state.playPressed) {
       this.addListeners();
     } else {
       this.addBeforeUnloadEvent();

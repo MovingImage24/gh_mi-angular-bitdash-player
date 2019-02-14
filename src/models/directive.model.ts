@@ -18,11 +18,12 @@ export interface ControllerModel {
   playerSource: PlayerSource;
 }
 
-interface RecoverState {
+export interface RecoverState {
   seekTo: number;
   volume: number;
   isMuted: boolean;
   hasEnded: boolean;
+  playPressed: boolean;
 }
 
 export interface WebcastOptions {

@@ -193,7 +193,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
         const miAnalytics = new AnalyticsPlugin(api, controller.vm.playerSource.videoId, $log);
 
         if (recoverState) {
-          miAnalytics.initRecovered(recoverState.seekTo, recoverState.hasEnded);
+          miAnalytics.initRecovered(recoverState);
         } else {
           miAnalytics.init();
         }

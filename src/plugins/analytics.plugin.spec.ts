@@ -140,7 +140,8 @@ describe('AnalyticsPlugin', () => {
 
   it('should be the same behaviour without view event when video was not played', () => {
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.initRecovered(0, false);
+    const recoverState = { hasEnded: false, seekTo: 0, playPressed: false, isMuted: false, volume: 100 };
+    plugin.initRecovered(recoverState);
 
     expect(axiosInstance.get).not.toHaveBeenCalled();
 
@@ -152,9 +153,10 @@ describe('AnalyticsPlugin', () => {
     expect(windowMock.addEventListener).not.toHaveBeenCalled();
   });
 
-  it('should be the same behaviour without view event when video was not played', () => {
+  it('should be the same behaviour without view event when video was played', () => {
+    const recoverState = { hasEnded: false, seekTo: 0, playPressed: true, isMuted: false, volume: 100 };
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.initRecovered(100, false);
+    plugin.initRecovered(recoverState);
 
     expect(axiosInstance.get).not.toHaveBeenCalled();
 
