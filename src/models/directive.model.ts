@@ -22,6 +22,7 @@ interface RecoverState {
   seekTo: number;
   currentVolume: number;
   isMuted: boolean;
+  hasEnded: boolean;
 }
 
 export interface WebcastOptions {

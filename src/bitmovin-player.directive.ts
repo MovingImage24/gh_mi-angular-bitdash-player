@@ -1,8 +1,7 @@
 import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
-import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent } from './models';
-import { PlayerPlugin } from './models';
+import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent, PlayerPlugin } from './models';
 import { PlayerApi } from './player-api';
 import { PlayerSourceType } from './player-source.type';
 import { AnalyticsPlugin } from './plugins/analytics.plugin';
@@ -194,7 +193,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
         const miAnalytics = new AnalyticsPlugin(api, controller.vm.playerSource.videoId, $log);
 
         if (recoverState) {
-          miAnalytics.initRecovered(recoverState.seekTo);
+          miAnalytics.initRecovered(recoverState.seekTo, recoverState.hasEnded);
         } else {
           miAnalytics.init();
         }

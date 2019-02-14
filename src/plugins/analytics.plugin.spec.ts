@@ -30,6 +30,7 @@ describe('AnalyticsPlugin', () => {
     };
 
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.init();
 
     expect(plugin).toBeDefined();
     expect(axiosInstance.get).toHaveBeenCalledTimes(1);
@@ -47,6 +48,7 @@ describe('AnalyticsPlugin', () => {
     };
 
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.init();
 
     const play = playerApi.on.calls.argsFor(0);
     expect(play[0]).toBe(PlayerEvent.PLAY);
@@ -73,6 +75,7 @@ describe('AnalyticsPlugin', () => {
     };
 
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.init();
 
     const play = playerApi.on.calls.argsFor(0);
     expect(play[0]).toBe(PlayerEvent.PLAY);
@@ -103,6 +106,7 @@ describe('AnalyticsPlugin', () => {
     axiosInstance.get.and.returnValue(Promise.reject('error'));
 
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.init();
 
     setTimeout(() => {
       expect(plugin).toBeDefined();
@@ -116,6 +120,7 @@ describe('AnalyticsPlugin', () => {
 
   it('should add beforeunload listener after play and remove it on destroy', () => {
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.init();
 
     // should not be added before the play event happened
     expect(windowMock.addEventListener).toHaveBeenCalledTimes(0);
@@ -131,6 +136,33 @@ describe('AnalyticsPlugin', () => {
 
     expect(windowMock.addEventListener).toHaveBeenCalledTimes(1);
     expect(windowMock.removeEventListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('should be the same behaviour without view event when video was not played', () => {
+    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.initRecovered(0, false);
+
+    expect(axiosInstance.get).not.toHaveBeenCalled();
+
+    expect(playerApi.on).toHaveBeenCalledTimes(3);
+    expect(playerApi.on.calls.argsFor(0)[0]).toBe(PlayerEvent.PLAY);
+    expect(playerApi.on.calls.argsFor(1)[0]).toBe(PlayerEvent.ENDED);
+    expect(playerApi.on.calls.argsFor(2)[0]).toBe(PlayerEvent.TimeChanged);
+
+    expect(windowMock.addEventListener).not.toHaveBeenCalled();
+  });
+
+  it('should be the same behaviour without view event when video was not played', () => {
+    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    plugin.initRecovered(100, false);
+
+    expect(axiosInstance.get).not.toHaveBeenCalled();
+
+    expect(playerApi.on).toHaveBeenCalledTimes(2);
+    expect(playerApi.on.calls.argsFor(0)[0]).toBe(PlayerEvent.ENDED);
+    expect(playerApi.on.calls.argsFor(1)[0]).toBe(PlayerEvent.TimeChanged);
+
+    expect(windowMock.addEventListener).toHaveBeenCalledTimes(1);
   });
 
 });

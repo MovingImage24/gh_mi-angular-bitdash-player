@@ -41,9 +41,21 @@ export class AnalyticsPlugin {
     this.addListeners();
   }
 
-  public initRecovered(time: number = 0): void {
+  /**
+   * the webcast consumer destroys the player and recreate it again on view switch
+   * and we don't want to track this "live-cycle"
+   *
+   */
+  public initRecovered(time: number, hasEnded: boolean): void {
     this.time = time;
-    this.addListenersRecovered();
+
+    if (hasEnded || time === 0) {
+      this.addListeners();
+    } else {
+      this.addBeforeUnloadEvent();
+      this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
+      this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
+    }
   }
 
   public destroy(): void {
@@ -52,18 +64,6 @@ export class AnalyticsPlugin {
 
   private addListeners(): void {
     this.playerApi.on(PlayerEvent.PLAY, this.playHandler);
-    this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
-    this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
-  }
-
-  /**
-   * this function is a workaround,
-   * because the webcast operator destroy the player and recreate it again
-   * and we don't want to track this "live-cycle"
-   *
-   */
-  private addListenersRecovered(): void {
-    this.addBeforeUnloadEvent();
     this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
     this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
   }
