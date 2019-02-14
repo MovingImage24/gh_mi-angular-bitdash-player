@@ -20,7 +20,7 @@ export interface ControllerModel {
 
 interface RecoverState {
   seekTo: number;
-  currentVolume: number;
+  volume: number;
   isMuted: boolean;
   hasEnded: boolean;
 }

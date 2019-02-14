@@ -206,7 +206,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
 
     function playerReady(): void {
       if (recoverState) {
-        playerApi.setVolume(recoverState.currentVolume);
+        playerApi.setVolume(recoverState.volume);
 
         if (recoverState.seekTo) {
           playerApi.seek(recoverState.seekTo);
