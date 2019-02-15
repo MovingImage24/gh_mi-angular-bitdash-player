@@ -1,4 +1,4 @@
-import { BitmovinPlayerApi, BitmovinSourceConfig, PlayerPlugin } from './models';
+import { BitmovinPlayerApi, BitmovinSourceConfig, PlayerDestroyOptions, PlayerPlugin } from './models';
 import { PlayerEvent } from './player-event';
 
 type PlayerCallback = (event?: any) => void;
@@ -99,15 +99,15 @@ export class PlayerApi {
     });
   }
 
-  public destroy(): void {
+  public destroy(options?: PlayerDestroyOptions): void {
     this.playerRef.unload();
-    this.plugins.forEach((plugin) => plugin.destroy());
+    this.plugins.forEach((plugin) => plugin.destroy(options));
     this.playerRef.destroy();
   }
 
   public getPublicApi(): any {
     return {
-      destroy: () => this.destroy(),
+      destroy: (options) => this.destroy(options),
       getCurrentTime: () => this.getCurrentTime(),
       getDuration: () => this.getDuration(),
       getVolume: () => this.getVolume(),

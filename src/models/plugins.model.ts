@@ -1,3 +1,5 @@
+import { PlayerDestroyOptions } from './player.model';
+
 export interface PlayerPlugin {
-  destroy: () => void;
+  destroy: (options?: PlayerDestroyOptions) => void;
 }

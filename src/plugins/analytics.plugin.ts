@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { Logger, RecoverState } from '../models';
+import { Logger, PlayerDestroyOptions, RecoverState } from '../models';
 import { PlayerApi } from '../player-api';
 import { PlayerEvent } from '../player-event';
 
@@ -17,6 +17,7 @@ export class AnalyticsPlugin {
   private readonly beforeUnloadHandler: () => void;
   private readonly playHandler: () => void;
   private readonly endedHandler: () => void;
+  private videoPlayPressed: boolean = false;
 
   constructor(private playerApi: PlayerApi,
               private videoId: string,
@@ -29,6 +30,8 @@ export class AnalyticsPlugin {
     this.playHandler = () => this.sendPlayEvent();
     this.endedHandler = () => {
       this.removeBeforeUnloadEvent();
+
+      this.videoPlayPressed = false;
       this.playerApi.on(PlayerEvent.PLAY, this.playHandler);
 
       this.sendExitEvent();
@@ -58,7 +61,11 @@ export class AnalyticsPlugin {
     }
   }
 
-  public destroy(): void {
+  public destroy(options?: PlayerDestroyOptions): void {
+    if (options && options.pageChange && this.videoPlayPressed) {
+      this.sendExitEvent();
+    }
+
     this.removeBeforeUnloadEvent();
   }
 
@@ -73,6 +80,8 @@ export class AnalyticsPlugin {
   }
 
   private sendPlayEvent(): void {
+    this.videoPlayPressed = true;
+
     // listen for unexpected exits
     this.addBeforeUnloadEvent();
 

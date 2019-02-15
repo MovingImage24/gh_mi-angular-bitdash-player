@@ -8,3 +8,7 @@ export interface WebcastPlayerApi {
   on?(eventType: PlayerEvent, callback: () => {}): void;
   seek?(time: number, issuer?: string): boolean;
 }
+
+export interface PlayerDestroyOptions {
+  pageChange: boolean;
+}
