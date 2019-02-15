@@ -55,6 +55,7 @@ export class AnalyticsPlugin {
     if (state.hasEnded || !state.playPressed) {
       this.addListeners();
     } else {
+      this.videoPlayPressed = true;
       this.addBeforeUnloadEvent();
       this.playerApi.on(PlayerEvent.ENDED, this.endedHandler);
       this.playerApi.on(PlayerEvent.TimeChanged, (value) => this.onTimeChanged(value));
