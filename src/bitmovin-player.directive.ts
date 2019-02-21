@@ -1,9 +1,10 @@
 import * as ng from 'angular';
 
 import BitmovinPlayerController from './bitmovin-player.controller';
-import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent } from './models';
+import { BitmovinPlayerApi, BitmovinUIManager, DirectiveScope, IWindow, PlayerApiReadyEvent, PlayerPlugin } from './models';
 import { PlayerApi } from './player-api';
 import { PlayerSourceType } from './player-source.type';
+import { AnalyticsPlugin } from './plugins/analytics.plugin';
 
 const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: any) => ({
   controller: 'MiBitdashController',
@@ -21,6 +22,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
     const playerId = 'mi-bitdash-player';
     const webcast = scope.webcast;
     const playerConfig = scope.config;
+    const recoverState = (scope.options && scope.options.recoverState) ? scope.options.recoverState : null;
     let playerApi: PlayerApi;
 
     init();
@@ -50,8 +52,8 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       createPlayer()
         .then(() => {
           return playerApi.load(source)
-            .then(() => dispatchPlayerReadyEvent())
-            .catch(() => dispatchPlayerReadyEvent());
+            .then(() => playerReady())
+            .catch(() => playerLoadSourceErrorHandler());
         })
         .catch((err) => playerErrorHandler(err));
     }
@@ -100,7 +102,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
         },
         setSource: (player: BitmovinPlayerApi, src: string) => {
           player.load({ hls: src })
-            .then(() => dispatchPlayerReadyEvent())
+            .then(() => playerReady())
             .catch((err) => playerErrorHandler(err));
         }
       };
@@ -126,7 +128,7 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
       $window.window.bitmovin.initHiveSDN(playerRef, hiveOptions);
 
       createPlayer()
-        .then(() => dispatchPlayerReadyEvent())
+        .then(() => playerReady())
         .catch((err: any) => {
           if (hivePluginFailed) {
             $log.warn(`Hive plugin failed, fallback to default player. Error: ${err}`);
@@ -177,12 +179,52 @@ const BitmovinPlayerDirective = ($window: IWindow, $log: ng.ILogService, ksdn: a
           setupPlayerUi(bitmovinPlayerApi);
 
           playerApi = new PlayerApi(bitmovinPlayerApi);
+          const plugins = createPlugins(playerApi);
+          playerApi.setPlugins(plugins);
 
           return bitmovinPlayerApi;
         });
     }
 
-    function dispatchPlayerReadyEvent(): void {
+    function createPlugins(api: PlayerApi): PlayerPlugin[] {
+      const plugins = [];
+
+      if (controller.vm.playerSource.videoId) {
+        const miAnalytics = new AnalyticsPlugin(api, controller.vm.playerSource.videoId, $log);
+
+        if (recoverState) {
+          miAnalytics.initRecovered(recoverState);
+        } else {
+          miAnalytics.init();
+        }
+
+        plugins.push(miAnalytics);
+      }
+
+      return plugins;
+    }
+
+    function playerReady(): void {
+      if (recoverState) {
+        playerApi.setVolume(recoverState.volume);
+
+        if (recoverState.seekTo) {
+          playerApi.seek(recoverState.seekTo);
+        }
+
+        if (recoverState.isMuted) {
+          playerApi.mute();
+        }
+      }
+
+      dispatchReadyEvent();
+    }
+
+    function playerLoadSourceErrorHandler(): void {
+      dispatchReadyEvent();
+    }
+
+    function dispatchReadyEvent(): void {
       const $event: PlayerApiReadyEvent = {
         playerApi: playerApi.getPublicApi(),
       };

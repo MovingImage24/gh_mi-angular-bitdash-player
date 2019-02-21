@@ -22,6 +22,7 @@ export interface PlayerSource {
   hlsUrl: string;
   type: PlayerSourceType;
   p2p?: P2PSource;
+  videoId?: string;
 }
 
 export interface P2PSource {

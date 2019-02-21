@@ -1,32 +1,46 @@
-import { BitmovinPlayerApi, BitmovinSourceConfig } from './models';
+import { BitmovinPlayerApi, BitmovinSourceConfig, PlayerDestroyOptions, PlayerPlugin } from './models';
 import { PlayerEvent } from './player-event';
+
+type PlayerCallback = (event?: any) => void;
 
 export class PlayerApi {
 
-  private eventListeners: { [index in PlayerEvent]: any[] } = {
-    timechanged: []
+  private eventListeners: { [index in PlayerEvent]: PlayerCallback[] } = {
+    ended: [],
+    playing: [],
+    timechanged: [],
   };
 
   private playerSource: BitmovinSourceConfig;
+  private plugins: PlayerPlugin[] = [];
 
   constructor(private playerRef: BitmovinPlayerApi) {
     this.addListeners();
+  }
+
+  public setPlugins(plugins: PlayerPlugin[]): void {
+    this.plugins = plugins;
   }
 
   public seek(time: number, issuer?: string): boolean {
     return this.playerRef.seek(time, issuer);
   }
 
-  public on(eventType: PlayerEvent, callback: (event: any) => void): void {
-    switch (eventType) {
-      case PlayerEvent.TimeChanged:
-        this.eventListeners[PlayerEvent.TimeChanged].push(callback);
-        return;
-    }
+  public on(eventType: PlayerEvent, callback: PlayerCallback): void {
+    this.eventListeners[eventType].push(callback);
+  }
+
+  public off(eventType: PlayerEvent, callback: PlayerCallback): void {
+    this.eventListeners[eventType] = this.eventListeners[eventType].filter((item) => item !== callback);
   }
 
   public pause(issuer?: string): void {
-    this.playerRef.pause(issuer);
+    // we have to check if we can safely call pause because
+    // when user seeks, pause, destroy and create new instance of the player,
+    // the new video will play, but the player will not fire play event
+    if (this.playerRef.isPlaying()) {
+      this.playerRef.pause(issuer);
+    }
   }
 
   public mute(issuer?: string): void {
@@ -85,13 +99,15 @@ export class PlayerApi {
     });
   }
 
-  public destroy(): void {
+  public destroy(options?: PlayerDestroyOptions): void {
+    this.playerRef.unload();
+    this.plugins.forEach((plugin) => plugin.destroy(options));
     this.playerRef.destroy();
   }
 
   public getPublicApi(): any {
     return {
-      destroy: () => this.destroy(),
+      destroy: (options) => this.destroy(options),
       getCurrentTime: () => this.getCurrentTime(),
       getDuration: () => this.getDuration(),
       getVolume: () => this.getVolume(),
@@ -99,7 +115,8 @@ export class PlayerApi {
       isMuted: () => this.isMuted(),
       isPaused: () => this.isPaused(),
       mute: (issuer?: string) => this.mute(issuer),
-      on: (eventType: PlayerEvent, callback: (event: any) => void) => this.on(eventType, callback),
+      off: (eventType: PlayerEvent, callback: PlayerCallback) => this.off(eventType, callback),
+      on: (eventType: PlayerEvent, callback: PlayerCallback) => this.on(eventType, callback),
       pause: (issuer?: string) => this.pause(issuer),
       reload: () => this.reload(),
       seek: (time: number, issuer?: string) => this.seek(time, issuer),
@@ -108,9 +125,21 @@ export class PlayerApi {
   }
 
   private addListeners(): void {
-    this.playerRef.addEventHandler('onTimeChanged', (event: any) => {
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_TIME_CHANGED, (event: { time: number }) => {
       this.eventListeners[PlayerEvent.TimeChanged].forEach((callback) => {
         callback({ time: event.time });
+      });
+    });
+
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAY, () => {
+      this.eventListeners[PlayerEvent.PLAY].forEach((callback) => {
+        callback();
+      });
+    });
+
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAYBACK_FINISHED, () => {
+      this.eventListeners[PlayerEvent.ENDED].forEach((callback) => {
+        callback();
       });
     });
   }

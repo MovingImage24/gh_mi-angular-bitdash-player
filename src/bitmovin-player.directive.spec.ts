@@ -21,10 +21,16 @@ describe('BitmovinPlayerDirective', () => {
   let bitmovinUiFactory: any;
 
   beforeEach(() => {
-    const playerFuncSpy: string [] = ['setup', 'load', 'destroy', 'addEventHandler'];
+    const playerFuncSpy: string [] = ['setup', 'load', 'destroy', 'addEventHandler', 'unload'];
     const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
     bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
+
+    bitmovinPlayer.EVENT = {
+      ON_PLAY: 'ON_PLAY',
+      ON_PLAYBACK_FINISHED: 'ON_PLAYBACK_FINISHED',
+      ON_TIME_CHANGED: 'ON_TIME_CHANGED',
+    };
 
     controllerVm = { playerSource: null };
     configMock = {};

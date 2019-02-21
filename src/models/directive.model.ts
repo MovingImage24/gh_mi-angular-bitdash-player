@@ -18,10 +18,19 @@ export interface ControllerModel {
   playerSource: PlayerSource;
 }
 
+export interface RecoverState {
+  seekTo: number;
+  volume: number;
+  isMuted: boolean;
+  hasEnded: boolean;
+  playPressed: boolean;
+}
+
 export interface WebcastOptions {
   forcedState?: WebcastState;
   forcedPlayer?: PlayerSourceType.DEFAULT;
   userId?: string;
+  recoverState?: RecoverState;
 }
 
 export interface IWindow extends ng.IWindowService {
