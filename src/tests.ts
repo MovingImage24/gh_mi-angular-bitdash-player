@@ -1,6 +1,6 @@
 import 'angular';
 import 'angular-mocks';
-import 'core-js/es6';
+import 'core-js/stable';
 
 declare const require: any;
 

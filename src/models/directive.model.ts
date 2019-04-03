@@ -1,8 +1,8 @@
-import { PlayerSourceType } from '../player-source.type';
+import { PlayerPlaybackType } from '../player-playback.type';
 import { WebcastState } from '../webcast.state';
 import { BitmovinPlayerConfig, IMIUIConfig } from './bitmovin.model';
 import { PlayerApiReadyEvent } from './player.model';
-import { PlayerSource, WebcastModel } from './webcast.model';
+import { WebcastModel, WebcastPlayerConfig } from './webcast.model';
 
 export interface DirectiveScope extends ng.IScope {
   config: BitmovinPlayerConfig;
@@ -15,7 +15,7 @@ export interface DirectiveScope extends ng.IScope {
 }
 
 export interface ControllerModel {
-  playerSource: PlayerSource;
+  playerConfig: WebcastPlayerConfig;
 }
 
 export interface RecoverState {
@@ -24,11 +24,12 @@ export interface RecoverState {
   isMuted: boolean;
   hasEnded: boolean;
   playPressed: boolean;
+  selectedSubtitleId: string | null;
 }
 
 export interface WebcastOptions {
   forcedState?: WebcastState;
-  forcedPlayer?: PlayerSourceType.DEFAULT;
+  forcedPlayer?: PlayerPlaybackType.DEFAULT;
   userId?: string;
   recoverState?: RecoverState;
 }

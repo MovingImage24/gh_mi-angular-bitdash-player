@@ -1,7 +1,10 @@
 import * as ng from 'angular';
 
-import BitmovinPlayerDirective from './bitmovin-player.directive';
-import { PlayerSourceType } from './player-source.type';
+import { BitmovinPlayerDirective, deps } from './bitmovin-player.directive';
+import { PlayerApi } from './player-api';
+import { PlayerPlaybackType } from './player-playback.type';
+import { SubtitlesPlugin } from './plugins';
+import SpyObj = jasmine.SpyObj;
 
 interface IRootScope extends ng.IRootScopeService {
   webcastMainVm: any;
@@ -19,12 +22,21 @@ describe('BitmovinPlayerDirective', () => {
   let windowSpy: any;
   let bitmovinPlayer: any;
   let bitmovinUiFactory: any;
+  let createComponent: () => void;
+  let subtitlesPlugin: SpyObj<SubtitlesPlugin>;
+  let playerApi: SpyObj<PlayerApi>;
 
   beforeEach(() => {
     const playerFuncSpy: string [] = ['setup', 'load', 'destroy', 'addEventHandler', 'unload'];
     const playerUISpy: string [] = ['buildAudioOnlyUI', 'buildAudioVideoUI'];
     bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
+
+    subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin',
+      ['init', 'destroy']);
+    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi',
+      ['setPlugins', 'initPlugins', 'destroy', 'load']);
+    playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' }));
 
     bitmovinPlayer.EVENT = {
       ON_PLAY: 'ON_PLAY',
@@ -94,13 +106,20 @@ describe('BitmovinPlayerDirective', () => {
 
     bitmovinPlayer.setup.and.returnValue($q.when(bitmovinPlayer));
     bitmovinPlayer.load.and.returnValue($q.when(bitmovinPlayer));
+
+    createComponent = () => {
+      deps.SubtitlesPlugin = (jasmine.createSpy() as any).and.returnValue(subtitlesPlugin);
+      deps.PlayerApi = (jasmine.createSpy() as any).and.returnValue(playerApi);
+
+      $compile(template)($rootScope);
+      $rootScope.$apply();
+    };
   });
 
   it('should do nothing when no playersource is set', () => {
-    controllerVm.playerSource = null;
+    controllerVm.playerConfig = null;
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(bitmovinPlayer.setup).not.toHaveBeenCalled();
     expect(bitmovinPlayer.load).not.toHaveBeenCalled();
@@ -108,16 +127,15 @@ describe('BitmovinPlayerDirective', () => {
 
   it('should create default playback', () => {
     const expectedSource = { hls: 'hls-url' };
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
-      type: PlayerSourceType.DEFAULT,
+      type: PlayerPlaybackType.DEFAULT,
     };
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect(bitmovinPlayer.load).toHaveBeenCalledWith(expectedSource);
+    expect(playerApi.load).toHaveBeenCalledWith(expectedSource);
     expect(windowSpy.document.getElementsByClassName).toHaveBeenCalledTimes(1);
     expect(windowSpy.document.getElementsByClassName).toHaveBeenCalledWith('bitmovinplayer-container');
     expect(windowSpy.document.getElementsByClassName).not.toHaveBeenCalledWith('mi-wbc-ui-audioonly-overlay');
@@ -125,13 +143,12 @@ describe('BitmovinPlayerDirective', () => {
   });
 
   it('should create default playback with controlbar', () => {
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
-      type: PlayerSourceType.DEFAULT,
+      type: PlayerPlaybackType.DEFAULT,
     };
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(windowSpy.document.getElementById).toHaveBeenCalledWith('bitmovinplayer-video-mi-bitdash-player');
     expect(bitmovinUiFactory.buildAudioOnlyUI).toHaveBeenCalled();
@@ -139,83 +156,78 @@ describe('BitmovinPlayerDirective', () => {
 
   it('should create default playback with video ui', () => {
     $rootScope.webcastMainVm.webcast.layout.layout = 'video';
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
-      type: PlayerSourceType.DEFAULT,
+      type: PlayerPlaybackType.DEFAULT,
     };
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(windowSpy.document.getElementById).toHaveBeenCalledWith('bitmovinplayer-video-mi-bitdash-player');
     expect(bitmovinUiFactory.buildAudioVideoUI).toHaveBeenCalled();
   });
 
   it('should show error when default playback fails', () => {
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
-      type: PlayerSourceType.DEFAULT,
+      type: PlayerPlaybackType.DEFAULT,
     };
     bitmovinPlayer.setup.and.returnValue($q.reject('error'));
     spyOn($log, 'error');
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect($log.error).toHaveBeenCalledWith('player error:', 'error');
   });
 
   it('should create kollective playback', () => {
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
       p2p: {
         host: 'host-1',
         token: 'token-1',
         urn: 'urn-1',
       },
-      type: PlayerSourceType.KSDN,
+      type: PlayerPlaybackType.KSDN,
     };
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(ksdnSpy.play).toHaveBeenCalled();
   });
 
   it('should show error when kollective player setup fails', () => {
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
       p2p: {
         host: 'host-1',
         token: 'token-1',
         urn: 'urn-1',
       },
-      type: PlayerSourceType.KSDN,
+      type: PlayerPlaybackType.KSDN,
     };
     bitmovinPlayer.setup.and.returnValue($q.reject('error'));
     spyOn($log, 'error');
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect($log.error).toHaveBeenCalledWith('player error:', 'error');
   });
 
   it('should show default error when hive player setup fails', () => {
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
       p2p: {
         url: 'url-1',
       },
-      type: PlayerSourceType.HIVE,
+      type: PlayerPlaybackType.HIVE,
     };
     bitmovinPlayer.setup.and.returnValue($q.reject('error'));
     spyOn($log, 'error');
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
     expect($log.error).toHaveBeenCalledWith('player error:', 'error');
@@ -224,12 +236,12 @@ describe('BitmovinPlayerDirective', () => {
   it('should show warning and reload with default player when hive plugin fails', () => {
     jasmine.clock().install();
 
-    controllerVm.playerSource = {
+    controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
       p2p: {
         url: 'url-1',
       },
-      type: PlayerSourceType.HIVE,
+      type: PlayerPlaybackType.HIVE,
     };
     windowSpy.window.bitmovin.initHiveSDN.and.callFake((player: any, options: any) => {
       options.HiveJava.onError();
@@ -237,8 +249,7 @@ describe('BitmovinPlayerDirective', () => {
     bitmovinPlayer.setup.and.returnValue($q.reject('error'));
     spyOn($log, 'warn');
 
-    $compile(template)($rootScope);
-    $rootScope.$apply();
+    createComponent();
     jasmine.clock().tick(60);
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
@@ -247,4 +258,36 @@ describe('BitmovinPlayerDirective', () => {
 
     jasmine.clock().uninstall();
   });
+
+  it('should create subtitle plugin when video tracks available', () => {
+    controllerVm.playerConfig = {
+      hlsUrl: 'hls-url',
+      type: PlayerPlaybackType.DEFAULT,
+      videoTracks: [
+        {
+          language: 'en',
+          country: '',
+          label: 'English',
+          source: 'https://a.video-cdn.net/-KV13jA92AKWUyvPxfs_Y1/2EKC8npRq6JAeCLycYNN5y.vtt',
+          type: 'SUBTITLES'
+        }
+      ]
+    };
+
+    createComponent();
+
+    expect(playerApi.setPlugins).toHaveBeenCalledWith([subtitlesPlugin]);
+  });
+
+  it('should not create subtitle plugin when no video tracks are available', () => {
+    controllerVm.playerConfig = {
+      hlsUrl: 'hls-url',
+      type: PlayerPlaybackType.DEFAULT
+    };
+
+    createComponent();
+
+    expect(playerApi.setPlugins).not.toHaveBeenCalledWith([subtitlesPlugin]);
+  });
+
 });

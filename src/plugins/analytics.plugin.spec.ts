@@ -1,17 +1,19 @@
 import { Logger } from '../models';
+import { PlayerApi } from '../player-api';
 import { PlayerEvent } from '../player-event';
 import { AnalyticsPlugin, deps } from './analytics.plugin';
+import SpyObj = jasmine.SpyObj;
 
 describe('AnalyticsPlugin', () => {
 
-  let playerApi: any;
+  let playerApi: SpyObj<PlayerApi>;
   let logger: Logger;
   let axios: any;
   let axiosInstance: any;
   let windowMock: any;
 
   beforeEach(() => {
-    playerApi = jasmine.createSpyObj('PlayerApi', ['on', 'off']);
+    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi', ['on', 'off']);
     logger = jasmine.createSpyObj('Logger', ['error']);
     axios = jasmine.createSpyObj('Axios', ['create']);
     windowMock = jasmine.createSpyObj('WindowMock', ['removeEventListener', 'addEventListener']);
@@ -140,7 +142,7 @@ describe('AnalyticsPlugin', () => {
 
   it('should be the same behaviour without view event when video was not played', () => {
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    const recoverState = { hasEnded: false, seekTo: 0, playPressed: false, isMuted: false, volume: 100 };
+    const recoverState = { hasEnded: false, seekTo: 0, playPressed: false, isMuted: false, volume: 100, selectedSubtitleId: null };
     plugin.initRecovered(recoverState);
 
     expect(axiosInstance.get).not.toHaveBeenCalled();
@@ -154,7 +156,7 @@ describe('AnalyticsPlugin', () => {
   });
 
   it('should be the same behaviour without view event when video was played', () => {
-    const recoverState = { hasEnded: false, seekTo: 0, playPressed: true, isMuted: false, volume: 100 };
+    const recoverState = { hasEnded: false, seekTo: 0, playPressed: true, isMuted: false, volume: 100, selectedSubtitleId: null };
     const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
     plugin.initRecovered(recoverState);
 

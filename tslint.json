@@ -161,6 +161,8 @@
           "VariableDeclarator": false
         }
       }
-    ]
+    ],
+    "object-literal-sort-keys": false,
+    "object-literal-shorthand":true
   }
 }
