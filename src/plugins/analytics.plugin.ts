@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { Logger, PlayerDestroyOptions, RecoverState } from '../models';
+import { Logger, PlayerDestroyOptions, PlayerPlugin, RecoverState } from '../models';
 import { PlayerApi } from '../player-api';
 import { PlayerEvent } from '../player-event';
 
@@ -10,7 +10,7 @@ export const deps = {
   window,
 };
 
-export class AnalyticsPlugin {
+export class AnalyticsPlugin implements PlayerPlugin {
 
   private http: AxiosInstance;
   private time: number = 0;

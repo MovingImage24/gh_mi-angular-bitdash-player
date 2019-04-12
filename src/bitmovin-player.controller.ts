@@ -6,15 +6,15 @@ import {
   IMIUIConfig,
   KollectivePlugin,
   P2PSource,
-  PlayerSource,
   WebcastLanguage,
   WebcastModel,
-  WebcastOptions
+  WebcastOptions,
+  WebcastPlayerConfig,
 } from './models';
-import { PlayerSourceType } from './player-source.type';
+import { PlayerPlaybackType } from './player-playback.type';
 import { WebcastState } from './webcast.state';
 
-class BitmovinPlayerController {
+export class BitmovinPlayerController {
   public static $inject: string[] = ['$scope', '$log', 'ksdn'];
   public vm: ControllerModel;
 
@@ -22,7 +22,7 @@ class BitmovinPlayerController {
               private $log: ng.ILogService,
               private ksdn: KollectivePlugin) {
     this.vm = {
-      playerSource: null,
+      playerConfig: null,
     };
   }
 
@@ -30,7 +30,7 @@ class BitmovinPlayerController {
     const hasValidConfig = this.$scope.config && this.$scope.webcast;
 
     if (hasValidConfig) {
-      this.vm.playerSource = this.getPlayerSource(this.$scope.webcast);
+      this.vm.playerConfig = this.getPlayerConfig(this.$scope.webcast);
     } else {
       this.$log.error(`basic config for bitdash player is missing!`);
     }
@@ -45,24 +45,24 @@ class BitmovinPlayerController {
     } : {};
   }
 
-  private getPlayerSource(webcast: WebcastModel): PlayerSource {
+  private getPlayerConfig(webcast: WebcastModel): WebcastPlayerConfig {
     const options: WebcastOptions = this.$scope.options || {};
     const activeLanguage = this.getActiveLanguage(webcast.languages, webcast.language);
-    let source = activeLanguage.player;
+    let config = activeLanguage.player;
 
     if (options.forcedState === WebcastState.LIVE && activeLanguage.playerLive) {
-      source = activeLanguage.playerLive;
+      config = activeLanguage.playerLive;
     }
 
     if (options.forcedPlayer) {
-      source.type = options.forcedPlayer;
+      config.type = options.forcedPlayer;
     }
 
-    if (source.type === PlayerSourceType.KSDN) {
-      source.p2p.token = this.createKSDNPublicToken(options.userId, source.p2p);
+    if (config.type === PlayerPlaybackType.KSDN) {
+      config.p2p.token = this.createKSDNPublicToken(options.userId, config.p2p);
     }
 
-    return source;
+    return config;
   }
 
   private getActiveLanguage(languages: WebcastLanguage[], language: string): WebcastLanguage {
@@ -73,5 +73,3 @@ class BitmovinPlayerController {
     return this.ksdn.createPublicToken(userId, source.urn);
   }
 }
-
-export default BitmovinPlayerController;

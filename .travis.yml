@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-- '7'
-before_install: npm install -g npm@'>=2.13.5'
+- '10'
+before_install: npm install -g npm@'>=6.4.1'
 deploy:
   provider: npm
   email: admin@movingimage24.com
@@ -10,4 +10,4 @@ deploy:
   on:
     tags: true
     repo: MovingImage24/mi-angular-bitdash-player
-    node: '7'
+    node: '10'

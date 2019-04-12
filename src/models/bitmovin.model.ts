@@ -30,12 +30,45 @@ export interface BitmovinPlayerApi {
   getDuration(): number;
   initSession(hsl: string): any;
   addEventHandler(eventName: string, callback: (event?: any) => void): void;
+  addSubtitle(subtitle: BitmovinSubtitle): BitmovinPlayerApi;
+  getSubtitle(): BitmovinSubtitle;
+  setSubtitle(trackId: string): BitmovinPlayerApi;
+}
+
+export interface BitmovinSubtitle {
+  /**
+   * Used to identify and set the subtitle track.
+   */
+  id: string;
+  /**
+   * The language of the subtitle track.
+   */
+  lang: string;
+  /**
+   * The text used to represent this track to the user (e.g. in the UI).
+   */
+  label: string;
+
+  /**
+   * The subtitle type, either "caption" or "subtitle" (default: "subtitle").
+   */
+  kind: string;
+  /**
+   * The URL to the subtitle track.
+   */
+  url: string;
+  /**
+   * Only used for fragmented subtitles in HLS
+   */
+  isFragmented?: boolean;
 }
 
 interface BitmovinPlayerEvents {
   ON_PLAYBACK_FINISHED: string;
   ON_PLAY: string;
   ON_TIME_CHANGED: string;
+  ON_SOURCE_LOADED: string;
+  ON_SOURCE_UNLOADED: string;
 }
 
 export interface BitmovinUIManager {

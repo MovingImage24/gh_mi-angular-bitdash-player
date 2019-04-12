@@ -1,4 +1,4 @@
-import { BitmovinPlayerApi, BitmovinSourceConfig, PlayerDestroyOptions, PlayerPlugin } from './models';
+import { BitmovinPlayerApi, BitmovinSourceConfig, BitmovinSubtitle, PlayerDestroyOptions, PlayerPlugin, RecoverState, WebcastVideoTrackConfig } from './models';
 import { PlayerEvent } from './player-event';
 
 type PlayerCallback = (event?: any) => void;
@@ -9,6 +9,8 @@ export class PlayerApi {
     ended: [],
     playing: [],
     timechanged: [],
+    onSourceLoaded: [],
+    onSourceUnloaded: [],
   };
 
   private playerSource: BitmovinSourceConfig;
@@ -20,6 +22,10 @@ export class PlayerApi {
 
   public setPlugins(plugins: PlayerPlugin[]): void {
     this.plugins = plugins;
+  }
+
+  public initPlugins(recoverState: RecoverState): void {
+    this.plugins.forEach((plugin) => recoverState ? plugin.initRecovered(recoverState) : plugin.init());
   }
 
   public seek(time: number, issuer?: string): boolean {
@@ -75,6 +81,20 @@ export class PlayerApi {
     return this.playerRef.getDuration();
   }
 
+  public addSubtitle(track: WebcastVideoTrackConfig, id: string): void {
+    const subtitle = this.mapVideoTrackConfigToBitmovinSubtitle(track, id);
+
+    this.playerRef.addSubtitle(subtitle);
+  }
+
+  public getSubtitle(): BitmovinSubtitle {
+    return this.playerRef.getSubtitle();
+  }
+
+  public setSubtitle(trackId: string): BitmovinPlayerApi {
+    return this.playerRef.setSubtitle(trackId);
+  }
+
   public load(source: BitmovinSourceConfig): Promise<BitmovinPlayerApi> {
     this.playerSource = source;
 
@@ -121,27 +141,39 @@ export class PlayerApi {
       reload: () => this.reload(),
       seek: (time: number, issuer?: string) => this.seek(time, issuer),
       setVolume: (volume: number, issuer?: string) => this.setVolume(volume, issuer),
+      getSubtitle: (): BitmovinSubtitle => this.getSubtitle(),
     };
   }
 
+  private mapVideoTrackConfigToBitmovinSubtitle(track: WebcastVideoTrackConfig, id: string): BitmovinSubtitle {
+    return {
+      id,
+      lang: track.language.toLowerCase(),
+      label: track.label,
+      kind: this.mapVideoTrackType(track.type),
+      url: track.source,
+    };
+  }
+
+  private mapVideoTrackType(type: string): string {
+    return type.toLowerCase().includes('caption') ? 'caption' : 'subtitle';
+  }
+
   private addListeners(): void {
-    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_TIME_CHANGED, (event: { time: number }) => {
-      this.eventListeners[PlayerEvent.TimeChanged].forEach((callback) => {
-        callback({ time: event.time });
-      });
-    });
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_TIME_CHANGED, (event: { time: number }) =>
+      (this.eventListeners[PlayerEvent.TimeChanged].forEach((callback) => (callback({ time: event.time })))));
 
-    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAY, () => {
-      this.eventListeners[PlayerEvent.PLAY].forEach((callback) => {
-        callback();
-      });
-    });
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAY, () =>
+      (this.eventListeners[PlayerEvent.PLAY].forEach((callback) => (callback()))));
 
-    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAYBACK_FINISHED, () => {
-      this.eventListeners[PlayerEvent.ENDED].forEach((callback) => {
-        callback();
-      });
-    });
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_PLAYBACK_FINISHED, () =>
+      (this.eventListeners[PlayerEvent.ENDED].forEach((callback) => (callback()))));
+
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_SOURCE_LOADED, () =>
+      (this.eventListeners[PlayerEvent.ON_SOURCE_LOADED].forEach((callback) => (callback()))));
+
+    this.playerRef.addEventHandler(this.playerRef.EVENT.ON_SOURCE_UNLOADED, () =>
+      (this.eventListeners[PlayerEvent.ON_SOURCE_UNLOADED].forEach((callback) => (callback()))));
   }
 
 }

@@ -1,8 +1,8 @@
 import * as ng from 'angular';
 
-import BitmovinPlayerController from './bitmovin-player.controller';
+import { BitmovinPlayerController } from './bitmovin-player.controller';
 import { DirectiveScope, KollectivePlugin } from './models';
-import { PlayerSourceType } from './player-source.type';
+import { PlayerPlaybackType } from './player-playback.type';
 import { WebcastState } from './webcast.state';
 
 describe('BitmovinPlayerController', () => {
@@ -35,7 +35,7 @@ describe('BitmovinPlayerController', () => {
     const controller = createController();
     controller.$onInit();
 
-    expect(controller.vm.playerSource).toBeNull();
+    expect(controller.vm.playerConfig).toBeNull();
     expect($log.error).toHaveBeenCalledWith('basic config for bitdash player is missing!');
   });
 
@@ -43,30 +43,30 @@ describe('BitmovinPlayerController', () => {
     const controller = createController();
     controller.$onInit();
 
-    expect(controller.vm.playerSource).toEqual({ hlsUrl: 'hls-123', type: PlayerSourceType.DEFAULT });
+    expect(controller.vm.playerConfig).toEqual({ hlsUrl: 'hls-123', type: PlayerPlaybackType.DEFAULT });
   });
 
   it('should select source by language', () => {
     $scope.webcast.language = 'de';
     $scope.webcast.languages = [
-      { language: 'en', player: { hlsUrl: 'hls-1', type: PlayerSourceType.DEFAULT } },
-      { language: 'de', player: { hlsUrl: 'hls-2', type: PlayerSourceType.DEFAULT } },
+      { language: 'en', player: { hlsUrl: 'hls-1', type: PlayerPlaybackType.DEFAULT } },
+      { language: 'de', player: { hlsUrl: 'hls-2', type: PlayerPlaybackType.DEFAULT } },
     ];
 
     const controller = createController();
     controller.$onInit();
 
-    expect(controller.vm.playerSource).toEqual({ hlsUrl: 'hls-2', type: PlayerSourceType.DEFAULT });
+    expect(controller.vm.playerConfig).toEqual({ hlsUrl: 'hls-2', type: PlayerPlaybackType.DEFAULT });
   });
 
   it('should use live sources when live is forced', () => {
     $scope.options = { forcedState: WebcastState.LIVE };
-    $scope.webcast.languages[0].playerLive = { hlsUrl: 'hls-live', type: PlayerSourceType.DEFAULT };
+    $scope.webcast.languages[0].playerLive = { hlsUrl: 'hls-live', type: PlayerPlaybackType.DEFAULT };
 
     const controller = createController();
     controller.$onInit();
 
-    expect(controller.vm.playerSource).toEqual({ hlsUrl: 'hls-live', type: PlayerSourceType.DEFAULT });
+    expect(controller.vm.playerConfig).toEqual({ hlsUrl: 'hls-live', type: PlayerPlaybackType.DEFAULT });
   });
 
   it('should return audioOnly player config', () => {
@@ -98,7 +98,7 @@ describe('BitmovinPlayerController', () => {
       config: { source: {} },
       webcast: {
         languages: [
-          { language: 'en', player: { hlsUrl: 'hls-123', type: PlayerSourceType.DEFAULT } },
+          { language: 'en', player: { hlsUrl: 'hls-123', type: PlayerPlaybackType.DEFAULT } },
         ],
         layout: {
           layout: 'layout-1-2-3',

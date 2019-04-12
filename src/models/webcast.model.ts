@@ -1,4 +1,4 @@
-import { PlayerSourceType } from '../player-source.type';
+import { PlayerPlaybackType } from '../player-playback.type';
 
 export interface WebcastModel {
   name: string;
@@ -14,15 +14,24 @@ export interface WebcastModel {
 
 export interface WebcastLanguage {
   language: string;
-  player?: PlayerSource;
-  playerLive?: PlayerSource;
+  player?: WebcastPlayerConfig;
+  playerLive?: WebcastPlayerConfig;
 }
 
-export interface PlayerSource {
+export interface WebcastVideoTrackConfig {
+  language: string;
+  country: string;
+  label: string;
+  source: string;
+  type: string;
+}
+
+export interface WebcastPlayerConfig {
   hlsUrl: string;
-  type: PlayerSourceType;
+  type: PlayerPlaybackType;
   p2p?: P2PSource;
   videoId?: string;
+  videoTracks?: WebcastVideoTrackConfig[];
 }
 
 export interface P2PSource {
