@@ -16,8 +16,8 @@ describe('SubtitlesPlugin', () => {
       createTrack()
     ];
 
-    const plugin = new SubtitlesPlugin(playerApi, givenTracks);
-    plugin.init();
+    const plugin = new SubtitlesPlugin(givenTracks);
+    plugin.init(playerApi);
 
     const [sourceLoadedEventName] = playerApi.on.calls.argsFor(0);
 
@@ -29,8 +29,8 @@ describe('SubtitlesPlugin', () => {
     const firstTrack = createTrack();
     const givenTracks: WebcastVideoTrackConfig[] = [firstTrack];
 
-    const plugin = new SubtitlesPlugin(playerApi, givenTracks);
-    plugin.init();
+    const plugin = new SubtitlesPlugin(givenTracks);
+    plugin.init(playerApi);
 
     const [sourceLoadedEventName, sourceLoadedEventFunction] = playerApi.on.calls.argsFor(0);
 
@@ -44,8 +44,8 @@ describe('SubtitlesPlugin', () => {
     const firstTrack = createTrack();
     const givenTracks: WebcastVideoTrackConfig[] = [firstTrack];
 
-    const plugin = new SubtitlesPlugin(playerApi, givenTracks);
-    plugin.init();
+    const plugin = new SubtitlesPlugin(givenTracks);
+    plugin.init(playerApi);
 
     const [sourceLoadedEventName, sourceLoadedEventFunction] = playerApi.on.calls.argsFor(0);
 

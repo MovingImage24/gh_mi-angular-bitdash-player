@@ -5,18 +5,19 @@ import { PlayerEvent } from '../player-event';
 export class SubtitlesPlugin implements PlayerPlugin {
   private readonly sourceLoadedHandler: () => void;
   private recoverSubtitleId: string | null = null;
+  private playerApi: PlayerApi;
 
-  constructor(private playerApi: PlayerApi,
-              private videoTrackConfigs: WebcastVideoTrackConfig[]) {
-
+  constructor(private videoTrackConfigs: WebcastVideoTrackConfig[]) {
     this.sourceLoadedHandler = () => this.addSubtitles();
   }
 
-  public init(): void {
+  public init(playerApi: PlayerApi): void {
+    this.playerApi = playerApi;
     this.addListeners();
   }
 
-  public initRecovered(state: RecoverState): void {
+  public initRecovered(playerApi: PlayerApi, state: RecoverState): void {
+    this.playerApi = playerApi;
     this.recoverSubtitleId = state.selectedSubtitleId;
     this.addListeners();
   }

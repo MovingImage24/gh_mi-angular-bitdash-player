@@ -31,8 +31,8 @@ describe('AnalyticsPlugin', () => {
       params: { 'event': 'view', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
     };
 
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.init();
+    const plugin = new AnalyticsPlugin( 'video-id-1', logger);
+    plugin.init(playerApi);
 
     expect(plugin).toBeDefined();
     expect(axiosInstance.get).toHaveBeenCalledTimes(1);
@@ -49,8 +49,8 @@ describe('AnalyticsPlugin', () => {
       params: { 'event': 'play', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
     };
 
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.init();
+    const plugin = new AnalyticsPlugin( 'video-id-1', logger);
+    plugin.init(playerApi);
 
     const play = playerApi.on.calls.argsFor(0);
     expect(play[0]).toBe(PlayerEvent.PLAY);
@@ -76,8 +76,8 @@ describe('AnalyticsPlugin', () => {
       params: { 'event': 'exit', 'video-id': 'video-id-1', 'current-time': 10 }
     };
 
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.init();
+    const plugin = new AnalyticsPlugin( 'video-id-1', logger);
+    plugin.init(playerApi);
 
     const play = playerApi.on.calls.argsFor(0);
     expect(play[0]).toBe(PlayerEvent.PLAY);
@@ -107,8 +107,8 @@ describe('AnalyticsPlugin', () => {
   it('should log error on send error', (done) => {
     axiosInstance.get.and.returnValue(Promise.reject('error'));
 
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.init();
+    const plugin = new AnalyticsPlugin( 'video-id-1', logger);
+    plugin.init(playerApi);
 
     setTimeout(() => {
       expect(plugin).toBeDefined();
@@ -121,8 +121,8 @@ describe('AnalyticsPlugin', () => {
   });
 
   it('should add beforeunload listener after play and remove it on destroy', () => {
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.init();
+    const plugin = new AnalyticsPlugin( 'video-id-1', logger);
+    plugin.init(playerApi);
 
     // should not be added before the play event happened
     expect(windowMock.addEventListener).toHaveBeenCalledTimes(0);
@@ -141,9 +141,9 @@ describe('AnalyticsPlugin', () => {
   });
 
   it('should be the same behaviour without view event when video was not played', () => {
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
+    const plugin = new AnalyticsPlugin( 'video-id-1', logger);
     const recoverState = { hasEnded: false, seekTo: 0, playPressed: false, isMuted: false, volume: 100, selectedSubtitleId: null };
-    plugin.initRecovered(recoverState);
+    plugin.initRecovered(playerApi, recoverState);
 
     expect(axiosInstance.get).not.toHaveBeenCalled();
 
@@ -157,8 +157,8 @@ describe('AnalyticsPlugin', () => {
 
   it('should be the same behaviour without view event when video was played', () => {
     const recoverState = { hasEnded: false, seekTo: 0, playPressed: true, isMuted: false, volume: 100, selectedSubtitleId: null };
-    const plugin = new AnalyticsPlugin(playerApi, 'video-id-1', logger);
-    plugin.initRecovered(recoverState);
+    const plugin = new AnalyticsPlugin('video-id-1', logger);
+    plugin.initRecovered(playerApi, recoverState);
 
     expect(axiosInstance.get).not.toHaveBeenCalled();
 

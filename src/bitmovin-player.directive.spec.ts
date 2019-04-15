@@ -32,10 +32,8 @@ describe('BitmovinPlayerDirective', () => {
     bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
 
-    subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin',
-      ['init', 'destroy']);
-    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi',
-      ['setPlugins', 'initPlugins', 'destroy', 'load']);
+    subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin', ['init', 'destroy']);
+    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi', ['setupPlugins', 'destroy', 'load']);
     playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' }));
 
     bitmovinPlayer.EVENT = {
@@ -276,7 +274,7 @@ describe('BitmovinPlayerDirective', () => {
 
     createComponent();
 
-    expect(playerApi.setPlugins).toHaveBeenCalledWith([subtitlesPlugin]);
+    expect(playerApi.setupPlugins).toHaveBeenCalledWith([subtitlesPlugin], null);
   });
 
   it('should not create subtitle plugin when no video tracks are available', () => {
@@ -287,7 +285,7 @@ describe('BitmovinPlayerDirective', () => {
 
     createComponent();
 
-    expect(playerApi.setPlugins).not.toHaveBeenCalledWith([subtitlesPlugin]);
+    expect(playerApi.setupPlugins).not.toHaveBeenCalledWith(playerApi, [subtitlesPlugin]);
   });
 
 });

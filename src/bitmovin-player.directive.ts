@@ -179,6 +179,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
 
       function createPlayer(): Promise<BitmovinPlayerApi> {
         const playerSDK = $window.window.bitmovin.player(playerId);
+        const playerPlugins = createPlugins();
 
         // TODO: set it in the app and not here
         playerConfig.style = { ux: false };
@@ -186,23 +187,22 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
           setupPlayerUi(bitmovinPlayerApi);
 
           playerApi = new deps.PlayerApi(bitmovinPlayerApi);
-          playerApi.setPlugins(createPlugins(playerApi));
-          playerApi.initPlugins(recoverState);
+          playerApi.setupPlugins(playerPlugins, recoverState);
 
           return bitmovinPlayerApi;
         });
       }
 
-      function createPlugins(api: PlayerApi): PlayerPlugin[] {
+      function createPlugins(): PlayerPlugin[] {
         const plugins = [];
 
         if (controller.vm.playerConfig.videoId) {
-          const miAnalytics = new AnalyticsPlugin(api, controller.vm.playerConfig.videoId, $log);
+          const miAnalytics = new AnalyticsPlugin(controller.vm.playerConfig.videoId, $log);
           plugins.push(miAnalytics);
         }
 
         if (controller.vm.playerConfig.videoTracks) {
-          const subtitlePlugin = new deps.SubtitlesPlugin(api, controller.vm.playerConfig.videoTracks);
+          const subtitlePlugin = new deps.SubtitlesPlugin(controller.vm.playerConfig.videoTracks);
           plugins.push(subtitlePlugin);
         }
 

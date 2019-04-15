@@ -20,12 +20,9 @@ export class PlayerApi {
     this.addListeners();
   }
 
-  public setPlugins(plugins: PlayerPlugin[]): void {
+  public setupPlugins(plugins: PlayerPlugin[], recoverState: RecoverState): void {
     this.plugins = plugins;
-  }
-
-  public initPlugins(recoverState: RecoverState): void {
-    this.plugins.forEach((plugin) => recoverState ? plugin.initRecovered(recoverState) : plugin.init());
+    this.plugins.forEach((plugin) => recoverState ? plugin.initRecovered(this, recoverState) : plugin.init(this));
   }
 
   public seek(time: number, issuer?: string): boolean {
