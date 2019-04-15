@@ -11,9 +11,9 @@ export const deps = {
   PlayerApi
 };
 
-BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn'];
+BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'youbora'];
 
-export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any): ng.IDirective {
+export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any, youbora: any): ng.IDirective {
   return {
     controller: 'MiBitdashController',
     controllerAs: 'bitdashVm',
@@ -32,6 +32,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       const webcast = scope.webcast;
       const playerConfig = scope.config;
       const recoverState = (scope.options && scope.options.recoverState) ? scope.options.recoverState : null;
+      const youboraEnabled = (scope.options && scope.options.youboraEnabled) ? scope.options.youboraEnabled : null;
       let playerApi: PlayerApi;
 
       init();
@@ -180,6 +181,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       function createPlayer(): Promise<BitmovinPlayerApi> {
         const playerSDK = $window.window.bitmovin.player(playerId);
         const playerPlugins = createPlugins();
+        const youboraPlugin = youboraEnabled ? createYouboraPlugin() : null;
 
         // TODO: set it in the app and not here
         playerConfig.style = { ux: false };
@@ -189,8 +191,16 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
           playerApi = new deps.PlayerApi(bitmovinPlayerApi);
           playerApi.setupPlugins(playerPlugins, recoverState);
 
+          if (youboraPlugin) {
+            youboraPlugin.setAdapter(new youbora.adapters.Bitmovin(bitmovinPlayerApi));
+          }
+
           return bitmovinPlayerApi;
         });
+      }
+
+      function createYouboraPlugin(): any {
+        return new youbora.Plugin({ accountCode: 'movingimagedev' });
       }
 
       function createPlugins(): PlayerPlugin[] {

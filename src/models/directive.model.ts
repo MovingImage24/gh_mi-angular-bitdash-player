@@ -32,6 +32,7 @@ export interface WebcastOptions {
   forcedPlayer?: PlayerPlaybackType.DEFAULT;
   userId?: string;
   recoverState?: RecoverState;
+  youboraEnabled?: boolean;
 }
 
 export interface IWindow extends ng.IWindowService {
