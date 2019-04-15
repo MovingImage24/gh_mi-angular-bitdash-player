@@ -32,7 +32,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       const webcast = scope.webcast;
       const playerConfig = scope.config;
       const recoverState = (scope.options && scope.options.recoverState) ? scope.options.recoverState : null;
-      const youboraEnabled = (scope.options && scope.options.youboraEnabled) ? scope.options.youboraEnabled : null;
+      const youboraConfig = (scope.options && scope.options.youbora) ? scope.options.youbora : null;
       let playerApi: PlayerApi;
 
       init();
@@ -181,7 +181,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       function createPlayer(): Promise<BitmovinPlayerApi> {
         const playerSDK = $window.window.bitmovin.player(playerId);
         const playerPlugins = createPlugins();
-        const youboraPlugin = youboraEnabled ? createYouboraPlugin() : null;
+        const youboraPlugin = youboraConfig ? createYouboraPlugin() : null;
 
         // TODO: set it in the app and not here
         playerConfig.style = { ux: false };
@@ -200,7 +200,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       }
 
       function createYouboraPlugin(): any {
-        return new youbora.Plugin({ accountCode: 'movingimagedev' });
+        return new youbora.Plugin({ accountCode: youboraConfig.accountCode });
       }
 
       function createPlugins(): PlayerPlugin[] {

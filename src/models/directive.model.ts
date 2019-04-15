@@ -27,12 +27,16 @@ export interface RecoverState {
   selectedSubtitleId: string | null;
 }
 
+interface YouboraConfig {
+  accountCode: string;
+}
+
 export interface WebcastOptions {
   forcedState?: WebcastState;
   forcedPlayer?: PlayerPlaybackType.DEFAULT;
   userId?: string;
   recoverState?: RecoverState;
-  youboraEnabled?: boolean;
+  youbora?: YouboraConfig;
 }
 
 export interface IWindow extends ng.IWindowService {
