@@ -3,6 +3,7 @@ import { WebcastState } from '../webcast.state';
 import { BitmovinPlayerConfig, IMIUIConfig } from './bitmovin.model';
 import { PlayerApiReadyEvent } from './player.model';
 import { WebcastModel, WebcastPlayerConfig } from './webcast.model';
+import { YouboraConfig } from './youbora.model';
 
 export interface DirectiveScope extends ng.IScope {
   config: BitmovinPlayerConfig;
@@ -25,10 +26,6 @@ export interface RecoverState {
   hasEnded: boolean;
   playPressed: boolean;
   selectedSubtitleId: string | null;
-}
-
-interface YouboraConfig {
-  accountCode: string;
 }
 
 export interface WebcastOptions {

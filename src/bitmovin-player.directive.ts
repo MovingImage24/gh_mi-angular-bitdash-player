@@ -200,7 +200,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       }
 
       function createYouboraPlugin(): any {
-        return new youbora.Plugin({ accountCode: youboraConfig.accountCode });
+        return new youbora.Plugin(youboraConfig);
       }
 
       function createPlugins(): PlayerPlugin[] {
