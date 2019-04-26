@@ -76,7 +76,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
-    "youbora-adapter-bitmovin": "^6.4.1",
-    "youboralib": "^6.4.24"
+    "youbora-adapter-bitmovin": "^6.4.2",
+    "youboralib": "^6.4.25"
   }
 }
