@@ -11,9 +11,9 @@ export const deps = {
   PlayerApi
 };
 
-BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'youbora'];
+BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'YouboraLib', 'YouboraAdapter'];
 
-export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any, youbora: any): ng.IDirective {
+export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any, youboraLib: any, youboraAdapter: any): ng.IDirective {
   return {
     controller: 'MiBitdashController',
     controllerAs: 'bitdashVm',
@@ -192,7 +192,8 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
           playerApi.setupPlugins(playerPlugins, recoverState);
 
           if (youboraPlugin) {
-            youboraPlugin.setAdapter(new youbora.adapters.Bitmovin(bitmovinPlayerApi));
+            const youboraBitmovinAdapter = new youboraAdapter(bitmovinPlayerApi);
+            youboraPlugin.setAdapter(youboraBitmovinAdapter);
           }
 
           return bitmovinPlayerApi;
@@ -200,7 +201,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       }
 
       function createYouboraPlugin(): any {
-        return new youbora.Plugin(youboraConfig);
+        return new youboraLib.Plugin(youboraConfig);
       }
 
       function createPlugins(): PlayerPlugin[] {

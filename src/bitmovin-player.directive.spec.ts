@@ -19,7 +19,8 @@ describe('BitmovinPlayerDirective', () => {
   let configMock: any;
   let controllerVm: any;
   let ksdnSpy: any;
-  let youboraSpy: any;
+  let youboraPlugin: any;
+  let youboraBitmovinAdapter: any;
   let windowSpy: any;
   let bitmovinPlayer: any;
   let bitmovinUiFactory: any;
@@ -46,7 +47,8 @@ describe('BitmovinPlayerDirective', () => {
     controllerVm = { playerSource: null };
     configMock = {};
     ksdnSpy = jasmine.createSpyObj('ksdnMock', ['play']);
-    youboraSpy = jasmine.createSpyObj('youbora', ['setAdapter']);
+    youboraPlugin = jasmine.createSpyObj('youboraPlugin', ['setAdapter']);
+    youboraBitmovinAdapter = jasmine.createSpy('YouboraBitmovinAdapter');
 
     const fakeHtmlElement = { style: { minWidth: 0, minHeight: 0, } };
 
@@ -82,11 +84,9 @@ describe('BitmovinPlayerDirective', () => {
 
       $provide.value('$window', windowSpy);
       $provide.value('ksdn', { Players: { Bitmovin: () => ksdnSpy } });
-      $provide.value('youbora', {
-        Plugin: () => youboraSpy,
-        adapters: {
-          Bitmovin: jasmine.createSpy('BitmovinAdapter')
-        }
+      $provide.value('YouboraAdapter', () => youboraBitmovinAdapter);
+      $provide.value('YouboraLib', {
+        Plugin: () => youboraPlugin,
       });
     });
 
