@@ -15,6 +15,7 @@ export class PlayerApi {
 
   private playerSource: BitmovinSourceConfig;
   private plugins: PlayerPlugin[] = [];
+  private isDestroyed: boolean;
 
   constructor(private playerRef: BitmovinPlayerApi) {
     this.addListeners();
@@ -116,10 +117,21 @@ export class PlayerApi {
     });
   }
 
-  public destroy(options?: PlayerDestroyOptions): void {
-    this.playerRef.unload();
-    this.plugins.forEach((plugin) => plugin.destroy(options));
-    this.playerRef.destroy();
+  public destroy(options?: PlayerDestroyOptions): Promise<void> {
+    if (this.isDestroyed) {
+      return Promise.resolve();
+    }
+    this.isDestroyed = true;
+
+    return new Promise((resolve) => {
+      this.playerRef.unload();
+      this.plugins.forEach((plugin) => plugin.destroy(options));
+
+      setTimeout(() => {
+        this.playerRef.destroy();
+        resolve();
+      }, 60);
+    });
   }
 
   public getPublicApi(): any {
