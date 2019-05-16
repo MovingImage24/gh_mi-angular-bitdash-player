@@ -6,4 +6,7 @@ import { BitmovinPlayerDirective } from './bitmovin-player.directive';
 export default angular.module('mi.BitdashPlayer', [])
   .controller('MiBitdashController', BitmovinPlayerController)
   .directive('miBitdashPlayer', BitmovinPlayerDirective)
-  .factory('ksdn', () => ksdn);
+  .factory('ksdn', () => ksdn)
+  .factory('YouboraLib', () => require('youboralib'))
+  .factory('YouboraAdapter', () => require('youbora-adapter-bitmovin'))
+;

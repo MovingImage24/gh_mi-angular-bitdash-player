@@ -18,9 +18,9 @@ export class AnalyticsPlugin implements PlayerPlugin {
   private readonly playHandler: () => void;
   private readonly endedHandler: () => void;
   private videoPlayPressed: boolean = false;
+  private playerApi: PlayerApi;
 
-  constructor(private playerApi: PlayerApi,
-              private videoId: string,
+  constructor(private videoId: string,
               private logger: Logger) {
     this.http = deps.axios.create({
       baseURL: 'https://c.video-cdn.net/',
@@ -39,7 +39,9 @@ export class AnalyticsPlugin implements PlayerPlugin {
 
   }
 
-  public init(): void {
+  public init(playerApi: PlayerApi): void {
+    this.playerApi = playerApi;
+
     this.sendViewEvent();
     this.addListeners();
   }
@@ -49,7 +51,9 @@ export class AnalyticsPlugin implements PlayerPlugin {
    * and we don't want to track this "live-cycle"
    *
    */
-  public initRecovered(state: RecoverState): void {
+  public initRecovered(playerApi: PlayerApi, state: RecoverState): void {
+    this.playerApi = playerApi;
+
     this.time = state.seekTo || 0;
 
     if (state.hasEnded || !state.playPressed) {

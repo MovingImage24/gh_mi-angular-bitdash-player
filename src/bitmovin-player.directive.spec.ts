@@ -19,6 +19,8 @@ describe('BitmovinPlayerDirective', () => {
   let configMock: any;
   let controllerVm: any;
   let ksdnSpy: any;
+  let youboraPlugin: any;
+  let youboraBitmovinAdapter: any;
   let windowSpy: any;
   let bitmovinPlayer: any;
   let bitmovinUiFactory: any;
@@ -32,10 +34,8 @@ describe('BitmovinPlayerDirective', () => {
     bitmovinPlayer = jasmine.createSpyObj('player', playerFuncSpy);
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
 
-    subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin',
-      ['init', 'destroy']);
-    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi',
-      ['setPlugins', 'initPlugins', 'destroy', 'load']);
+    subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin', ['init', 'destroy']);
+    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi', ['setupPlugins', 'destroy', 'load']);
     playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' }));
 
     bitmovinPlayer.EVENT = {
@@ -47,6 +47,8 @@ describe('BitmovinPlayerDirective', () => {
     controllerVm = { playerSource: null };
     configMock = {};
     ksdnSpy = jasmine.createSpyObj('ksdnMock', ['play']);
+    youboraPlugin = jasmine.createSpyObj('youboraPlugin', ['setAdapter']);
+    youboraBitmovinAdapter = jasmine.createSpy('YouboraBitmovinAdapter');
 
     const fakeHtmlElement = { style: { minWidth: 0, minHeight: 0, } };
 
@@ -82,6 +84,10 @@ describe('BitmovinPlayerDirective', () => {
 
       $provide.value('$window', windowSpy);
       $provide.value('ksdn', { Players: { Bitmovin: () => ksdnSpy } });
+      $provide.value('YouboraAdapter', () => youboraBitmovinAdapter);
+      $provide.value('YouboraLib', {
+        Plugin: () => youboraPlugin,
+      });
     });
 
     ng.mock.inject(($injector: ng.auto.IInjectorService) => {
@@ -276,7 +282,7 @@ describe('BitmovinPlayerDirective', () => {
 
     createComponent();
 
-    expect(playerApi.setPlugins).toHaveBeenCalledWith([subtitlesPlugin]);
+    expect(playerApi.setupPlugins).toHaveBeenCalledWith([subtitlesPlugin], null);
   });
 
   it('should not create subtitle plugin when no video tracks are available', () => {
@@ -287,7 +293,7 @@ describe('BitmovinPlayerDirective', () => {
 
     createComponent();
 
-    expect(playerApi.setPlugins).not.toHaveBeenCalledWith([subtitlesPlugin]);
+    expect(playerApi.setupPlugins).not.toHaveBeenCalledWith(playerApi, [subtitlesPlugin]);
   });
 
 });

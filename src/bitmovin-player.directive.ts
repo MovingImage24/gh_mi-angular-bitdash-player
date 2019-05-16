@@ -11,9 +11,9 @@ export const deps = {
   PlayerApi
 };
 
-BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn'];
+BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'YouboraLib', 'YouboraAdapter'];
 
-export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any): ng.IDirective {
+export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any, youboraLib: any, youboraAdapter: any): ng.IDirective {
   return {
     controller: 'MiBitdashController',
     controllerAs: 'bitdashVm',
@@ -32,6 +32,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       const webcast = scope.webcast;
       const playerConfig = scope.config;
       const recoverState = (scope.options && scope.options.recoverState) ? scope.options.recoverState : null;
+      const youboraConfig = (scope.options && scope.options.youbora) ? scope.options.youbora : null;
       let playerApi: PlayerApi;
 
       init();
@@ -179,6 +180,8 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
 
       function createPlayer(): Promise<BitmovinPlayerApi> {
         const playerSDK = $window.window.bitmovin.player(playerId);
+        const playerPlugins = createPlugins();
+        const youboraPlugin = youboraConfig ? createYouboraPlugin() : null;
 
         // TODO: set it in the app and not here
         playerConfig.style = { ux: false };
@@ -186,23 +189,31 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
           setupPlayerUi(bitmovinPlayerApi);
 
           playerApi = new deps.PlayerApi(bitmovinPlayerApi);
-          playerApi.setPlugins(createPlugins(playerApi));
-          playerApi.initPlugins(recoverState);
+          playerApi.setupPlugins(playerPlugins, recoverState);
+
+          if (youboraPlugin) {
+            const youboraBitmovinAdapter = new youboraAdapter(bitmovinPlayerApi);
+            youboraPlugin.setAdapter(youboraBitmovinAdapter);
+          }
 
           return bitmovinPlayerApi;
         });
       }
 
-      function createPlugins(api: PlayerApi): PlayerPlugin[] {
+      function createYouboraPlugin(): any {
+        return new youboraLib.Plugin(youboraConfig);
+      }
+
+      function createPlugins(): PlayerPlugin[] {
         const plugins = [];
 
         if (controller.vm.playerConfig.videoId) {
-          const miAnalytics = new AnalyticsPlugin(api, controller.vm.playerConfig.videoId, $log);
+          const miAnalytics = new AnalyticsPlugin(controller.vm.playerConfig.videoId, $log);
           plugins.push(miAnalytics);
         }
 
         if (controller.vm.playerConfig.videoTracks) {
-          const subtitlePlugin = new deps.SubtitlesPlugin(api, controller.vm.playerConfig.videoTracks);
+          const subtitlePlugin = new deps.SubtitlesPlugin(controller.vm.playerConfig.videoTracks);
           plugins.push(subtitlePlugin);
         }
 
