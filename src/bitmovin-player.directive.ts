@@ -157,7 +157,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       }
 
       function setupPlayerUi(bitmovinPlayerInstance: BitmovinPlayerApi): void {
-        const isAudioOnly = webcast.layout.layout === 'audio-only';
+        const isAudioOnly = webcast.layout.layout === 'audio-only' || webcast.layout.layout === 'audio-only-compact';
         const bitmovinUIManager: BitmovinUIManager = $window.window.miBitmovinUi.playerui.UIManager.Factory;
 
         if (isAudioOnly) {
