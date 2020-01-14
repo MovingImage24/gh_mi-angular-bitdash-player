@@ -43,6 +43,7 @@ export interface IWindow extends ng.IWindowService {
 export interface IWindowInterface extends Window {
   miBitmovinUi: any;
   bitmovin: any;
+  HiveBitmovin: any;
   ksdn: any;
 }
 
