@@ -39,6 +39,7 @@ export interface P2PSource {
   url?: string;
   token?: string;
   host?: string;
+  techOrder?: string[]
 }
 
 export interface KollectivePlugin {

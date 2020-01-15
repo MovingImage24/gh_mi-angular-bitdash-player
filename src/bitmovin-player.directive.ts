@@ -44,20 +44,17 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
           return;
         }
 
-        // for testing
-        createHivePlayer(controller.vm.playerConfig.type);
-
-        // switch (controller.vm.playerConfig.type) {
-        //   case PlayerPlaybackType.KSDN:
-        //     createKollectivePlayer();
-        //     break;
-        //   case PlayerPlaybackType.HIVE:
-        //   case PlayerPlaybackType.HIVE_WEB_RTC:
-        //     createHivePlayer(controller.vm.playerConfig.type);
-        //     break;
-        //   default:
-        //     createDefaultPlayer();
-        // }
+        switch (controller.vm.playerConfig.type) {
+          case PlayerPlaybackType.KSDN:
+            createKollectivePlayer();
+            break;
+          case PlayerPlaybackType.HIVE:
+          case PlayerPlaybackType.HIVE_WEB_RTC:
+            createHivePlayer();
+            break;
+          default:
+            createDefaultPlayer();
+        }
       }
 
       function createDefaultPlayer(): void {
@@ -124,63 +121,42 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         };
       }
 
-      function createHivePlayer(type: PlayerPlaybackType): void {
-        const bla = type === PlayerPlaybackType.HIVE ? '1' : '2';
-
-        // playerConfig.source = {
-        //   hls_ticket: controller.vm.playerConfig.p2p.url
-        // };
-        // const hiveOptions = {
-        //   HiveJava: {
-        //     onError: () => {
-        //       hivePluginFailed = true;
-        //     },
-        //   },
-        //   debugLevel: 'off',
-        // };
-
-        console.log('PlayerPlaybackType', type);
-
+      function createHivePlayer(): void {
+        const hiveTicket = controller.vm.playerConfig.p2p.url;
+        const pluginConfig = {
+          debugLevel: 'debug', // 'debug', 'off'
+          hiveTechOrder: controller.vm.playerConfig.p2p.techOrder || ['HiveJava', 'HiveJS']
+        };
         const playerRef = $window.window.bitmovin.player(playerId);
-        // $window.window.bitmovin.initHiveSDN(playerRef, hiveOptions);
 
-        console.log('HiveBitmovin:', HiveBitmovin);
         HiveBitmovin.initHiveSDN();
-
-        const plugin = new HiveBitmovin(playerRef, {
-          debugLevel: 'debug', // Debug level (not needed in production)
-          hiveTechOrder: ['HiveJava', 'HiveJS', 'StatsJS']
-        });
-
-        console.log('hive plugin ready');
-        const hiveTicket = 'https://api.hivestreaming.com/v1/events/9021/5e17278c40b3311a695c5f6b/5e172c4940b3311a695c60c0/vdNJUjSWUgviFiGW';
-        // const hiveTicket = controller.vm.playerConfig.p2p.url;
+        const plugin = new HiveBitmovin(playerRef, pluginConfig);
 
         createPlayer()
-          .then((playerInstance) => {
-            return plugin.initSession(hiveTicket)
-              .then((hiveSession) => {
-                return playerInstance.load({ hls: hiveSession.manifest }).then(() => {
-                  console.log('Playback okay');
-                  playerReady();
-                }, (reason) => {
-                  console.log('Bitmovin load ERROR', reason);
-                  playerErrorHandler(reason);
-                });
-              }).catch((error) => {
-                // Partner-specific implementation on how to handle Hive ticket resolution failure
-                console.log('Error resolving Hive ticket', error);
-
-                $log.warn(`Hive plugin failed, fallback to default player. Error: ${error}`);
-                setTimeout(() => {
-                  createDefaultPlayer();
-                }, 60);
-              });
-          })
+          .then((playerInstance) => initHiveSession(plugin, hiveTicket, playerInstance))
           .catch((err: any) => {
-            console.log('Bitmovin general load ERROR', err);
             playerErrorHandler(err);
           });
+      }
+
+      function initHiveSession(hivePlugin: any, hiveTicket: string, playerInstance: BitmovinPlayerApi): BitmovinPlayerApi {
+        const successHandler = (hiveSession) => {
+          return playerInstance.load({ hls: hiveSession.manifest })
+            .then(() => playerReady())
+            .catch((reason) => playerErrorHandler(reason));
+        };
+
+        const errorHandler = (error) => {
+          // Partner-specific implementation on how to handle Hive ticket resolution failure
+          $log.warn(`Hive plugin failed, fallback to default player. Error: ${error}`);
+          setTimeout(() => {
+            createDefaultPlayer();
+          }, 60);
+        };
+
+        return hivePlugin.initSession(hiveTicket)
+          .then(successHandler)
+          .catch(errorHandler);
       }
 
       function playerErrorHandler(error: any): void {
