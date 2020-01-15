@@ -263,7 +263,7 @@ describe('BitmovinPlayerDirective', () => {
     jasmine.clock().tick(60);
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect($log.warn).toHaveBeenCalledWith('Hive plugin failed, fallback to default player. Error: error');
+    expect($log.warn).toHaveBeenCalledWith('Hive plugin failed, fallback to default player. Error: "error"');
     expect(bitmovinPlayer.setup).toHaveBeenCalledTimes(2);
 
     jasmine.clock().uninstall();
