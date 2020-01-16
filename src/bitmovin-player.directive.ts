@@ -8,7 +8,7 @@ import { AnalyticsPlugin, SubtitlesPlugin } from './plugins';
 
 export const deps = {
   SubtitlesPlugin,
-  PlayerApi
+  PlayerApi,
 };
 
 BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'YouboraLib', 'YouboraAdapter', 'HiveBitmovin'];
@@ -116,7 +116,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
             player.load({ hls: src })
               .then(() => playerReady())
               .catch((err) => playerErrorHandler(err));
-          }
+          },
         };
       }
 
@@ -127,7 +127,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
 
         const pluginConfig = {
           debugLevel: 'off', // 'debug', 'off'
-          hiveTechOrder
+          hiveTechOrder,
         };
         const playerRef = $window.window.bitmovin.player(playerId);
 
@@ -271,6 +271,6 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
       scope.$on('$destroy', () => {
         cleanup();
       });
-    }
+    },
   };
 }

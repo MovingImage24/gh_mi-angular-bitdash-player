@@ -40,8 +40,8 @@ export class BitmovinPlayerController {
     return this.$scope.webcast.theme.audioOnlyFileUrl ? {
       audioOnlyOverlayConfig: {
         backgroundImageUrl: this.$scope.webcast.theme.audioOnlyFileUrl,
-        hiddeIndicator: true
-      }
+        hiddeIndicator: true,
+      },
     } : {};
   }
 

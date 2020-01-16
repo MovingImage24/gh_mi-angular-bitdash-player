@@ -38,7 +38,7 @@ describe('BitmovinPlayerDirective', () => {
 
     subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin', ['init', 'destroy']);
     playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi', ['setupPlugins', 'destroy', 'load', 'getPublicApi']);
-    playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' }));
+    playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' } as any));
 
     bitmovinPlayer.EVENT = {
       ON_PLAY: 'ON_PLAY',
@@ -73,10 +73,10 @@ describe('BitmovinPlayerDirective', () => {
           playerui: {
             UIManager: {
               Factory: bitmovinUiFactory,
-            }
-          }
+            },
+          },
         },
-      }
+      },
     };
 
     ng.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
@@ -107,13 +107,13 @@ describe('BitmovinPlayerDirective', () => {
       playerConfig: configMock,
       webcast: {
         layout: {
-          layout: 'audio-only'
+          layout: 'audio-only',
         },
         state: 'postlive',
         theme: {
-          audioOnlyFileUrl: ''
-        }
-      }
+          audioOnlyFileUrl: '',
+        },
+      },
     };
 
     bitmovinPlayer.setup.and.returnValue($q.when(bitmovinPlayer));
@@ -296,9 +296,9 @@ describe('BitmovinPlayerDirective', () => {
           country: '',
           label: 'English',
           source: 'https://a.video-cdn.net/-KV13jA92AKWUyvPxfs_Y1/2EKC8npRq6JAeCLycYNN5y.vtt',
-          type: 'SUBTITLES'
-        }
-      ]
+          type: 'SUBTITLES',
+        },
+      ],
     };
 
     createComponent();
@@ -309,12 +309,12 @@ describe('BitmovinPlayerDirective', () => {
   it('should not create subtitle plugin when no video tracks are available', () => {
     controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
-      type: PlayerPlaybackType.DEFAULT
+      type: PlayerPlaybackType.DEFAULT,
     };
 
     createComponent();
 
-    expect(playerApi.setupPlugins).not.toHaveBeenCalledWith(playerApi, [subtitlesPlugin]);
+    expect(playerApi.setupPlugins as any).not.toHaveBeenCalledWith(playerApi, [subtitlesPlugin]);
   });
 
 });

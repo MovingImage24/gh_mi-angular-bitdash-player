@@ -28,7 +28,7 @@ describe('AnalyticsPlugin', () => {
 
   it('should send view-event on init and register player events', () => {
     const expectedCallParams = {
-      params: { 'event': 'view', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
+      params: { 'event': 'view', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' },
     };
 
     const plugin = new AnalyticsPlugin( 'video-id-1', logger);
@@ -46,7 +46,7 @@ describe('AnalyticsPlugin', () => {
 
   it('should send plays event on first play', () => {
     const expectedCallParams = {
-      params: { 'event': 'play', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
+      params: { 'event': 'play', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' },
     };
 
     const plugin = new AnalyticsPlugin( 'video-id-1', logger);
@@ -67,13 +67,13 @@ describe('AnalyticsPlugin', () => {
 
   it('should send exit event on video ended', () => {
     const expectedViewEventParams = {
-      params: { 'event': 'view', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
+      params: { 'event': 'view', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' },
     };
     const expectedPlayEventParams = {
-      params: { 'event': 'play', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' }
+      params: { 'event': 'play', 'video-id': 'video-id-1', 'url': 'http://localhost:9876/context.html' },
     };
     const expectedExitEventParams = {
-      params: { 'event': 'exit', 'video-id': 'video-id-1', 'current-time': 10 }
+      params: { 'event': 'exit', 'video-id': 'video-id-1', 'current-time': 10 },
     };
 
     const plugin = new AnalyticsPlugin( 'video-id-1', logger);
@@ -100,7 +100,7 @@ describe('AnalyticsPlugin', () => {
     expect(axiosInstance.get.calls.argsFor(2)[1]).toEqual(expectedExitEventParams);
 
     // after the video ends, we add the play-handler again
-    expect(playerApi.off).toHaveBeenCalledWith('playing', jasmine.any(Function));
+    expect(playerApi.off).toHaveBeenCalledWith(PlayerEvent.PLAY, jasmine.any(Function));
     expect(playerApi.on.calls.argsFor(3)[0]).toBe(PlayerEvent.PLAY);
   });
 
