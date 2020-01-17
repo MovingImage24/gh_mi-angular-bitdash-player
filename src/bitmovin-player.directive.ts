@@ -57,11 +57,17 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         }
       }
 
+      function createPlayer(): BitmovinPlayerApi {
+        return $window.window.bitmovin.player(playerId);
+      }
+
       function createDefaultPlayer(): void {
         const source = { hls: controller.vm.playerConfig.hlsUrl };
         playerConfig.source = {}; // we don't want to load sources on setup
 
-        createPlayer()
+        const bitmovinPlayer = createPlayer();
+
+        setupPlayer(bitmovinPlayer)
           .then(() => {
             return playerApi.load(source)
               .then(() => playerReady())
@@ -71,13 +77,15 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
       }
 
       function createKollectivePlayer(): void {
+        const bitmovinPlayer = createPlayer();
+
         playerConfig.source = {}; // we want to set the source by the plugin
         const auth = controller.vm.playerConfig.p2p.token;
         const urn = controller.vm.playerConfig.p2p.urn;
         const host = controller.vm.playerConfig.p2p.host;
         const fallbackSrc = controller.vm.playerConfig.hlsUrl;
 
-        createPlayer()
+        setupPlayer(bitmovinPlayer)
           .then((bitmovinPlayerInstance) => {
             const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host, fallbackSrc });
             const livecycleHooks = getKollectiveLivecyleHooks();
@@ -129,13 +137,13 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
           debugLevel: 'off', // 'debug', 'off'
           hiveTechOrder,
         };
-        const playerRef = $window.window.bitmovin.player(playerId);
 
         HiveBitmovin.initHiveSDN();
-        const plugin = new HiveBitmovin(playerRef, pluginConfig);
+        const bitmovinPlayer = createPlayer();
+        const plugin = new HiveBitmovin(bitmovinPlayer, pluginConfig);
 
-        createPlayer()
-          .then((playerInstance) => initHiveSession(plugin, hiveTicket, playerInstance))
+        setupPlayer(bitmovinPlayer)
+          .then((player) => initHiveSession(plugin, hiveTicket, player))
           .catch((err: any) => {
             playerErrorHandler(err);
           });
@@ -168,14 +176,14 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         $log.error('player error:', error);
       }
 
-      function setupPlayerUi(bitmovinPlayerInstance: BitmovinPlayerApi): void {
+      function setupPlayerUi(bitmovinPlayer: BitmovinPlayerApi): void {
         const isAudioOnly = webcast.layout.layout === 'audio-only' || webcast.layout.layout === 'audio-only-compact';
         const bitmovinUIManager: BitmovinUIManager = $window.window.miBitmovinUi.playerui.UIManager.Factory;
 
         if (isAudioOnly) {
-          bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayerInstance, controller.getAudioOnlyPlayerConfig());
+          bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer, controller.getAudioOnlyPlayerConfig());
         } else {
-          bitmovinUIManager.buildAudioVideoUI(bitmovinPlayerInstance);
+          bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
         }
 
         const bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
@@ -190,14 +198,13 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         return $window.document.getElementsByClassName(className)[0] as HTMLElement;
       }
 
-      function createPlayer(): Promise<BitmovinPlayerApi> {
-        const playerSDK = $window.window.bitmovin.player(playerId);
+      function setupPlayer(bitmovinPlayer: BitmovinPlayerApi): Promise<BitmovinPlayerApi> {
         const playerPlugins = createPlugins();
         const youboraPlugin = youboraConfig ? createYouboraPlugin() : null;
 
         // TODO: set it in the app and not here
         playerConfig.style = { ux: false };
-        return playerSDK.setup(playerConfig).then((bitmovinPlayerApi) => {
+        return bitmovinPlayer.setup(playerConfig).then((bitmovinPlayerApi) => {
           setupPlayerUi(bitmovinPlayerApi);
 
           playerApi = new deps.PlayerApi(bitmovinPlayerApi);
