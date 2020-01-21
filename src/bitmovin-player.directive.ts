@@ -130,8 +130,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
 
       function createHivePlayer(): void {
         const hiveTicket = controller.vm.playerConfig.p2p.url;
-        const hiveTechOrder = controller.vm.playerConfig.p2p.techOrder || ['HiveJava', 'HiveJS'];
-        hiveTechOrder.push('StatsJS');
+        const hiveTechOrder = ['HiveJava', 'HiveJS', 'StatsJS'];
 
         const pluginConfig = {
           debugLevel: 'off', // 'debug', 'off'
