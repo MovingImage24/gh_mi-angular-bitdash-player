@@ -129,8 +129,13 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
       }
 
       function createHivePlayer(): void {
+        const hiveTech = {
+          JAVA: 'HiveJava',
+          JS: 'HiveJS',
+          STATS: 'StatsJS',
+        };
         const hiveTicket = controller.vm.playerConfig.p2p.url;
-        const hiveTechOrder = ['HiveJava', 'HiveJS', 'StatsJS'];
+        const hiveTechOrder = [hiveTech.JAVA, hiveTech.JS, hiveTech.STATS];
 
         const pluginConfig = {
           debugLevel: 'off', // 'debug', 'off'
@@ -157,7 +162,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
 
         const errorHandler = (error) => {
           // Partner-specific implementation on how to handle Hive ticket resolution failure
-          $log.warn(`Hive plugin failed, fallback to default player. Error: ${JSON.stringify(error)}`);
+          $log.warn(`Hive plugin failed, fallback to default player. Error:`, error);
 
           playerInstance.destroy();
 
