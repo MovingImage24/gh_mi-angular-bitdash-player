@@ -32,11 +32,11 @@
   "devDependencies": {
     "@types/angular": "~1.6.17",
     "@types/angular-mocks": "~1.5.9",
-    "@types/jasmine": "^3.5.0",
-    "@types/karma": "^3.0.5",
+    "@types/jasmine": "^3.5.4",
+    "@types/karma": "^3.0.6",
     "@types/karma-jasmine": "0.0.31",
-    "@types/node": "^13.1.7",
-    "@types/webpack": "^4.41.2",
+    "@types/node": "^13.7.1",
+    "@types/webpack": "^4.41.6",
     "angular": "~1.5.8",
     "angular-mocks": "~1.5.1",
     "awesome-typescript-loader": "^5.2.1",
@@ -45,7 +45,7 @@
     "jasmine-core": "^3.5.0",
     "karma": "^4.4.1",
     "karma-coverage": "^2.0.1",
-    "karma-jasmine": "^3.1.0",
+    "karma-jasmine": "^3.1.1",
     "karma-junit-reporter": "^2.0.1",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-source-map-support": "^1.4.0",
@@ -55,14 +55,14 @@
     "phantomjs-prebuilt": "^2.1.16",
     "pre-commit": "^1.2.2",
     "remap-istanbul": "^0.13.0",
-    "rimraf": "^3.0.0",
+    "rimraf": "^3.0.2",
     "source-map-support": "^0.5.16",
     "tslint": "^5.20.1",
     "tslint-eslint-rules": "^5.4.0",
     "tslint-loader": "^3.5.4",
     "typescript": "^3.1.6",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10"
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
   },
   "scripts": {
     "clean-web": "rimraf dist",
@@ -72,7 +72,7 @@
     "test": "karma start karma.config.js"
   },
   "dependencies": {
-    "axios": "^0.19.1",
+    "axios": "^0.19.2",
     "youbora-adapter-bitmovin": "^6.4.4",
     "youboralib": "^6.4.28"
   }
