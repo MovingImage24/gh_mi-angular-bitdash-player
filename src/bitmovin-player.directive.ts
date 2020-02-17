@@ -43,13 +43,13 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         if (!controller.vm.playerConfig) {
           return;
         }
+        const playerType = controller.vm.playerConfig.type;
 
-        switch (controller.vm.playerConfig.type) {
+        switch (playerType) {
           case PlayerPlaybackType.KSDN:
             createKollectivePlayer();
             break;
           case PlayerPlaybackType.HIVE:
-          case PlayerPlaybackType.HIVE_WEB_RTC:
             createHivePlayer();
             break;
           default:
@@ -129,13 +129,8 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
       }
 
       function createHivePlayer(): void {
-        const hiveTech = {
-          JAVA: 'HiveJava',
-          JS: 'HiveJS',
-          STATS: 'StatsJS',
-        };
         const hiveTicket = controller.vm.playerConfig.p2p.url;
-        const hiveTechOrder = [hiveTech.JAVA, hiveTech.JS, hiveTech.STATS];
+        const hiveTechOrder = controller.vm.playerConfig.tech || ['HiveJava', 'HiveStats'];
 
         const pluginConfig = {
           debugLevel: 'off', // 'debug', 'off'
