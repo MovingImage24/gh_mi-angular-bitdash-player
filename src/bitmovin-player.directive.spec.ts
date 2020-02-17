@@ -27,6 +27,8 @@ describe('BitmovinPlayerDirective', () => {
   let createComponent: () => void;
   let subtitlesPlugin: SpyObj<SubtitlesPlugin>;
   let playerApi: SpyObj<PlayerApi>;
+  let hiveBitmovinPlugin: any;
+  let hivePluginInstance: any;
 
   beforeEach(() => {
     const playerFuncSpy: string [] = ['setup', 'load', 'destroy', 'addEventHandler', 'unload'];
@@ -35,8 +37,8 @@ describe('BitmovinPlayerDirective', () => {
     bitmovinUiFactory = jasmine.createSpyObj('Factory', playerUISpy);
 
     subtitlesPlugin = jasmine.createSpyObj<SubtitlesPlugin>('SubtitlesPlugin', ['init', 'destroy']);
-    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi', ['setupPlugins', 'destroy', 'load']);
-    playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' }));
+    playerApi = jasmine.createSpyObj<PlayerApi>('PlayerApi', ['setupPlugins', 'destroy', 'load', 'getPublicApi']);
+    playerApi.load.and.returnValue(Promise.resolve({ hls: 'hls-url' } as any));
 
     bitmovinPlayer.EVENT = {
       ON_PLAY: 'ON_PLAY',
@@ -50,6 +52,10 @@ describe('BitmovinPlayerDirective', () => {
     youboraPlugin = jasmine.createSpyObj('youboraPlugin', ['setAdapter']);
     youboraBitmovinAdapter = jasmine.createSpy('YouboraBitmovinAdapter');
 
+    hivePluginInstance = jasmine.createSpyObj('HiveBitmovinPlugin', ['initSession']);
+    hiveBitmovinPlugin = () => hivePluginInstance;
+    hiveBitmovinPlugin.initHiveSDN = jasmine.createSpy('initHiveSDN');
+
     const fakeHtmlElement = { style: { minWidth: 0, minHeight: 0, } };
 
     windowSpy = {
@@ -61,17 +67,16 @@ describe('BitmovinPlayerDirective', () => {
       },
       window: {
         bitmovin: {
-          initHiveSDN: jasmine.createSpy('initHiveSDN').and.returnValue(true),
           player: () => bitmovinPlayer,
         },
         miBitmovinUi: {
           playerui: {
             UIManager: {
               Factory: bitmovinUiFactory,
-            }
-          }
+            },
+          },
         },
-      }
+      },
     };
 
     ng.mock.module(($compileProvider: any, $controllerProvider: any, $provide: any) => {
@@ -85,6 +90,7 @@ describe('BitmovinPlayerDirective', () => {
       $provide.value('$window', windowSpy);
       $provide.value('ksdn', { Players: { Bitmovin: () => ksdnSpy } });
       $provide.value('YouboraAdapter', () => youboraBitmovinAdapter);
+      $provide.value('HiveBitmovin', hiveBitmovinPlugin);
       $provide.value('YouboraLib', {
         Plugin: () => youboraPlugin,
       });
@@ -101,13 +107,13 @@ describe('BitmovinPlayerDirective', () => {
       playerConfig: configMock,
       webcast: {
         layout: {
-          layout: 'audio-only'
+          layout: 'audio-only',
         },
         state: 'postlive',
         theme: {
-          audioOnlyFileUrl: ''
-        }
-      }
+          audioOnlyFileUrl: '',
+        },
+      },
     };
 
     bitmovinPlayer.setup.and.returnValue($q.when(bitmovinPlayer));
@@ -249,20 +255,35 @@ describe('BitmovinPlayerDirective', () => {
       },
       type: PlayerPlaybackType.HIVE,
     };
-    windowSpy.window.bitmovin.initHiveSDN.and.callFake((player: any, options: any) => {
-      options.HiveJava.onError();
-    });
-    bitmovinPlayer.setup.and.returnValue($q.reject('error'));
+
+    hivePluginInstance.initSession.and.returnValue($q.reject('error'));
     spyOn($log, 'warn');
 
     createComponent();
     jasmine.clock().tick(60);
 
     expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
-    expect($log.warn).toHaveBeenCalledWith('Hive plugin failed, fallback to default player. Error: error');
+    expect($log.warn).toHaveBeenCalledWith('Hive plugin failed, fallback to default player. Error:', 'error');
     expect(bitmovinPlayer.setup).toHaveBeenCalledTimes(2);
 
     jasmine.clock().uninstall();
+  });
+
+  it('should create a player with hive plugin', () => {
+    controllerVm.playerConfig = {
+      hlsUrl: 'hls-url',
+      p2p: {
+        url: 'url-1',
+      },
+      type: PlayerPlaybackType.HIVE,
+    };
+
+    hivePluginInstance.initSession.and.returnValue($q.resolve({ manifest: 'the-manifest' }));
+
+    createComponent();
+
+    expect(bitmovinPlayer.setup).toHaveBeenCalledWith(configMock);
+    expect(playerApi.getPublicApi).toHaveBeenCalled();
   });
 
   it('should create subtitle plugin when video tracks available', () => {
@@ -275,9 +296,9 @@ describe('BitmovinPlayerDirective', () => {
           country: '',
           label: 'English',
           source: 'https://a.video-cdn.net/-KV13jA92AKWUyvPxfs_Y1/2EKC8npRq6JAeCLycYNN5y.vtt',
-          type: 'SUBTITLES'
-        }
-      ]
+          type: 'SUBTITLES',
+        },
+      ],
     };
 
     createComponent();
@@ -288,12 +309,12 @@ describe('BitmovinPlayerDirective', () => {
   it('should not create subtitle plugin when no video tracks are available', () => {
     controllerVm.playerConfig = {
       hlsUrl: 'hls-url',
-      type: PlayerPlaybackType.DEFAULT
+      type: PlayerPlaybackType.DEFAULT,
     };
 
     createComponent();
 
-    expect(playerApi.setupPlugins).not.toHaveBeenCalledWith(playerApi, [subtitlesPlugin]);
+    expect(playerApi.setupPlugins as any).not.toHaveBeenCalledWith(playerApi, [subtitlesPlugin]);
   });
 
 });

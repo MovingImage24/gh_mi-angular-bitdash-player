@@ -32,6 +32,7 @@ export interface WebcastPlayerConfig {
   p2p?: P2PSource;
   videoId?: string;
   videoTracks?: WebcastVideoTrackConfig[];
+  tech?: string[]
 }
 
 export interface P2PSource {

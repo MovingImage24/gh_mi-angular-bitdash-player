@@ -41,8 +41,10 @@ export interface IWindow extends ng.IWindowService {
 }
 
 export interface IWindowInterface extends Window {
+  __HiveBitmovin: any;
   miBitmovinUi: any;
   bitmovin: any;
+  HiveBitmovin: any;
   ksdn: any;
 }
 

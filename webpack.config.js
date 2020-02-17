@@ -5,7 +5,7 @@ const {resolve} = require('path');
 module.exports = function(env, argv) {
   const srcPath = resolve(__dirname, 'src', 'index.ts');
   const playerUiPath = resolve(__dirname, 'lib', 'uimanager', 'main.ts');
-  const hivePath = resolve(__dirname, 'lib', 'hive', 'bitmovin.hive.min.js');
+  const hivePath = resolve(__dirname, 'lib', 'hive', 'bitmovin.java.hivejs.hive.min.js');
   const dstPath = resolve(__dirname, 'dist');
   const devtool = argv.mode === 'production' ? false : 'cheap-module-source-map';
   const filename = argv.mode === 'production' ? 'mi-angular-bitdash-player.js' : 'mi-angular-bitdash-player.dev.js';

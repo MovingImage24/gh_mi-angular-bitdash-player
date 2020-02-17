@@ -8,12 +8,14 @@ import { AnalyticsPlugin, SubtitlesPlugin } from './plugins';
 
 export const deps = {
   SubtitlesPlugin,
-  PlayerApi
+  PlayerApi,
 };
 
-BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'YouboraLib', 'YouboraAdapter'];
+BitmovinPlayerDirective.$inject = ['$window', '$log', 'ksdn', 'YouboraLib', 'YouboraAdapter', 'HiveBitmovin'];
 
-export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, ksdn: any, youboraLib: any, youboraAdapter: any): ng.IDirective {
+export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
+                                        ksdn: any, youboraLib: any, youboraAdapter: any,
+                                        HiveBitmovin: any): ng.IDirective {
   return {
     controller: 'MiBitdashController',
     controllerAs: 'bitdashVm',
@@ -41,8 +43,9 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
         if (!controller.vm.playerConfig) {
           return;
         }
+        const playerType = controller.vm.playerConfig.type;
 
-        switch (controller.vm.playerConfig.type) {
+        switch (playerType) {
           case PlayerPlaybackType.KSDN:
             createKollectivePlayer();
             break;
@@ -54,12 +57,17 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
         }
       }
 
+      function createPlayer(): BitmovinPlayerApi {
+        return $window.window.bitmovin.player(playerId);
+      }
+
       function createDefaultPlayer(): void {
         const source = { hls: controller.vm.playerConfig.hlsUrl };
-
         playerConfig.source = {}; // we don't want to load sources on setup
 
-        createPlayer()
+        const bitmovinPlayer = createPlayer();
+
+        setupPlayer(bitmovinPlayer)
           .then(() => {
             return playerApi.load(source)
               .then(() => playerReady())
@@ -69,13 +77,15 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       }
 
       function createKollectivePlayer(): void {
+        const bitmovinPlayer = createPlayer();
+
         playerConfig.source = {}; // we want to set the source by the plugin
         const auth = controller.vm.playerConfig.p2p.token;
         const urn = controller.vm.playerConfig.p2p.urn;
         const host = controller.vm.playerConfig.p2p.host;
         const fallbackSrc = controller.vm.playerConfig.hlsUrl;
 
-        createPlayer()
+        setupPlayer(bitmovinPlayer)
           .then((bitmovinPlayerInstance) => {
             const ksdnPlugin = new ksdn.Players.Bitmovin({ auth, host, fallbackSrc });
             const livecycleHooks = getKollectiveLivecyleHooks();
@@ -114,56 +124,65 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
             player.load({ hls: src })
               .then(() => playerReady())
               .catch((err) => playerErrorHandler(err));
-          }
+          },
         };
       }
 
       function createHivePlayer(): void {
-        let hivePluginFailed = false;
+        const hiveTicket = controller.vm.playerConfig.p2p.url;
+        const hiveTechOrder = controller.vm.playerConfig.tech || ['HiveJava', 'HiveStats'];
 
-        playerConfig.source = {
-          hls_ticket: controller.vm.playerConfig.p2p.url
+        const pluginConfig = {
+          debugLevel: 'off', // 'debug', 'off'
+          hiveTechOrder,
         };
 
-        const hiveOptions = {
-          HiveJava: {
-            onError: () => {
-              hivePluginFailed = true;
-            },
-          },
-          debugLevel: 'off',
-        };
+        HiveBitmovin.initHiveSDN();
+        const bitmovinPlayer = createPlayer();
+        const plugin = new HiveBitmovin(bitmovinPlayer, pluginConfig);
 
-        const playerRef = $window.window.bitmovin.player(playerId);
-        $window.window.bitmovin.initHiveSDN(playerRef, hiveOptions);
-
-        createPlayer()
-          .then(() => playerReady())
+        setupPlayer(bitmovinPlayer)
+          .then((player) => initHiveSession(plugin, hiveTicket, player))
           .catch((err: any) => {
-            if (hivePluginFailed) {
-              $log.warn(`Hive plugin failed, fallback to default player. Error: ${err}`);
-
-              setTimeout(() => {
-                createDefaultPlayer();
-              }, 60);
-            } else {
-              playerErrorHandler(err);
-            }
+            playerErrorHandler(err);
           });
+      }
+
+      function initHiveSession(hivePlugin: any, hiveTicket: string, playerInstance: BitmovinPlayerApi): BitmovinPlayerApi {
+        const successHandler = (hiveSession) => {
+          return playerInstance.load({ hls: hiveSession.manifest })
+            .then(() => playerReady())
+            .catch((reason) => playerErrorHandler(reason));
+        };
+
+        const errorHandler = (error) => {
+          // Partner-specific implementation on how to handle Hive ticket resolution failure
+          $log.warn(`Hive plugin failed, fallback to default player. Error:`, error);
+
+          playerInstance.destroy();
+
+          setTimeout(() => {
+            createDefaultPlayer();
+          }, 60);
+        };
+
+        return hivePlugin.initSession(hiveTicket)
+          .then(successHandler)
+          .catch(errorHandler);
       }
 
       function playerErrorHandler(error: any): void {
         $log.error('player error:', error);
       }
 
-      function setupPlayerUi(bitmovinPlayerInstance: BitmovinPlayerApi): void {
+      function setupPlayerUi(bitmovinPlayer: BitmovinPlayerApi): void {
         const isAudioOnly = webcast.layout.layout === 'audio-only' || webcast.layout.layout === 'audio-only-compact';
         const bitmovinUIManager: BitmovinUIManager = $window.window.miBitmovinUi.playerui.UIManager.Factory;
 
         if (isAudioOnly) {
-          bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayerInstance, controller.getAudioOnlyPlayerConfig());
+          bitmovinUIManager.buildAudioOnlyUI(bitmovinPlayer, controller.getAudioOnlyPlayerConfig());
         } else {
-          bitmovinUIManager.buildAudioVideoUI(bitmovinPlayerInstance);
+          bitmovinUIManager.buildAudioVideoUI(bitmovinPlayer);
         }
 
         const bitmovinControlbar = getElementsByClassName('bitmovinplayer-container');
@@ -178,14 +197,13 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
         return $window.document.getElementsByClassName(className)[0] as HTMLElement;
       }
 
-      function createPlayer(): Promise<BitmovinPlayerApi> {
-        const playerSDK = $window.window.bitmovin.player(playerId);
+      function setupPlayer(bitmovinPlayer: BitmovinPlayerApi): Promise<BitmovinPlayerApi> {
         const playerPlugins = createPlugins();
         const youboraPlugin = youboraConfig ? createYouboraPlugin() : null;
 
         // TODO: set it in the app and not here
         playerConfig.style = { ux: false };
-        return playerSDK.setup(playerConfig).then((bitmovinPlayerApi) => {
+        return bitmovinPlayer.setup(playerConfig).then((bitmovinPlayerApi) => {
           setupPlayerUi(bitmovinPlayerApi);
 
           playerApi = new deps.PlayerApi(bitmovinPlayerApi);
@@ -259,6 +277,6 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService, 
       scope.$on('$destroy', () => {
         cleanup();
       });
-    }
+    },
   };
 }
