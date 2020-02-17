@@ -37,7 +37,7 @@
     "@types/karma-jasmine": "0.0.31",
     "@types/node": "^13.1.7",
     "@types/webpack": "^4.41.2",
-    "angular": "~1.5.8",
+    "angular": "~1.7.9",
     "angular-mocks": "~1.5.1",
     "awesome-typescript-loader": "^5.2.1",
     "core-js": "^3.6.4",
