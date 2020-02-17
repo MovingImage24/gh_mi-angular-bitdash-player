@@ -152,7 +152,7 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         const successHandler = (hiveSession) => {
           return playerInstance.load({ hls: hiveSession.manifest })
             .then(() => playerReady())
-            .catch((reason) => playerErrorHandler(reason));
+            .catch((reason) => errorHandler(reason));
         };
 
         const errorHandler = (error) => {
