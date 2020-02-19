@@ -135,6 +135,9 @@ export function BitmovinPlayerDirective($window: IWindow, $log: ng.ILogService,
         const pluginConfig = {
           debugLevel: 'off', // 'debug', 'off'
           hiveTechOrder,
+          HiveJS: {
+            renderStatsCallback: (stats) => ($window.window.hiveRenderStatsCallback || ng.noop)(stats),
+          },
         };
 
         HiveBitmovin.initHiveSDN();
