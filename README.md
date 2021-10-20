@@ -1,3 +1,8 @@
+### This repository is deprecated!
+
+### The relevant repository can be found here [mi-angular-bitdash-player](https://github.com/movingimage-evp/mi-angular-bitdash-player)
+
+
 # Bitdash-Player of bitmovin for Angular
 
 [![GitHub version](https://badge.fury.io/gh/movingimage24%2Fmi-angular-bitdash-player.svg)](http://badge.fury.io/gh/movingimage24%2Fmi-angular-bitdash-player)
