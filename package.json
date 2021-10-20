@@ -72,7 +72,7 @@
     "test": "karma start karma.config.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.2",
     "youbora-adapter-bitmovin": "^6.4.4",
     "youboralib": "^6.4.28"
   }
